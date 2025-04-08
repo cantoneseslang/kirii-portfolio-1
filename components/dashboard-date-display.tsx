@@ -65,9 +65,13 @@ const DashboardDateDisplay = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
     const day = currentDate.getDate();
-    const weekDay = ['日', '月', '火', '水', '木', '金', '土'][currentDate.getDay()];
     
-    return `${year}年${month}月${day}日 星期${weekDay}`;
+    // 中国語の曜日表記
+    const chineseWeekDay = ['日', '一', '二', '三', '四', '五', '六'][currentDate.getDay()];
+    // 英語の曜日略称
+    const englishWeekDay = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][currentDate.getDay()];
+    
+    return `${year}年${month}月${day}日 星期${chineseWeekDay} (${englishWeekDay})`;
   };
 
   // 時間をフォーマット (HH:MM:SS)
