@@ -121,6 +121,11 @@ export function LoginForm() {
               </div>
             </button>
           </div>
+          <div className="text-center text-sm mt-4">
+            <a href="/forgot-password" className="text-blue-600 hover:underline">
+              Forgot Password?
+            </a>
+          </div>
         </form>
       </CardContent>
 
