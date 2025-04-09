@@ -14,6 +14,7 @@ import LunchOrderSheetCard from "@/components/lunch-order-sheet-card"
 import SalesDashboardCard from "@/components/sales-dashboard-card"
 import SupplierInfoCard from "@/components/supplier-info-card"
 import DeepSeekChatCard from "@/components/deepseek-chat-card"
+import { Footer } from "@/components/footer"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -163,6 +164,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </DashboardShell>
   )
 }
