@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes logo-shine {
+  0% {
+    left: -100px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    left: 120%;
+    opacity: 0;
+  }
+}
+
+/* ログインボタンのスタイル */
+.login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background-color: #006aff;
+  border: 4px solid #c0dfff;
+  color: white;
+  gap: 8px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 50%;
+  margin: 0 auto;
+}
+
+.login-button-text {
+  font-size: 1.2em;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.login-button-svg {
+  padding-top: 3px;
+  height: 100%;
+  width: fit-content;
+}
+
+.login-button-svg svg {
+  width: 40px;
+  height: 20px;
+}
+
+.login-button:hover {
+  border: 4px solid #b1d8ff;
+  background-color: #1b7aff;
+}
+
+.login-button:active {
+  border: 3px solid #c0dfff;
+}
+
+/* ログイン中の矢印アニメーション */
+.animate-arrow svg {
+  animation: jello-vertical 0.9s infinite;
+  transform-origin: left;
+}
+
+.login-button:hover .login-button-svg svg {
+  animation: jello-vertical 0.9s both;
+  transform-origin: left;
+}
+
+/* ニュースティッカーのアニメーション */
+@keyframes marquee {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.news-ticker-content {
+  display: inline-flex;
+  width: 200%;
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 75s linear infinite;
+  width: 50%;
+  padding-left: 1rem;
+}
+
+@keyframes jello-vertical {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  30% {
+    transform: scale3d(0.75, 1.25, 1);
+  }
+  40% {
+    transform: scale3d(1.25, 0.75, 1);
+  }
+  50% {
+    transform: scale3d(0.85, 1.15, 1);
+  }
+  65% {
+    transform: scale3d(1.05, 0.95, 1);
+  }
+  75% {
+    transform: scale3d(0.95, 1.05, 1);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}

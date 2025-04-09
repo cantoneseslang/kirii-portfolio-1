@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://mnshbcvrrzlumfomniim.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uc2hiY3ZycnpsdW1mb21uaWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4Mzk2MDksImV4cCI6MjA1OTQxNTYwOX0.trKf8ddsJh1hEYayUo6Bb3ytSFqZlNFb9lKlHsyhJ9M",
+    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uc2hiY3ZycnpsdW1mb21uaWltIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MzgzOTYwOSwiZXhwIjoyMDU5NDE1NjA5fQ.zIIn4hdZxG_eMlNMtrD4dcnEWCv5duma7IXQVx-4x5c",
+    "SUPABASE_JWT_SECRET": "plKJI4nEh111c9enCsZweF/yzr+wZeGdeIWpoNu8sNiqPXb16CM0KoeA5/WzKNdPVjh+zqmYWOj1LCs+eFiHgw==",
+    "NEXT_PUBLIC_DEEPSEEK_API_KEY": "sk-40536571639a444886ac912aee63eeab",
+    "NEXT_PUBLIC_DEEPSEEK_API_URL": "https://api.deepseek.com"
+  }
+}

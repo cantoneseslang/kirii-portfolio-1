@@ -134,6 +134,13 @@ export default function DashboardPage() {
         text={`Welcome, ${profile?.full_name || "User"}`}
       />
 
+      <div className="news-ticker mt-4 mb-2 overflow-hidden border-y border-gray-200 py-2">
+        <div className="news-ticker-content flex whitespace-nowrap">
+          <span className="text-blue-600 font-medium animate-marquee">09-04-2025: Official Testing Begins for In-House Portfolio-1-ec6b0az7f.ver Web App (Until Month-End)🆕</span>
+          <span className="text-blue-600 font-medium animate-marquee">09-04-2025: Official Testing Begins for In-House Portfolio-1-ec6b0az7f.ver Web App (Until Month-End)🆕</span>
+        </div>
+      </div>
+
       <div className="grid gap-8 mt-6">
         <div>
           <h3 className="text-lg font-semibold mb-4">AI Assistant</h3>

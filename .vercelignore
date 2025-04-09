@@ -1,0 +1,18 @@
+# バックアップファイル
+*.zip
+*.tar.gz
+kirii-portfolio-backup-*.tar.gz
+kirii-portfolio-final-*.tar.gz
+
+# 不要なディレクトリ
+temp_backup/
+temp_restore/
+temp_restore_backup/
+kirii-portfolio (1)/
+
+# ドキュメントとSQLファイル
+*.md
+*.sql
+
+# その他の大きなファイル
+*.csv

@@ -1,0 +1,17 @@
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next()
+
+  // URLからバイパスパラメータを確認（テスト用）
+  const { searchParams } = new URL(req.url)
+  const bypass = searchParams.get("bypass") === "true"
+
+  // 常にページアクセスを許可する（一時的な対応）
+  return res
+}
+
+export const config = {
+  matcher: ["/", "/dashboard/:path*", "/admin/:path*"],
+}
