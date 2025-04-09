@@ -157,12 +157,14 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">Department: Sales</h3>
-          <div className="flex flex-col gap-6 items-start">
-            <SalesDashboardCard />
+        {(profile?.department === "Sales" || profile?.is_admin) && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Department: Sales</h3>
+            <div className="flex flex-col gap-6 items-start">
+              <SalesDashboardCard />
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <Footer />
     </DashboardShell>
