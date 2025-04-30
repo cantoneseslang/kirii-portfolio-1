@@ -15,6 +15,7 @@ import SalesDashboardCard from "@/components/sales-dashboard-card"
 import SupplierInfoCard from "@/components/supplier-info-card"
 import DeepSeekChatCard from "@/components/deepseek-chat-card"
 import { Footer } from "@/components/footer"
+import GanttChartWBSCard from "@/components/gantt-chart-wbs-card"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -137,7 +138,6 @@ export default function DashboardPage() {
       <div className="news-ticker mt-4 mb-2 overflow-hidden border-y border-gray-200 py-2">
         <div className="news-ticker-content flex whitespace-nowrap">
           <span className="text-blue-600 font-medium animate-marquee">09-04-2025: Official Testing Begins for In-House Portfolio-1-ec6b0az7f.ver Web App (Until Month-End)🆕</span>
-          <span className="text-blue-600 font-medium animate-marquee">09-04-2025: Official Testing Begins for In-House Portfolio-1-ec6b0az7f.ver Web App (Until Month-End)🆕</span>
         </div>
       </div>
 
@@ -146,6 +146,19 @@ export default function DashboardPage() {
           <h3 className="text-lg font-semibold mb-4">AI Assistant</h3>
           <div className="flex flex-col gap-6 items-center">
             <DeepSeekChatCard />
+            <div className="w-full">
+              <div className="flex items-center gap-2 mb-4">
+                <h4 className="text-lg font-semibold">KIRII(HK) Internal AI Chatbot</h4>
+                <img src="/dify_logo_new.png" alt="Dify Logo" className="h-6" />
+                <img src="/gemini_logo_new.png" alt="Gemini Logo" className="h-6" />
+              </div>
+              <iframe
+                src="https://udify.app/chatbot/pBRiHgozXtpWUAiI"
+                style={{ width: '100%', height: '700px', minHeight: '700px' }}
+                frameBorder="0"
+                allow="microphone"
+              />
+            </div>
           </div>
         </div>
 
@@ -167,8 +180,9 @@ export default function DashboardPage() {
         {(profile?.department === "Sales" || profile?.is_admin) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Sales</h3>
-            <div className="flex flex-col gap-6 items-start">
+            <div className="flex flex-col md:flex-row gap-6 items-start">
               <SalesDashboardCard />
+              <GanttChartWBSCard />
             </div>
           </div>
         )}

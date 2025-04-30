@@ -203,8 +203,8 @@ export default function DeepSeekChatCard() {
             model: selectedModel,
             messages: apiMessages,
             temperature: 0.7,
-            max_tokens: 1500,
-            stream: true // Enable streaming
+            max_tokens: 8000,
+            stream: true
           })
         });
         
@@ -222,20 +222,25 @@ export default function DeepSeekChatCard() {
         
         const decoder = new TextDecoder();
         let accumulatedText = '';
-        
+        let buffer = ''; // バッファを追加して不完全なJSONを処理
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           
           const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
+          buffer += chunk;
+          
+          // バッファから完全なデータラインを処理
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // 最後の不完全なラインをバッファに保持
           
           for (const line of lines) {
+            if (line.trim() === '') continue;
+            
             if (line.startsWith('data: ')) {
               const data = line.slice(6);
-              if (data === '[DONE]') {
-                break;
-              }
+              if (data === '[DONE]') continue;
               
               try {
                 const parsed = JSON.parse(data);
@@ -246,8 +251,28 @@ export default function DeepSeekChatCard() {
                 }
               } catch (e) {
                 console.error('Error parsing streaming chunk:', e);
+                console.log('Problematic data:', data);
               }
             }
+          }
+        }
+
+        // 最後のバッファの処理
+        if (buffer) {
+          try {
+            if (buffer.startsWith('data: ')) {
+              const data = buffer.slice(6);
+              if (data !== '[DONE]') {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices[0]?.delta?.content || '';
+                if (content) {
+                  accumulatedText += content;
+                  setStreamedResponse(accumulatedText);
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Error parsing final buffer:', e);
           }
         }
         
@@ -260,11 +285,13 @@ export default function DeepSeekChatCard() {
         setIsStreaming(false);
       }
       
-      // Add response message
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: responseText
-      }]);
+      // Add final response message
+      if (responseText.trim()) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: responseText
+        }]);
+      }
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, {
@@ -350,7 +377,7 @@ export default function DeepSeekChatCard() {
         </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea ref={scrollAreaRef} className="h-[400px] mb-4 p-4 border rounded-lg">
+        <ScrollArea ref={scrollAreaRef} className="h-[400px] mb-4 p-4 border rounded-lg overflow-y-auto">
           {/* Display all messages except the system message */}
           {messages.filter(msg => msg.role !== 'system' || msg.role === 'system' && msg !== messages[0]).map((message, index) => (
             <div
@@ -382,16 +409,17 @@ export default function DeepSeekChatCard() {
                   ))}
                 </div>
               )}
-              {index === messages.length - 1 && !isStreaming && <div ref={messagesEndRef} />}
             </div>
           ))}
           {isStreaming && (
             <div className="mb-4 pl-4 bg-muted/50 rounded p-2">
               <div className="font-semibold mb-1">AI:</div>
-              <div className="whitespace-pre-wrap">{streamedResponse}</div>
-              <div ref={messagesEndRef} />
+              <div className="whitespace-pre-wrap overflow-y-auto" style={{ maxHeight: 'calc(100vh - 400px)' }}>
+                {streamedResponse}
+              </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </ScrollArea>
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
@@ -403,13 +431,26 @@ export default function DeepSeekChatCard() {
                 : "Type a message..."}
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
               disabled={isLoading || isStreaming}
+              className="flex-1"
             />
-            <Button
-              onClick={handleSendMessage}
-              disabled={isLoading || isStreaming || !input.trim()}
-            >
-              {isLoading || isStreaming ? 'Processing...' : 'Send'}
-            </Button>
+            <div className="flex items-center">
+              <Button
+                onClick={handleSendMessage}
+                disabled={isLoading || isStreaming || !input.trim()}
+                className="w-12 h-12 p-0 flex items-center justify-center"
+                variant="ghost"
+              >
+                {isLoading || isStreaming ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900" />
+                ) : (
+                  <img 
+                    src="/images/send-icon.png" 
+                    alt="Send" 
+                    className="w-6 h-6 object-contain"
+                  />
+                )}
+              </Button>
+            </div>
           </div>
           <div className="flex justify-end mt-2">
             <Button

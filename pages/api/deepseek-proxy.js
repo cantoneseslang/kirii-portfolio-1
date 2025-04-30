@@ -18,11 +18,13 @@ export default async function handler(req, res) {
     // キャッシュキーの生成
     const cacheKey = JSON.stringify(req.body);
     
-    // キャッシュのチェック
-    const cachedResponse = responseCache.get(cacheKey);
-    if (cachedResponse && (Date.now() - cachedResponse.timestamp) < CACHE_TTL) {
-      console.log('Returning cached response');
-      return res.status(200).json(cachedResponse.data);
+    // キャッシュのチェック（ストリーミングでない場合のみ）
+    if (!req.body.stream) {
+      const cachedResponse = responseCache.get(cacheKey);
+      if (cachedResponse && (Date.now() - cachedResponse.timestamp) < CACHE_TTL) {
+        console.log('Returning cached response');
+        return res.status(200).json(cachedResponse.data);
+      }
     }
 
     // ストリーミングの設定
@@ -41,19 +43,48 @@ export default async function handler(req, res) {
         body: JSON.stringify(req.body)
       });
 
-      // ストリーミングレスポンスを転送
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value);
-        res.write(chunk);
+      if (!response.ok) {
+        const errorText = await response.text();
+        res.write(`data: ${JSON.stringify({ error: errorText })}\n\n`);
+        res.end();
+        return;
       }
 
-      res.end();
+      // ストリーミングレスポンスを転送
+      const reader = response.body.getReader();
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) {
+            res.write('data: [DONE]\n\n');
+            break;
+          }
+          
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.trim() === '') continue;
+            
+            // データラインをそのまま転送
+            res.write(`${line}\n`);
+            
+            // 明示的にフラッシュ
+            if (res.flush) {
+              res.flush();
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Streaming error:', error);
+        res.write(`data: ${JSON.stringify({ error: 'Streaming error occurred' })}\n\n`);
+      } finally {
+        res.end();
+      }
       return;
     }
 
@@ -86,7 +117,7 @@ export default async function handler(req, res) {
       return res.status(response.status).json(data);
     }
 
-    // キャッシュに保存
+    // キャッシュに保存（ストリーミングでない場合のみ）
     responseCache.set(cacheKey, {
       data,
       timestamp: Date.now()
