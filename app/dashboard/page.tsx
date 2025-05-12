@@ -136,10 +136,10 @@ export default function DashboardPage() {
       />
 
       <div className="news-ticker mt-4 mb-2 overflow-hidden border-y border-gray-200 py-2">
-        <div className="news-ticker-content flex whitespace-nowrap gap-8">
-          <span className="text-blue-600 font-medium animate-marquee">09-04-2025: Official Testing Begins for In-House Portfolio-1-ec6b0az7f.ver Web App (Until Month-End)🆕</span>
-          <span className="text-blue-600 font-medium animate-marquee">09-05-2025: SalesDepartment 3月份數字更新</span>
-          <span className="text-blue-600 font-medium animate-marquee">12-05-2025: 追加新人 公司訂餐追加人名</span>
+        <div className="news-ticker-content flex flex-col md:flex-row whitespace-nowrap gap-2 md:gap-8">
+          <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">09-04-2025: Official Testing Begins for In-House Portfolio-1-ec6b0az7f.ver Web App (Until Month-End)🆕</span>
+          <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">09-05-2025: SalesDepartment 3月份數字更新</span>
+          <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">12-05-2025: 追加新人 公司訂餐追加人名</span>
         </div>
       </div>
 
