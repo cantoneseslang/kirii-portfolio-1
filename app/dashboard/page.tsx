@@ -152,11 +152,7 @@ export default function DashboardPage() {
             <LunchOrderCard />
             <LunchOrderSheetCard />
           </div>
-        </div>
-        
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">KHK-AI-QR-SCAN</h3>
-          <div className="flex flex-col gap-6 items-center justify-center">
+          <div className="flex flex-col gap-6 items-center justify-center mt-6">
             <QRScanCard />
           </div>
         </div>
