@@ -151,6 +151,12 @@ export default function DashboardPage() {
           <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
             <LunchOrderCard />
             <LunchOrderSheetCard />
+          </div>
+        </div>
+        
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-4">KHK-AI-QR-SCAN</h3>
+          <div className="flex flex-col gap-6 items-center justify-center">
             <QRScanCard />
           </div>
         </div>
@@ -165,7 +171,7 @@ export default function DashboardPage() {
         {(profile?.department === "Sales" || profile?.is_admin) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Sales</h3>
-            <div className="flex flex-col md:flex-row gap-6 items-start">
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
               <SalesDashboardCard />
               <GanttChartWBSCard />
             </div>
