@@ -16,6 +16,7 @@ import SupplierInfoCard from "@/components/supplier-info-card"
 import DeepSeekChatCard from "@/components/deepseek-chat-card"
 import { Footer } from "@/components/footer"
 import GanttChartWBSCard from "@/components/gantt-chart-wbs-card"
+import QRScanCard from "@/components/qr-scan-card";
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -150,6 +151,7 @@ export default function DashboardPage() {
           <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
             <LunchOrderCard />
             <LunchOrderSheetCard />
+            <QRScanCard />
           </div>
         </div>
         
