@@ -29,10 +29,10 @@ export function ResetPasswordForm() {
     }
 
     try {
-      // 本番環境のURLを明示的に指定
+      // 開発環境と本番環境のURLを明示的に指定
       const redirectUrl = process.env.NODE_ENV === 'production' 
         ? 'https://kirii-portfolio-1.vercel.app/reset-password-confirmation'
-        : `${window.location.origin}/reset-password-confirmation`
+        : 'http://localhost:3000/reset-password-confirmation'
 
       console.log("Sending password reset email with redirect URL:", redirectUrl)
 
