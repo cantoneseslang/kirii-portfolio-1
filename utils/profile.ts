@@ -111,6 +111,32 @@ export async function updateProfile(profile: Partial<Profile>): Promise<{ succes
   try {
     console.log("Attempting to update profile for ID:", profile.id)
     const supabase = createClientComponentClient()
+    
+    // まず現在のユーザーの管理者権限を確認
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) {
+      console.error("No authenticated session found")
+      return { success: false, error: "Authentication required" }
+    }
+    
+    // 現在のユーザーのプロフィールを取得して管理者権限を確認
+    const { data: currentUserProfile, error: profileError } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", session.user.id)
+      .single()
+    
+    if (profileError) {
+      console.error("Error fetching current user profile:", profileError)
+      return { success: false, error: "Failed to verify user permissions" }
+    }
+    
+    // 管理者権限チェック
+    if (!currentUserProfile?.is_admin) {
+      console.error("Unauthorized: User is not an admin")
+      return { success: false, error: "Unauthorized: Only administrators can update profiles" }
+    }
+    
     const { error } = await supabase
       .from("profiles")
       .update({

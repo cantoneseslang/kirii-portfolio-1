@@ -80,6 +80,16 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
+    
+    // 管理者権限チェック - フォーム送信レベルでも保護
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can update profile information.",
+        variant: "destructive",
+      })
+      return
+    }
 
     setIsSubmitting(true)
     setStatus("Updating profile...")
@@ -243,6 +253,7 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
                 value={profile.username || ""}
                 onChange={handleChange}
                 placeholder="Enter a username"
+                disabled={!isAdmin}
               />
             </div>
 
@@ -254,6 +265,7 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
                 value={profile.full_name || ""}
                 onChange={handleChange}
                 placeholder="Enter your full name"
+                disabled={!isAdmin}
               />
             </div>
 
@@ -265,6 +277,7 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
                 value={profile.department || ""}
                 onChange={handleChange}
                 placeholder="Enter your department"
+                disabled={!isAdmin}
               />
             </div>
 
@@ -276,6 +289,7 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
                 value={profile.position || ""}
                 onChange={handleChange}
                 placeholder="Enter your position"
+                disabled={!isAdmin}
               />
             </div>
 
@@ -286,9 +300,14 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
             )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
+            <Button type="submit" disabled={isSubmitting || !isAdmin}>
+              {isSubmitting ? "Saving..." : isAdmin ? "Save Changes" : "Access Denied"}
             </Button>
+            {!isAdmin && (
+              <p className="text-sm text-red-600 mt-2">
+                ⚠️ Only administrators can modify profile information
+              </p>
+            )}
           </CardFooter>
         </form>
       </Card>
