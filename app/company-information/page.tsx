@@ -36,10 +36,10 @@ export default function CompanyInformationPage() {
               <div>
                 <h4 className="font-semibold mb-2">基本信息 / Basic Information</h4>
                 <div className="space-y-2 text-sm">
-                  <p><strong>公司註冊證書號碼:</strong> [待填入]</p>
+                  <p><strong>公司註冊證書號碼:</strong> 184499</p>
                   <p><strong>稅務編號(TIN):</strong> [待填入]</p>
-                  <p><strong>商業登記證號(BR):</strong> [待填入]</p>
-                  <p><strong>設立日期:</strong> [待填入]</p>
+                  <p><strong>商業登記證號(BR):</strong> 10955344</p>
+                  <p><strong>設立日期:</strong> 1987年5月</p>
                 </div>
               </div>
               <div>
@@ -48,7 +48,7 @@ export default function CompanyInformationPage() {
                   <p><strong>地址:</strong> 香港大埔大埔工業村大富街9號</p>
                   <p><strong>Address:</strong> No. 9 Dai Fu Street, Tai Po Industrial Estate, Tai Po, New Territories, Hong Kong</p>
                   <p><strong>電話/Tel:</strong> (852) 2797 2026</p>
-                  <p><strong>傳真/Fax:</strong> (852) 2264 8167</p>
+                  <p><strong>傳真/Fax:</strong> (852) 2341 2618</p>
                   <p><strong>網站/Web:</strong> <a href="https://www.kirii.com.hk" className="text-blue-600 hover:underline">https://www.kirii.com.hk</a></p>
                 </div>
               </div>
@@ -64,17 +64,17 @@ export default function CompanyInformationPage() {
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2 text-sm">
-                <p><strong>Bank:</strong> [待填入]</p>
-                <p><strong>Head Office branch address:</strong> [待填入]</p>
-                <p><strong>Bank code:</strong> [待填入]</p>
-                <p><strong>SWIFT code:</strong> [待填入]</p>
-                <p><strong>Branch code:</strong> [待填入]</p>
+                <p><strong>Bank:</strong> HongKong & Shanghai Banking Corp.,</p>
+                <p><strong>Head Office branch address:</strong> 1/Fl., Causeway Bay Plaza, Phase 2, 463-483 Lockhart Road, Causeway Bay, Hong Kong</p>
+                <p><strong>Bank code:</strong> 004</p>
+                <p><strong>SWIFT code:</strong> HSBCHKHHHKH</p>
+                <p><strong>Branch code:</strong> 025</p>
               </div>
               <div className="space-y-2 text-sm">
                 <p><strong>Account Number:</strong></p>
-                <p>(HKD): [待填入]</p>
-                <p>(CNY): [待填入]</p>
-                <p>(USD): [待填入]</p>
+                <p>(HKD): 9-051696</p>
+                <p>(CNY): 209545-838</p>
+                <p>(USD): 209545-838</p>
               </div>
             </div>
           </CardContent>
