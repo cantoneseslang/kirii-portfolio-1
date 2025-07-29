@@ -29,23 +29,18 @@ export function ResetPasswordForm() {
     }
 
     try {
-      // 開発環境と本番環境のURLを明示的に指定
-      const redirectUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://kirii-portfolio-1.vercel.app/reset-password-confirmation'
-        : 'http://localhost:3000/reset-password-confirmation'
+      console.log("Sending password reset email...")
 
-      console.log("Sending password reset email with redirect URL:", redirectUrl)
-
-      // Send password reset email
+      // Send password reset email with proper options
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
+        redirectTo: `${window.location.origin}/reset-password-confirmation`,
       })
 
       if (error) {
         throw error
       }
 
-      setSuccess("Password reset email sent. Please check your inbox.")
+      setSuccess("Password reset email sent. Please check your inbox and click the link in the email.")
       console.log("Password reset email sent to:", email)
     } catch (error: any) {
       console.error("Password reset error:", error)
