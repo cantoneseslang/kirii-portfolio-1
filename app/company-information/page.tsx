@@ -21,7 +21,7 @@ export default function CompanyInformationPage() {
     <DashboardShell>
       <DashboardHeader
         heading="Company Information"
-        text="公司信息 - 企業情報の詳細"
+        text="公司信息"
         center={true}
       />
 
