@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [status, setStatus] = useState<string | null>(null)
   const [tableExists, setTableExists] = useState<boolean | null>(null)
   const [isCheckingTable, setIsCheckingTable] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -67,6 +68,8 @@ export default function ProfilePage() {
         setProfile({ id: user.id })
       } else {
         setProfile(profileData)
+        // 管理者権限をチェック
+        setIsAdmin(profileData.is_admin === true)
       }
       setStatus(null)
     } catch (error: any) {
@@ -181,6 +184,44 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
             </div>
           </AlertDescription>
         </Alert>
+      </div>
+    )
+  }
+
+  // 管理者でない場合は編集を禁止
+  if (!isAdmin) {
+    return (
+      <div className="container max-w-2xl py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile Information</CardTitle>
+            <CardDescription>Your personal information (Read-only)</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Username</Label>
+              <Input value={profile.username || ""} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label>Full Name</Label>
+              <Input value={profile.full_name || ""} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label>Department</Label>
+              <Input value={profile.department || ""} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label>Position</Label>
+              <Input value={profile.position || ""} disabled />
+            </div>
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Profile editing is restricted to administrators only. Contact your system administrator if you need to update your information.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
       </div>
     )
   }
