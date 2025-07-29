@@ -21,7 +21,8 @@ export default function CompanyInformationPage() {
     <DashboardShell>
       <DashboardHeader
         heading="Company Information"
-        text="公司信息 - 企业信息的详细"
+        text="公司信息 - 企業情報の詳細"
+        center={true}
       />
 
       <div className="grid gap-6 mt-6">
