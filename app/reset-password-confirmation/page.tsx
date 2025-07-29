@@ -17,17 +17,50 @@ export default function ResetPasswordConfirmation() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [isValidSession, setIsValidSession] = useState(false)
 
   useEffect(() => {
-    // Verify that we have access to the recovery session
-    const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession()
-      if (error || !data?.session) {
-        setError("Invalid or expired recovery link. Please request a new password reset.")
+    const handleAuthCallback = async () => {
+      try {
+        // URLのハッシュ部分からトークンを取得
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        const tokenType = hashParams.get('token_type')
+        const type = hashParams.get('type')
+
+        if (accessToken && refreshToken && type === 'recovery') {
+          // Supabaseセッションを設定
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          })
+
+          if (error) {
+            console.error('Session setup error:', error)
+            setError("Invalid or expired recovery link. Please request a new password reset.")
+          } else {
+            console.log('Session set successfully:', data)
+            setIsValidSession(true)
+            // URLからハッシュを削除
+            window.history.replaceState(null, '', window.location.pathname)
+          }
+        } else {
+          // 既存のセッションをチェック
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+          if (sessionError || !sessionData?.session) {
+            setError("Invalid or expired recovery link. Please request a new password reset.")
+          } else {
+            setIsValidSession(true)
+          }
+        }
+      } catch (err) {
+        console.error('Auth callback error:', err)
+        setError("Error processing recovery link. Please try again.")
       }
     }
     
-    checkSession()
+    handleAuthCallback()
   }, [])
 
   const handlePasswordReset = async (e: React.FormEvent) => {
@@ -82,45 +115,51 @@ export default function ResetPasswordConfirmation() {
               <h2 className="text-xl font-semibold text-center">Set New Password</h2>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handlePasswordReset} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password">New Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="••••••••"
-                    minLength={8}
-                  />
+              {isValidSession ? (
+                <form onSubmit={handlePasswordReset} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="password">New Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      placeholder="••••••••"
+                      minLength={8}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div className="pt-2">
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Updating..." : "Reset Password"}
+                    </Button>
+                  </div>
+                  <div className="text-center text-sm">
+                    <a href="/" className="text-blue-600 hover:underline">
+                      Back to Login
+                    </a>
+                  </div>
+                </form>
+              ) : (
+                <div className="text-center">
+                  <p>Processing recovery link...</p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    placeholder="••••••••"
-                  />
-                </div>
-                <div className="pt-2">
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Updating..." : "Reset Password"}
-                  </Button>
-                </div>
-                <div className="text-center text-sm">
-                  <a href="/" className="text-blue-600 hover:underline">
-                    Back to Login
-                  </a>
-                </div>
-              </form>
+              )}
             </CardContent>
 
             {error && (
