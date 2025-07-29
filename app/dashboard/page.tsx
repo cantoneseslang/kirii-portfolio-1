@@ -170,12 +170,14 @@ export default function DashboardPage() {
           </div>
         )}
         
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">Department: Purchasing</h3>
-          <div className="flex flex-col gap-6 items-start">
-            <SupplierInfoCard />
+        {(profile?.department?.includes("Purchasing") || profile?.is_admin) && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Department: Purchasing</h3>
+            <div className="flex flex-col gap-6 items-start">
+              <SupplierInfoCard />
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <Footer />
     </DashboardShell>

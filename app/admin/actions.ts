@@ -14,6 +14,13 @@ export async function createUser(
   try {
     const supabase = createServerComponentClient({ cookies })
     
+    // 現在のユーザーが管理者かどうかチェック
+    const currentUserIsAdmin = await checkIsAdmin()
+    if (!currentUserIsAdmin) {
+      console.error("Unauthorized: Only admins can create users")
+      return { success: false, error: "Unauthorized: Only administrators can create users" }
+    }
+    
     // ランダムパスワードを生成
     const password = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
     
@@ -57,6 +64,13 @@ export async function deleteUser(id: string): Promise<{ success: boolean; error?
   try {
     const supabase = createServerComponentClient({ cookies })
     
+    // 現在のユーザーが管理者かどうかチェック
+    const currentUserIsAdmin = await checkIsAdmin()
+    if (!currentUserIsAdmin) {
+      console.error("Unauthorized: Only admins can delete users")
+      return { success: false, error: "Unauthorized: Only administrators can delete users" }
+    }
+    
     // まずprofilesテーブルからユーザー情報を削除
     const { error: profileError } = await supabase
       .from("profiles")
@@ -87,6 +101,13 @@ export async function deleteUser(id: string): Promise<{ success: boolean; error?
 export async function updateUserAdmin(userId: string, isAdmin: boolean): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = createServerComponentClient({ cookies })
+    
+    // 現在のユーザーが管理者かどうかチェック
+    const currentUserIsAdmin = await checkIsAdmin()
+    if (!currentUserIsAdmin) {
+      console.error("Unauthorized: Only admins can update user admin status")
+      return { success: false, error: "Unauthorized: Only administrators can update user admin status" }
+    }
 
     const { error } = await supabase.from("profiles").update({ is_admin: isAdmin }).eq("id", userId)
 
