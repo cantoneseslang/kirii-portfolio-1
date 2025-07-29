@@ -63,7 +63,7 @@ export default function ResetPasswordConfirmation() {
 
           if (error) {
             console.error('Session setup error:', error)
-            setError(`セッションの設定に失敗しました: ${error.message}`)
+            setError(`Failed to set up session: ${error.message}`)
           } else {
             console.log('Session set successfully:', data)
             setIsValidSession(true)
@@ -82,18 +82,18 @@ export default function ResetPasswordConfirmation() {
           
           if (sessionError) {
             console.error('Session check error:', sessionError)
-            setError("セッションの確認中にエラーが発生しました。")
+            setError("Error occurred while checking session.")
           } else if (sessionData?.session?.user) {
             console.log('Valid existing session found')
             setIsValidSession(true)
           } else {
             console.log('No valid session found')
-            setError("無効または期限切れのリセットリンクです。新しいパスワードリセットを要求してください。")
+            setError("Invalid or expired reset link. Please request a new password reset.")
           }
         }
       } catch (err) {
         console.error('Auth callback error:', err)
-        setError("リカバリーリンクの処理中にエラーが発生しました。もう一度お試しください。")
+        setError("Error processing recovery link. Please try again.")
       } finally {
         setIsInitializing(false)
       }
@@ -112,13 +112,13 @@ export default function ResetPasswordConfirmation() {
 
     // Input validation
     if (password.length < 8) {
-      setError("パスワードは8文字以上である必要があります")
+      setError("Password must be at least 8 characters long")
       setIsLoading(false)
       return
     }
 
     if (password !== confirmPassword) {
-      setError("パスワードが一致しません")
+      setError("Passwords do not match")
       setIsLoading(false)
       return
     }
@@ -128,7 +128,7 @@ export default function ResetPasswordConfirmation() {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
       
       if (sessionError || !sessionData?.session) {
-        setError("セッションが無効です。新しいパスワードリセットを要求してください。")
+        setError("Session is invalid. Please request a new password reset.")
         setIsLoading(false)
         return
       }
@@ -146,7 +146,7 @@ export default function ResetPasswordConfirmation() {
       }
 
       console.log("Password updated successfully:", data)
-      setSuccess("パスワードが正常にリセットされました。まもなくログインページにリダイレクトされます。")
+      setSuccess("Password successfully reset. You will be redirected to the login page shortly.")
       
       // ログインページにリダイレクト
       setTimeout(() => {
@@ -154,7 +154,7 @@ export default function ResetPasswordConfirmation() {
       }, 3000)
     } catch (error: any) {
       console.error("Password update error:", error)
-      setError(`パスワードの更新中にエラーが発生しました: ${error.message}`)
+      setError(`Error updating password: ${error.message}`)
     } finally {
       setIsLoading(false)
     }
@@ -168,7 +168,7 @@ export default function ResetPasswordConfirmation() {
             <Card className="w-full max-w-md">
               <CardContent className="p-6">
                 <div className="text-center">
-                  <p>リカバリーリンクを処理中...</p>
+                  <p>Processing recovery link...</p>
                 </div>
               </CardContent>
             </Card>
@@ -185,13 +185,13 @@ export default function ResetPasswordConfirmation() {
         <div className="w-full max-w-md">
           <Card className="w-full max-w-md">
             <CardHeader>
-              <h2 className="text-xl font-semibold text-center">新しいパスワードを設定</h2>
+              <h2 className="text-xl font-semibold text-center">Set New Password</h2>
             </CardHeader>
             <CardContent>
               {isValidSession ? (
                 <form onSubmit={handlePasswordReset} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="password">新しいパスワード</Label>
+                    <Label htmlFor="password">New Password</Label>
                     <Input
                       id="password"
                       type="password"
@@ -203,7 +203,7 @@ export default function ResetPasswordConfirmation() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">新しいパスワード（確認）</Label>
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
@@ -219,24 +219,24 @@ export default function ResetPasswordConfirmation() {
                       className="w-full" 
                       disabled={isLoading}
                     >
-                      {isLoading ? "更新中..." : "パスワードをリセット"}
+                      {isLoading ? "Updating..." : "Reset Password"}
                     </Button>
                   </div>
                   <div className="text-center text-sm">
                     <a href="/" className="text-blue-600 hover:underline">
-                      ログインページに戻る
+                      Back to Login
                     </a>
                   </div>
                 </form>
               ) : (
                 <div className="text-center space-y-4">
-                  <p className="text-red-600">有効なリカバリーセッションが見つかりません。</p>
+                  <p className="text-red-600">No valid recovery session found.</p>
                   <Button 
                     onClick={() => router.push("/forgot-password")}
                     variant="outline"
                     className="w-full"
                   >
-                    新しいパスワードリセットを要求
+                    Request New Password Reset
                   </Button>
                 </div>
               )}
