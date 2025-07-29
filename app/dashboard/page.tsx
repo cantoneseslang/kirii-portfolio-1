@@ -17,6 +17,7 @@ import DeepSeekChatCard from "@/components/deepseek-chat-card"
 import { Footer } from "@/components/footer"
 import GanttChartWBSCard from "@/components/gantt-chart-wbs-card"
 import QRScanCard from "@/components/qr-scan-card";
+import CompanyInfoCard from "@/components/company-info-card";
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -167,9 +168,10 @@ export default function DashboardPage() {
         {(profile?.department === "Sales" || profile?.is_admin) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Sales</h3>
-            <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-center flex-wrap">
               <SalesDashboardCard />
               <GanttChartWBSCard />
+              <CompanyInfoCard />
             </div>
           </div>
         )}
