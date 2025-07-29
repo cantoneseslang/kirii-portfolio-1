@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { supabase } from "@/utils/supabase"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,7 +12,6 @@ import { Footer } from "@/components/footer"
 
 export default function ResetPasswordConfirmation() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -26,17 +25,25 @@ export default function ResetPasswordConfirmation() {
       try {
         console.log("Starting password reset callback handling...")
         
-        // URLパラメータとハッシュの両方をチェック
-        let accessToken = searchParams.get('access_token')
-        let refreshToken = searchParams.get('refresh_token')
-        let type = searchParams.get('type')
+        // クライアントサイドでのみURLパラメータを処理
+        let accessToken: string | null = null
+        let refreshToken: string | null = null
+        let type: string | null = null
         
-        // ハッシュからも取得を試行
-        if (!accessToken && window.location.hash) {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1))
-          accessToken = hashParams.get('access_token')
-          refreshToken = hashParams.get('refresh_token')
-          type = hashParams.get('type')
+        // URLSearchParamsを使用してクエリパラメータを取得
+        if (typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(window.location.search)
+          accessToken = urlParams.get('access_token')
+          refreshToken = urlParams.get('refresh_token')
+          type = urlParams.get('type')
+          
+          // ハッシュからも取得を試行
+          if (!accessToken && window.location.hash) {
+            const hashParams = new URLSearchParams(window.location.hash.substring(1))
+            accessToken = hashParams.get('access_token')
+            refreshToken = hashParams.get('refresh_token')
+            type = hashParams.get('type')
+          }
         }
 
         console.log("Tokens found:", { 
@@ -62,8 +69,10 @@ export default function ResetPasswordConfirmation() {
             setIsValidSession(true)
             
             // URLをクリーンアップ
-            const cleanUrl = window.location.pathname
-            window.history.replaceState(null, '', cleanUrl)
+            if (typeof window !== 'undefined') {
+              const cleanUrl = window.location.pathname
+              window.history.replaceState(null, '', cleanUrl)
+            }
           }
         } else {
           console.log("No recovery tokens found, checking existing session...")
@@ -91,7 +100,7 @@ export default function ResetPasswordConfirmation() {
     }
     
     handleAuthCallback()
-  }, [searchParams])
+  }, [])
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault()
