@@ -142,7 +142,6 @@ export default function DashboardPage() {
           <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">28-7-2025: 追加 Company Information 公司信息</span>
           <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">26-7-2025: KHK-AI-QR-SCAN Filed Testing庫存AIQR掃描儀</span>
           <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">25-7-2025至25-8-2025:更新午餐菜單</span>
-          <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">12-05-2025: 追加新人 公司訂餐追加人名</span>
           <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">09-05-2025: SalesDepartment 3月份數字更新</span>
           <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">09-04-2025: Official Testing Begins for In-House Portfolio-1-ec6b0az7f.ver Web App (Until Month-End)🆕</span>
         </div>
