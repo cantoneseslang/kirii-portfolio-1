@@ -63,7 +63,7 @@ export default function CompanyInformationPage() {
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2 text-sm">
-                <p><strong>Bank:</strong> HongKong & Shanghai Banking Corp.,</p>
+                <p><strong>Bank:</strong> The Hongkong and Shanghai Banking Corporation Limited</p>
                 <p><strong>Head Office branch address:</strong> 1/Fl., Causeway Bay Plaza, Phase 2, 463-483 Lockhart Road, Causeway Bay, Hong Kong</p>
                 <p><strong>Bank code:</strong> 004</p>
                 <p><strong>SWIFT code:</strong> HSBCHKHHHKH</p>
