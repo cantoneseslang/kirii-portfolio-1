@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { supabase } from "@/utils/supabase"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,24 +12,42 @@ import { Footer } from "@/components/footer"
 
 export default function ResetPasswordConfirmation() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isValidSession, setIsValidSession] = useState(false)
+  const [isInitializing, setIsInitializing] = useState(true)
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // URLのハッシュ部分からトークンを取得
-        const hashParams = new URLSearchParams(window.location.hash.substring(1))
-        const accessToken = hashParams.get('access_token')
-        const refreshToken = hashParams.get('refresh_token')
-        const tokenType = hashParams.get('token_type')
-        const type = hashParams.get('type')
+        console.log("Starting password reset callback handling...")
+        
+        // URLパラメータとハッシュの両方をチェック
+        let accessToken = searchParams.get('access_token')
+        let refreshToken = searchParams.get('refresh_token')
+        let type = searchParams.get('type')
+        
+        // ハッシュからも取得を試行
+        if (!accessToken && window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          accessToken = hashParams.get('access_token')
+          refreshToken = hashParams.get('refresh_token')
+          type = hashParams.get('type')
+        }
+
+        console.log("Tokens found:", { 
+          hasAccessToken: !!accessToken, 
+          hasRefreshToken: !!refreshToken, 
+          type 
+        })
 
         if (accessToken && refreshToken && type === 'recovery') {
+          console.log("Setting up session with recovery tokens...")
+          
           // Supabaseセッションを設定
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -38,30 +56,42 @@ export default function ResetPasswordConfirmation() {
 
           if (error) {
             console.error('Session setup error:', error)
-            setError("Invalid or expired recovery link. Please request a new password reset.")
+            setError(`セッションの設定に失敗しました: ${error.message}`)
           } else {
             console.log('Session set successfully:', data)
             setIsValidSession(true)
-            // URLからハッシュを削除
-            window.history.replaceState(null, '', window.location.pathname)
+            
+            // URLをクリーンアップ
+            const cleanUrl = window.location.pathname
+            window.history.replaceState(null, '', cleanUrl)
           }
         } else {
+          console.log("No recovery tokens found, checking existing session...")
+          
           // 既存のセッションをチェック
           const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-          if (sessionError || !sessionData?.session) {
-            setError("Invalid or expired recovery link. Please request a new password reset.")
-          } else {
+          
+          if (sessionError) {
+            console.error('Session check error:', sessionError)
+            setError("セッションの確認中にエラーが発生しました。")
+          } else if (sessionData?.session?.user) {
+            console.log('Valid existing session found')
             setIsValidSession(true)
+          } else {
+            console.log('No valid session found')
+            setError("無効または期限切れのリセットリンクです。新しいパスワードリセットを要求してください。")
           }
         }
       } catch (err) {
         console.error('Auth callback error:', err)
-        setError("Error processing recovery link. Please try again.")
+        setError("リカバリーリンクの処理中にエラーが発生しました。もう一度お試しください。")
+      } finally {
+        setIsInitializing(false)
       }
     }
     
     handleAuthCallback()
-  }, [])
+  }, [searchParams])
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,41 +99,75 @@ export default function ResetPasswordConfirmation() {
     setError(null)
     setSuccess(null)
 
+    console.log("Starting password update...")
+
     // Input validation
     if (password.length < 8) {
-      setError("Password must be at least 8 characters long")
+      setError("パスワードは8文字以上である必要があります")
       setIsLoading(false)
       return
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
+      setError("パスワードが一致しません")
       setIsLoading(false)
       return
     }
 
     try {
-      // Update the user's password
+      // 現在のセッションを再確認
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !sessionData?.session) {
+        setError("セッションが無効です。新しいパスワードリセットを要求してください。")
+        setIsLoading(false)
+        return
+      }
+
+      console.log("Updating password for user:", sessionData.session.user.id)
+
+      // パスワードを更新
       const { data, error } = await supabase.auth.updateUser({
-        password,
+        password: password,
       })
 
       if (error) {
+        console.error("Password update error:", error)
         throw error
       }
 
-      setSuccess("Password successfully reset. You will be redirected to the login page shortly.")
+      console.log("Password updated successfully:", data)
+      setSuccess("パスワードが正常にリセットされました。まもなくログインページにリダイレクトされます。")
       
-      // Redirect to login page after a short delay
+      // ログインページにリダイレクト
       setTimeout(() => {
         router.push("/")
-      }, 2000)
+      }, 3000)
     } catch (error: any) {
       console.error("Password update error:", error)
-      setError(`Error updating password: ${error.message}`)
+      setError(`パスワードの更新中にエラーが発生しました: ${error.message}`)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <div className="w-full max-w-md">
+            <Card className="w-full max-w-md">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <p>リカバリーリンクを処理中...</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   return (
@@ -112,13 +176,13 @@ export default function ResetPasswordConfirmation() {
         <div className="w-full max-w-md">
           <Card className="w-full max-w-md">
             <CardHeader>
-              <h2 className="text-xl font-semibold text-center">Set New Password</h2>
+              <h2 className="text-xl font-semibold text-center">新しいパスワードを設定</h2>
             </CardHeader>
             <CardContent>
               {isValidSession ? (
                 <form onSubmit={handlePasswordReset} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="password">New Password</Label>
+                    <Label htmlFor="password">新しいパスワード</Label>
                     <Input
                       id="password"
                       type="password"
@@ -130,7 +194,7 @@ export default function ResetPasswordConfirmation() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Label htmlFor="confirmPassword">新しいパスワード（確認）</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
@@ -146,18 +210,25 @@ export default function ResetPasswordConfirmation() {
                       className="w-full" 
                       disabled={isLoading}
                     >
-                      {isLoading ? "Updating..." : "Reset Password"}
+                      {isLoading ? "更新中..." : "パスワードをリセット"}
                     </Button>
                   </div>
                   <div className="text-center text-sm">
                     <a href="/" className="text-blue-600 hover:underline">
-                      Back to Login
+                      ログインページに戻る
                     </a>
                   </div>
                 </form>
               ) : (
-                <div className="text-center">
-                  <p>Processing recovery link...</p>
+                <div className="text-center space-y-4">
+                  <p className="text-red-600">有効なリカバリーセッションが見つかりません。</p>
+                  <Button 
+                    onClick={() => router.push("/forgot-password")}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    新しいパスワードリセットを要求
+                  </Button>
                 </div>
               )}
             </CardContent>
