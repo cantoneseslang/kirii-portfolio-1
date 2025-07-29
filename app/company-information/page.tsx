@@ -37,7 +37,6 @@ export default function CompanyInformationPage() {
                 <h4 className="font-semibold mb-2">基本信息 / Basic Information</h4>
                 <div className="space-y-2 text-sm">
                   <p><strong>公司註冊證書號碼:</strong> 184499</p>
-                  <p><strong>稅務編號(TIN):</strong> [待填入]</p>
                   <p><strong>商業登記證號(BR):</strong> 10955344</p>
                   <p><strong>設立日期:</strong> 1987年5月</p>
                 </div>
