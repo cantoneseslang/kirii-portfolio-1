@@ -8,13 +8,31 @@ import { Footer } from "@/components/footer"
 
 export default function CompanyInformationPage() {
   const handleDownloadPDF = () => {
-    // PDFダウンロード処理
-    const link = document.createElement('a');
-    link.href = '/Company Information.pdf';
-    link.download = 'Company Information.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Google DriveのPDFファイルをダウンロード
+    const googleDrivePath = '/Users/sakonhiroki/Library/CloudStorage/GoogleDrive-bestinksalesman@gmail.com/マイドライブ/KIRII/その他資料/Company Information.pdf';
+    
+    // ファイルが存在するかチェック
+    fetch('/api/download-pdf')
+      .then(response => {
+        if (response.ok) {
+          return response.blob();
+        }
+        throw new Error('PDFファイルのダウンロードに失敗しました');
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'Company Information.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(error => {
+        console.error('ダウンロードエラー:', error);
+        alert('PDFファイルのダウンロードに失敗しました');
+      });
   };
 
   return (
