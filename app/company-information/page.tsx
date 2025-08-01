@@ -8,47 +8,33 @@ import { Footer } from "@/components/footer"
 
 export default function CompanyInformationPage() {
   const handleDownloadPDF = (type) => {
-    let apiEndpoint = '';
+    let filePath = '';
     let filename = '';
     
     switch(type) {
       case 'general':
-        apiEndpoint = '/api/download-pdf';
+        filePath = '/Company Information.pdf';
         filename = 'Company Information.pdf';
         break;
       case 'hk':
-        apiEndpoint = '/api/download-pdf-hk';
+        filePath = '/Company Information-HK.pdf';
         filename = 'Company Information-HK.pdf';
         break;
       case 'cn':
-        apiEndpoint = '/api/download-pdf-cn';
+        filePath = '/Company Information-CN.pdf';
         filename = 'Company Information-CN.pdf';
         break;
       default:
         return;
     }
     
-    fetch(apiEndpoint)
-      .then(response => {
-        if (response.ok) {
-          return response.blob();
-        }
-        throw new Error('PDFファイルのダウンロードに失敗しました');
-      })
-      .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      })
-      .catch(error => {
-        console.error('ダウンロードエラー:', error);
-        alert('PDFファイルのダウンロードに失敗しました');
-      });
+    // シンプルなファイルダウンロード
+    const link = document.createElement('a');
+    link.href = filePath;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
