@@ -43,7 +43,7 @@ export default function JamesHardiePage() {
           </Button>
         </Link>
         <h1 className="text-3xl font-bold">James Hardie</h1>
-        <p className="text-muted-foreground mt-2">James Hardie製品資料</p>
+        <p className="text-muted-foreground mt-2">James Hardie產品資料</p>
       </div>
 
       <div className="grid gap-4">

@@ -23,7 +23,7 @@ export default function NakaHiHatchPage() {
           </Button>
         </Link>
         <h1 className="text-3xl font-bold">Hi-Hatch ceiling access hatch</h1>
-        <p className="text-muted-foreground mt-2">Naka Hi-Hatch天井アクセスハッチ目錄</p>
+        <p className="text-muted-foreground mt-2">Hi-Hatch產品資料</p>
       </div>
 
       <div className="grid gap-4">

@@ -8,12 +8,12 @@ import Link from "next/link"
 const folders = [
   {
     name: "Gypsum board",
-    description: "石膏板製品資料",
+    description: "石膏板產品資料",
     href: "/product-manual/gypsum-board"
   },
   {
     name: "James Hardie",
-    description: "James Hardie製品資料",
+    description: "James Hardie產品資料",
     href: "/product-manual/james-hardie"
   },
   {
@@ -23,12 +23,12 @@ const folders = [
   },
   {
     name: "Metal Framing",
-    description: "金属フレーミング資料",
+    description: "Metal Framing產品資料",
     href: "/product-manual/metal-framing"
   },
   {
     name: "Hi-Hatch ceiling access hatch",
-    description: "Naka Hi-Hatch天井アクセスハッチカタログ",
+    description: "Hi-Hatch產品資料",
     href: "/product-manual/naka-hi-hatch"
   }
 ]
@@ -44,7 +44,7 @@ export default function ProductManualPage() {
           </Button>
         </Link>
         <h1 className="text-3xl font-bold">Product Manual</h1>
-        <p className="text-muted-foreground mt-2">產品說明書 - 製品資料フォルダ</p>
+        <p className="text-muted-foreground mt-2">產品說明書 - 產品資料</p>
       </div>
 
       <div className="grid gap-4">

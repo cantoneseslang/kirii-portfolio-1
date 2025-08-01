@@ -35,7 +35,7 @@ export default function MetalFramingPage() {
           </Button>
         </Link>
         <h1 className="text-3xl font-bold">Metal Framing</h1>
-        <p className="text-muted-foreground mt-2">金属フレーミング資料</p>
+        <p className="text-muted-foreground mt-2">Metal Framing產品資料</p>
       </div>
 
       <div className="grid gap-4">

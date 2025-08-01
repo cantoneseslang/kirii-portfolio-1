@@ -47,7 +47,7 @@ export default function GypsumBoardPage() {
           </Button>
         </Link>
         <h1 className="text-3xl font-bold">Gypsum board</h1>
-        <p className="text-muted-foreground mt-2">石膏板製品資料</p>
+        <p className="text-muted-foreground mt-2">石膏板產品資料</p>
       </div>
 
       <div className="grid gap-4">
