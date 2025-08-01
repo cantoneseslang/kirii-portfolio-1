@@ -70,10 +70,12 @@ export default function CompanyInformationPage() {
                 <p><strong>Branch code:</strong> 025</p>
               </div>
               <div className="space-y-2 text-sm">
-                <p><strong>Account Number:</strong></p>
-                <p>(HKD): 9-051696</p>
-                <p>(CNY): 209545-838</p>
-                <p>(USD): 209545-838</p>
+                <p><strong>港幣帳戶</strong></p>
+                <p>(HKD) 9-051696</p>
+                <p><strong>外幣帳戶</strong></p>
+                <p>(CNY) 209545-838</p>
+                <p>(USD) 209545-838</p>
+                <p>(SGD) 209545-838</p>
               </div>
             </div>
           </CardContent>

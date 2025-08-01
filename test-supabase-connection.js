@@ -1,4 +1,4 @@
-const { createClient } = require("@supabase/supabase-js")
+pconst { createClient } = require("@supabase/supabase-js")
 
 // Supabaseの設定
 const supabaseUrl = 'https://mnshbcvrrzlumfomniim.supabase.co'
