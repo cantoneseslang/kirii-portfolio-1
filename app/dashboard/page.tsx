@@ -18,7 +18,8 @@ import { Footer } from "@/components/footer"
 import GanttChartWBSCard from "@/components/gantt-chart-wbs-card"
 import QRScanCard from "@/components/qr-scan-card";
 import CompanyInfoCard from "@/components/company-info-card";
-import ProductInfoCard from "@/components/product-info-card";
+import ProductManualCard from "@/components/product-manual-card";
+import CertificateCard from "@/components/certificate-card";
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -167,12 +168,8 @@ export default function DashboardPage() {
               <SalesDashboardCard />
               <GanttChartWBSCard />
               <CompanyInfoCard />
-            </div>
-            <div className="mt-6">
-              <h4 className="text-md font-semibold mb-4">Product Information</h4>
-              <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-                <ProductInfoCard />
-              </div>
+              <ProductManualCard />
+              <CertificateCard />
             </div>
           </div>
         )}
