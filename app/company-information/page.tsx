@@ -7,12 +7,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Footer } from "@/components/footer"
 
 export default function CompanyInformationPage() {
-  const handleDownloadPDF = () => {
-    // Google DriveのPDFファイルをダウンロード
-    const googleDrivePath = '/Users/sakonhiroki/Library/CloudStorage/GoogleDrive-bestinksalesman@gmail.com/マイドライブ/KIRII/その他資料/Company Information.pdf';
+  const handleDownloadPDF = (type) => {
+    let apiEndpoint = '';
+    let filename = '';
     
-    // ファイルが存在するかチェック
-    fetch('/api/download-pdf')
+    switch(type) {
+      case 'general':
+        apiEndpoint = '/api/download-pdf';
+        filename = 'Company Information.pdf';
+        break;
+      case 'hk':
+        apiEndpoint = '/api/download-pdf-hk';
+        filename = 'Company Information-HK.pdf';
+        break;
+      case 'cn':
+        apiEndpoint = '/api/download-pdf-cn';
+        filename = 'Company Information-CN.pdf';
+        break;
+      default:
+        return;
+    }
+    
+    fetch(apiEndpoint)
       .then(response => {
         if (response.ok) {
           return response.blob();
@@ -23,7 +39,7 @@ export default function CompanyInformationPage() {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'Company Information.pdf';
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -142,13 +158,25 @@ export default function CompanyInformationPage() {
           </CardContent>
         </Card>
 
-        {/* Download PDF Button */}
-        <div className="flex justify-center mt-6">
+        {/* Download PDF Buttons */}
+        <div className="flex justify-center mt-6 gap-4 flex-wrap">
           <Button 
-            onClick={handleDownloadPDF}
-            className="bg-[#02315a] hover:bg-[#02315a]/90 text-white px-8 py-3 text-lg"
+            onClick={() => handleDownloadPDF('general')}
+            className="bg-[#02315a] hover:bg-[#02315a]/90 text-white px-6 py-3 text-base border border-white"
           >
             📄 Download Company Information PDF
+          </Button>
+          <Button 
+            onClick={() => handleDownloadPDF('hk')}
+            className="bg-[#02315a] hover:bg-[#02315a]/90 text-white px-6 py-3 text-base border border-white"
+          >
+            📄 Download HK-Company Information PDF
+          </Button>
+          <Button 
+            onClick={() => handleDownloadPDF('cn')}
+            className="bg-[#02315a] hover:bg-[#02315a]/90 text-white px-6 py-3 text-base border border-white"
+          >
+            📄 Download CN-Company Information PDF
           </Button>
         </div>
       </div>
