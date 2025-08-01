@@ -27,7 +27,7 @@ const folders = [
     href: "/product-manual/metal-framing"
   },
   {
-    name: "Catalogue of Naka Hi-Hatch ceiling access hatch",
+    name: "Hi-Hatch ceiling access hatch",
     description: "Naka Hi-Hatch天井アクセスハッチカタログ",
     href: "/product-manual/naka-hi-hatch"
   }

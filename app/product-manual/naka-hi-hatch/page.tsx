@@ -22,7 +22,7 @@ export default function NakaHiHatchPage() {
             Back to Product Manual
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold">Catalogue of Naka Hi-Hatch ceiling access hatch</h1>
+        <h1 className="text-3xl font-bold">Hi-Hatch ceiling access hatch</h1>
         <p className="text-muted-foreground mt-2">Naka Hi-Hatch天井アクセスハッチカタログ</p>
       </div>
 
