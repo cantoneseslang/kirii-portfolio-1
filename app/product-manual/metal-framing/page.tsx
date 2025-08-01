@@ -49,30 +49,23 @@ export default function MetalFramingPage() {
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold">{file.name}</h3>
                 </div>
-                <div className="flex space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.open(file.path, '_blank')}
-                  >
-                    Open PDF
-                  </Button>
-                  <Button 
-                    variant="default" 
-                    size="sm"
-                    onClick={() => {
-                      const link = document.createElement('a');
-                      link.href = file.path;
-                      link.download = file.name;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }}
-                  >
-                    <Download className="h-4 w-4 mr-1" />
-                    Download
-                  </Button>
-                </div>
+                <Button 
+                  className="bg-[#02315a] text-white hover:bg-[#02315a] px-4 py-2 rounded-lg flex items-center space-x-2"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = file.path;
+                    link.download = file.name;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height={16} width={16} className="text-white">
+                    <path fill="currentColor" d="M12 2C13.1 2 14 2.9 14 4V12L16.5 9.5C16.9 9.1 17.5 9.1 17.9 9.5C18.3 9.9 18.3 10.5 17.9 10.9L12.7 16.1C12.3 16.5 11.7 16.5 11.3 16.1L6.1 10.9C5.7 10.5 5.7 9.9 6.1 9.5C6.5 9.1 7.1 9.1 7.5 9.5L10 12V4C10 2.9 10.9 2 12 2Z"/>
+                    <path fill="currentColor" d="M20 20H4C3.4 20 3 20.4 3 21C3 21.6 3.4 22 4 22H20C20.6 22 21 21.6 21 21C21 20.4 20.6 20 20 20Z"/>
+                  </svg>
+                  <span>Download {file.name.replace('.pdf', '')} PDF</span>
+                </Button>
               </div>
             </CardContent>
           </Card>
