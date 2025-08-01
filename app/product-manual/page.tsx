@@ -8,23 +8,28 @@ import Link from "next/link"
 const folders = [
   {
     name: "Gypsum board",
-    description: "石膏板製品資料"
+    description: "石膏板製品資料",
+    href: "/product-manual/gypsum-board"
   },
   {
     name: "James Hardie",
-    description: "James Hardie製品資料"
+    description: "James Hardie製品資料",
+    href: "/product-manual/james-hardie"
   },
   {
     name: "Job Reference",
-    description: "工事参考資料"
+    description: "工事参考資料",
+    href: "/product-manual/job-reference"
   },
   {
     name: "Metal Framing",
-    description: "金属フレーミング資料"
+    description: "金属フレーミング資料",
+    href: "/product-manual/metal-framing"
   },
   {
     name: "Catalogue of Naka Hi-Hatch ceiling access hatch",
-    description: "Naka Hi-Hatch天井アクセスハッチカタログ"
+    description: "Naka Hi-Hatch天井アクセスハッチカタログ",
+    href: "/product-manual/naka-hi-hatch"
   }
 ]
 
@@ -44,22 +49,24 @@ export default function ProductManualPage() {
 
       <div className="grid gap-4">
         {folders.map((folder, index) => (
-          <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  <Folder className="h-8 w-8 text-blue-500" />
+          <Link key={index} href={folder.href}>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <Folder className="h-8 w-8 text-blue-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold">{folder.name}</h3>
+                    <p className="text-sm text-muted-foreground">{folder.description}</p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Open
+                  </Button>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold">{folder.name}</h3>
-                  <p className="text-sm text-muted-foreground">{folder.description}</p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Open
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>

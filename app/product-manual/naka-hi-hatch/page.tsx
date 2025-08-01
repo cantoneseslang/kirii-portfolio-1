@@ -1,0 +1,71 @@
+"use client"
+
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft, FileText, Download } from "lucide-react"
+import Link from "next/link"
+
+const pdfFiles = [
+  {
+    name: "Catalogue of Naka Hi-Hatch ceiling access hatch.pdf",
+    path: "/pdfs/naka-hi-hatch/Catalogue of Naka Hi-Hatch ceiling access hatch.pdf"
+  }
+]
+
+export default function NakaHiHatchPage() {
+  return (
+    <div className="container max-w-4xl py-10">
+      <div className="mb-6">
+        <Link href="/product-manual">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Product Manual
+          </Button>
+        </Link>
+        <h1 className="text-3xl font-bold">Catalogue of Naka Hi-Hatch ceiling access hatch</h1>
+        <p className="text-muted-foreground mt-2">Naka Hi-Hatch天井アクセスハッチカタログ</p>
+      </div>
+
+      <div className="grid gap-4">
+        {pdfFiles.map((file, index) => (
+          <Card key={index} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <FileText className="h-8 w-8 text-red-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold">{file.name}</h3>
+                </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.open(file.path, '_blank')}
+                  >
+                    Open PDF
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = file.path;
+                      link.download = file.name;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )
+} 
