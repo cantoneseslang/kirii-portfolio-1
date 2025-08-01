@@ -26,7 +26,7 @@ const pdfFiles = [
 
 export default function MetalFramingPage() {
   return (
-    <div className="container max-w-4xl py-10">
+    <div className="container mx-auto max-w-4xl py-10 px-4">
       <div className="mb-6">
         <Link href="/product-manual">
           <Button variant="ghost" className="mb-4">

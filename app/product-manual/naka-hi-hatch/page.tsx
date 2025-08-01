@@ -14,7 +14,7 @@ const pdfFiles = [
 
 export default function NakaHiHatchPage() {
   return (
-    <div className="container max-w-4xl py-10">
+    <div className="container mx-auto max-w-4xl py-10 px-4">
       <div className="mb-6">
         <Link href="/product-manual">
           <Button variant="ghost" className="mb-4">
@@ -23,7 +23,7 @@ export default function NakaHiHatchPage() {
           </Button>
         </Link>
         <h1 className="text-3xl font-bold">Hi-Hatch ceiling access hatch</h1>
-        <p className="text-muted-foreground mt-2">Naka Hi-Hatch天井アクセスハッチカタログ</p>
+        <p className="text-muted-foreground mt-2">Naka Hi-Hatch天井アクセスハッチ目錄</p>
       </div>
 
       <div className="grid gap-4">
