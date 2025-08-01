@@ -164,11 +164,15 @@ export default function DashboardPage() {
         {(profile?.department?.includes("Sales") || profile?.is_admin) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Sales</h3>
-            <div className="flex flex-col md:flex-row gap-6 items-center justify-center flex-wrap">
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
               <SalesDashboardCard />
               <GanttChartWBSCard />
+            </div>
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
               <CompanyInfoCard />
               <ProductManualCard />
+            </div>
+            <div className="flex flex-col gap-6 items-center justify-center mt-6">
               <CertificateCard />
             </div>
           </div>
