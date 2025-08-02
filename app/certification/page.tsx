@@ -1,12 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Footer } from "@/components/footer"
-import { FolderOpen, FileText, Download, RefreshCw, Upload, ChevronRight, ChevronDown, Eye } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { FolderOpen, FileText, Download, RefreshCw, ChevronRight, ChevronDown, Eye } from "lucide-react"
 import { downloadFile } from "@/lib/google-drive"
 
 export default function CertificationPage() {
@@ -205,21 +202,21 @@ export default function CertificationPage() {
       <div className="space-y-4">
         {/* フォルダの表示 */}
         {folders.map((folder) => (
-          <div key={folder.id} className="border rounded-lg p-4">
+          <div key={folder.id} className="border rounded-lg p-3 sm:p-4">
             <div 
               className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded"
               onClick={() => toggleFolder(folder.id, folder.name)}
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 min-w-0 flex-1">
                 {expandedFolders.has(folder.id) ? (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
                 ) : (
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 flex-shrink-0" />
                 )}
-                <FolderOpen className="h-5 w-5 text-blue-600" />
-                <span className="font-medium">{folder.name}</span>
+                <FolderOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                <span className="font-medium truncate text-sm sm:text-base">{folder.name}</span>
               </div>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0 ml-2">
                 {folder.contents ? `${folder.contents.files?.length || 0} files` : 'Click to expand'}
               </span>
             </div>
@@ -237,39 +234,43 @@ export default function CertificationPage() {
         {/* ファイルの表示 */}
         {files.map((file) => (
           <Card key={file.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={selectedFiles.includes(file.id)}
-                    onChange={() => handleFileSelection(file.id)}
-                    className="h-4 w-4"
-                  />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedFiles.includes(file.id)}
+                      onChange={() => handleFileSelection(file.id)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                  <div className="flex-shrink-0">
+                    <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base sm:text-lg font-semibold truncate">{file.name}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-shrink-0">
-                  <FileText className="h-8 w-8 text-red-500" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold">{file.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
-                  </p>
-                </div>
-                <div className="flex space-x-2">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                   <Button 
                     variant="outline"
-                    className="border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg flex items-center space-x-2"
+                    size="sm"
+                    className="border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
                     onClick={() => handlePreviewFile(file)}
                   >
-                    <Eye className="h-4 w-4" />
-                    <span>Preview</span>
+                    <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="text-sm">Preview</span>
                   </Button>
                   <Button 
-                    className="bg-[#02315a] text-white hover:bg-[#02315a] px-4 py-2 rounded-lg flex items-center space-x-2"
+                    size="sm"
+                    className="bg-[#02315a] text-white hover:bg-[#02315a] px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
                     onClick={() => handleDownloadFile(file)}
                   >
-                    <span>📄 Download PDF</span>
+                    <span className="text-sm">📄 Download PDF</span>
                   </Button>
                 </div>
               </div>
@@ -281,14 +282,13 @@ export default function CertificationPage() {
   };
 
   return (
-    <DashboardShell>
-      <DashboardHeader
-        heading="Certification"
-        text="認證文件"
-        center={true}
-      />
+    <div className="container mx-auto max-w-4xl py-10 px-4">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Certification</h1>
+        <p className="text-muted-foreground mt-2">認證文件</p>
+      </div>
 
-      <div className="grid gap-6 mt-6">
+      <div className="space-y-6">
         {/* ローディング表示 */}
         {isLoading && (
           <div className="flex justify-center items-center py-12">
@@ -319,11 +319,12 @@ export default function CertificationPage() {
             {/* 選択されたファイルのダウンロードボタン */}
             {selectedFiles.length > 0 && (
               <Card className="p-4">
-                <div className="flex items-center justify-between">
-                  <span>選択されたファイル: {selectedFiles.length}個</span>
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:justify-between">
+                  <span className="text-sm sm:text-base">選択されたファイル: {selectedFiles.length}個</span>
                   <Button
                     onClick={handleDownloadSelected}
-                    className="bg-[#02315a] hover:bg-[#02315a]/90 text-white"
+                    size="sm"
+                    className="bg-[#02315a] hover:bg-[#02315a]/90 text-white w-full sm:w-auto"
                   >
                     <Download className="h-4 w-4 mr-2" />
                     選択したファイルをダウンロード
@@ -352,8 +353,6 @@ export default function CertificationPage() {
           </Card>
         )}
       </div>
-
-      <Footer />
-    </DashboardShell>
+    </div>
   )
 } 
