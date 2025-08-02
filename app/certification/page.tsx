@@ -63,15 +63,32 @@ export default function CertificationPage() {
       console.log(`Folders in ${subFolderName}:`, data.folders);
 
       if (data.success) {
-        // フォルダ構造を更新
-        setFolderStructure(prev => ({
-          ...prev,
-          folders: prev.folders.map(folder => 
-            folder.id === subFolderId 
-              ? { ...folder, contents: data }
-              : folder
-          )
-        }));
+        // フォルダ構造を更新 - 再帰的に更新
+        setFolderStructure(prev => {
+          const updateFolderContents = (folders: any[]): any[] => {
+            return folders.map(folder => {
+              if (folder.id === subFolderId) {
+                return { ...folder, contents: data };
+              }
+              // 再帰的に子フォルダも更新
+              if (folder.contents && folder.contents.folders) {
+                return {
+                  ...folder,
+                  contents: {
+                    ...folder.contents,
+                    folders: updateFolderContents(folder.contents.folders)
+                  }
+                };
+              }
+              return folder;
+            });
+          };
+
+          return {
+            ...prev,
+            folders: updateFolderContents(prev.folders)
+          };
+        });
       } else {
         console.error(`Failed to fetch contents for ${subFolderName}:`, data.message);
       }
