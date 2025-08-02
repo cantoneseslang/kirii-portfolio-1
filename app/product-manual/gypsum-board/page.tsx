@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, FileText, Download, Eye } from "lucide-react"
+import { ArrowLeft, FileText, Download, Eye, Share2 } from "lucide-react"
 import Link from "next/link"
 
 const pdfFiles = [
@@ -37,6 +37,40 @@ const pdfFiles = [
 ]
 
 export default function GypsumBoardPage() {
+  const handleShare = async (file: { name: string; path: string }) => {
+    // Web Share APIが利用可能かチェック
+    if (navigator.share) {
+      try {
+        // ファイルのURLを構築
+        const fileUrl = `${window.location.origin}${file.path}`;
+        
+        await navigator.share({
+          title: file.name,
+          text: `KIRII Product Manual: ${file.name}`,
+          url: fileUrl,
+        });
+      } catch (error) {
+        console.log('共有がキャンセルされました:', error);
+      }
+    } else {
+      // Web Share APIが利用できない場合は、URLをクリップボードにコピー
+      const fileUrl = `${window.location.origin}${file.path}`;
+      try {
+        await navigator.clipboard.writeText(fileUrl);
+        alert('ファイルのURLをクリップボードにコピーしました');
+      } catch (error) {
+        // フォールバック: 古いブラウザ用
+        const textArea = document.createElement('textarea');
+        textArea.value = fileUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('ファイルのURLをクリップボードにコピーしました');
+      }
+    }
+  };
+
   return (
     <div className="container mx-auto max-w-4xl py-10 px-4">
       <div className="mb-6">
@@ -84,6 +118,14 @@ export default function GypsumBoardPage() {
                     }}
                   >
                     <span>📄 Download PDF</span>
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg flex items-center space-x-2"
+                    onClick={() => handleShare(file)}
+                  >
+                    <Share2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Share</span>
                   </Button>
                 </div>
               </div>

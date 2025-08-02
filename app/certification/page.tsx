@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { FolderOpen, FileText, Download, RefreshCw, ChevronRight, ChevronDown, Eye } from "lucide-react"
+import { FolderOpen, FileText, Download, RefreshCw, ChevronRight, ChevronDown, Eye, Share2 } from "lucide-react"
 import { downloadFile } from "@/lib/google-drive"
 import { PDFPreviewModal } from "@/components/pdf-preview-modal"
 
@@ -145,6 +145,40 @@ export default function CertificationPage() {
     });
   };
 
+  const handleShare = async (file: any) => {
+    // Web Share APIが利用可能かチェック
+    if (navigator.share) {
+      try {
+        // Google Driveの直接ダウンロードURLを構築
+        const fileUrl = `https://drive.google.com/uc?export=download&id=${file.id}`;
+        
+        await navigator.share({
+          title: file.name,
+          text: `KIRII Certification: ${file.name}`,
+          url: fileUrl,
+        });
+      } catch (error) {
+        console.log('共有がキャンセルされました:', error);
+      }
+    } else {
+      // Web Share APIが利用できない場合は、URLをクリップボードにコピー
+      const fileUrl = `https://drive.google.com/uc?export=download&id=${file.id}`;
+      try {
+        await navigator.clipboard.writeText(fileUrl);
+        alert('ファイルのURLをクリップボードにコピーしました');
+      } catch (error) {
+        // フォールバック: 古いブラウザ用
+        const textArea = document.createElement('textarea');
+        textArea.value = fileUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('ファイルのURLをクリップボードにコピーしました');
+      }
+    }
+  };
+
   const handleFileSelection = (fileId: string) => {
     setSelectedFiles(prev => 
       prev.includes(fileId) 
@@ -278,6 +312,15 @@ export default function CertificationPage() {
                     onClick={() => handleDownloadFile(file)}
                   >
                     <span className="text-sm">📄 Download PDF</span>
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
+                    onClick={() => handleShare(file)}
+                  >
+                    <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="text-sm hidden sm:inline">Share</span>
                   </Button>
                 </div>
               </div>
