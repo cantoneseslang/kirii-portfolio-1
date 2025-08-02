@@ -246,9 +246,9 @@ export default function CertificationPage() {
                 <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 w-full">
                   <h3 className="text-base sm:text-lg font-semibold whitespace-nowrap min-w-max">{file.name}</h3>
                 </div>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                  {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
-                </p>
+                                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                    {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : '大小不明'}
+                  </p>
               </div>
               
               {/* チェックボックス、アイコン、ボタン - 別の行 */}
@@ -307,14 +307,14 @@ export default function CertificationPage() {
         {error && (
           <div className="p-6 border rounded-lg bg-white">
             <div className="text-red-600 text-center">
-              <p className="text-lg font-semibold">エラーが発生しました</p>
+              <p className="text-lg font-semibold">發生錯誤</p>
               <p className="text-sm mt-2">{error}</p>
               <Button
                 onClick={fetchFolderStructure}
                 className="mt-4 bg-[#02315a] hover:bg-[#02315a]/90 text-white"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                再試行
+                重試
               </Button>
             </div>
           </div>
@@ -327,14 +327,14 @@ export default function CertificationPage() {
             {selectedFiles.length > 0 && (
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:justify-between">
-                  <span className="text-sm sm:text-base">選択されたファイル: {selectedFiles.length}個</span>
+                  <span className="text-sm sm:text-base">已選擇檔案: {selectedFiles.length}個</span>
                   <Button
                     onClick={handleDownloadSelected}
                     size="sm"
                     className="bg-[#02315a] hover:bg-[#02315a]/90 text-white w-full sm:w-auto"
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    選択したファイルをダウンロード
+                    下載選擇的檔案
                   </Button>
                 </div>
               </div>
@@ -352,8 +352,8 @@ export default function CertificationPage() {
           <div className="p-6 border rounded-lg bg-white">
             <h3 className="text-lg font-semibold mb-4">認證文件</h3>
             <div className="space-y-3 text-sm">
-              <p>Google Driveから認證文件を自動取得しています...</p>
-              <p>フォルダをクリックして展開し、ファイルをダウンロードしてください。</p>
+              <p>正在從Google Drive自動獲取認證文件...</p>
+              <p>點擊資料夾展開，並下載檔案。</p>
             </div>
           </div>
         )}
