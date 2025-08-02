@@ -290,12 +290,10 @@ export default function CertificationPage() {
                     </CardTitle>
                   </div>
                   <Button
-                    variant="outline"
-                    size="sm"
                     onClick={() => handleDownloadCategory(category.name)}
-                    className="flex items-center space-x-1"
+                    className="bg-[#02315a] hover:bg-[#02315a]/90 text-white px-4 py-2 text-sm border border-white"
                   >
-                    <FolderOpen className="h-4 w-4" />
+                    <FolderOpen className="h-4 w-4 mr-1" />
                     <span>View Files</span>
                   </Button>
                 </div>
@@ -337,7 +335,7 @@ export default function CertificationPage() {
               {selectedFiles.length > 0 && (
                 <Button
                   onClick={handleDownloadSelected}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-[#02315a] hover:bg-[#02315a]/90 text-white px-4 py-2 text-sm border border-white"
                 >
                   <Download className="h-4 w-4 mr-1" />
                   Download Selected ({selectedFiles.length})
@@ -362,9 +360,8 @@ export default function CertificationPage() {
                     </div>
                   </div>
                   <Button
-                    variant="outline"
-                    size="sm"
                     onClick={() => handleDownloadFile("Certificate List_Jan2025.xlsx")}
+                    className="bg-[#02315a] hover:bg-[#02315a]/90 text-white px-4 py-2 text-sm border border-white"
                   >
                     <Download className="h-4 w-4 mr-1" />
                     Download
@@ -385,9 +382,8 @@ export default function CertificationPage() {
                     </div>
                   </div>
                   <Button
-                    variant="outline"
-                    size="sm"
                     onClick={() => handleDownloadFile("PVDF Aluminium Panel Specification 20190605_WM.pdf")}
+                    className="bg-[#02315a] hover:bg-[#02315a]/90 text-white px-4 py-2 text-sm border border-white"
                   >
                     <Download className="h-4 w-4 mr-1" />
                     Download
@@ -410,9 +406,8 @@ export default function CertificationPage() {
                     </div>
                   </div>
                   <Button
-                    variant="outline"
-                    size="sm"
                     onClick={() => handleDownloadFile("Powder Coating Aluminium Panel Specification 20190709_WM.pdf")}
+                    className="bg-[#02315a] hover:bg-[#02315a]/90 text-white px-4 py-2 text-sm border border-white"
                   >
                     <Download className="h-4 w-4 mr-1" />
                     Download
@@ -433,9 +428,8 @@ export default function CertificationPage() {
                     </div>
                   </div>
                   <Button
-                    variant="outline"
-                    size="sm"
                     onClick={() => handleDownloadFile("PPG Color Chart.pdf")}
+                    className="bg-[#02315a] hover:bg-[#02315a]/90 text-white px-4 py-2 text-sm border border-white"
                   >
                     <Download className="h-4 w-4 mr-1" />
                     Download
