@@ -11,17 +11,16 @@ import { downloadFile } from "@/lib/google-drive"
 
 export default function CertificationPage() {
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-  const [folderId, setFolderId] = useState("");
+  const [folderId, setFolderId] = useState("1QmLSSML9eXFGKktQE-bSq_PXRc7LF6It"); // 直接設定
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showFileInput, setShowFileInput] = useState(false);
   const [folderStructure, setFolderStructure] = useState(null);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
 
   // フォルダIDからフォルダ構造を取得
   const fetchFolderStructure = async () => {
     if (!folderId.trim()) {
-      setError("フォルダIDを入力してください");
+      setError("フォルダIDが設定されていません");
       return;
     }
 
@@ -34,7 +33,6 @@ export default function CertificationPage() {
 
       if (data.success) {
         setFolderStructure(data);
-        setShowFileInput(false);
       } else {
         setError(data.message || "フォルダ構造の取得に失敗しました");
       }
@@ -45,6 +43,13 @@ export default function CertificationPage() {
       setIsLoading(false);
     }
   };
+
+  // ページ読み込み時に自動的にフォルダ構造を取得
+  useEffect(() => {
+    if (folderId) {
+      fetchFolderStructure();
+    }
+  }, []);
 
   // サブフォルダの内容を取得
   const fetchSubFolderContents = async (subFolderId: string, subFolderName: string) => {
@@ -232,62 +237,32 @@ export default function CertificationPage() {
       />
 
       <div className="grid gap-6 mt-6">
-        {/* フォルダID入力セクション */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Google Drive フォルダからファイルを取得</h3>
-            <Button
-              onClick={() => setShowFileInput(!showFileInput)}
-              variant="outline"
-              className="bg-[#02315a] hover:bg-[#02315a]/90 text-white border-white"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              {showFileInput ? "閉じる" : "フォルダIDを入力"}
-            </Button>
-          </div>
+        {/* ローディング表示 */}
+        {isLoading && (
+          <Card className="p-6">
+            <div className="flex items-center justify-center space-x-2">
+              <RefreshCw className="h-6 w-6 animate-spin text-blue-600" />
+              <span className="text-lg">フォルダ構造を取得中...</span>
+            </div>
+          </Card>
+        )}
 
-          {showFileInput && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  フォルダID (Google DriveのフォルダURLから取得)
-                </label>
-                <input
-                  type="text"
-                  value={folderId}
-                  onChange={(e) => setFolderId(e.target.value)}
-                  placeholder="例: 1QmLSSML9eXFGKktQE-bSq_PXRc7LF6It"
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                />
-                <p className="text-sm text-gray-600 mt-1">
-                  Google Driveでフォルダを開き、URLの「folders/」の後の文字列をコピーしてください
-                </p>
-              </div>
-              
+        {/* エラー表示 */}
+        {error && (
+          <Card className="p-6">
+            <div className="text-red-600 text-center">
+              <p className="text-lg font-semibold">エラーが発生しました</p>
+              <p className="text-sm mt-2">{error}</p>
               <Button
                 onClick={fetchFolderStructure}
-                disabled={isLoading || !folderId.trim()}
-                className="bg-[#02315a] hover:bg-[#02315a]/90 text-white"
+                className="mt-4 bg-[#02315a] hover:bg-[#02315a]/90 text-white"
               >
-                {isLoading ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    取得中...
-                  </>
-                ) : (
-                  <>
-                    <FolderOpen className="h-4 w-4 mr-2" />
-                    フォルダ構造を取得
-                  </>
-                )}
+                <RefreshCw className="h-4 w-4 mr-2" />
+                再試行
               </Button>
-
-              {error && (
-                <div className="text-red-600 text-sm">{error}</div>
-              )}
             </div>
-          )}
-        </Card>
+          </Card>
+        )}
 
         {/* フォルダ構造表示 */}
         {folderStructure && (
@@ -324,16 +299,12 @@ export default function CertificationPage() {
         )}
 
         {/* 使用方法の説明 */}
-        {!folderStructure && !showFileInput && (
+        {!folderStructure && !isLoading && !error && (
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">使用方法</h3>
+            <h3 className="text-lg font-semibold mb-4">認證文件</h3>
             <div className="space-y-3 text-sm">
-              <p>1. 「フォルダIDを入力」ボタンをクリック</p>
-              <p>2. Google DriveでCertificateフォルダを開く</p>
-              <p>3. URLからフォルダIDをコピー（例：https://drive.google.com/drive/folders/1QmLSSML9eXFGKktQE-bSq_PXRc7LF6It）</p>
-              <p>4. 「1QmLSSML9eXFGKktQE-bSq_PXRc7LF6It」の部分を入力</p>
-              <p>5. 「フォルダ構造を取得」ボタンをクリック</p>
-              <p>6. フォルダをクリックして展開し、ファイルをダウンロード</p>
+              <p>Google Driveから認證文件を自動取得しています...</p>
+              <p>フォルダをクリックして展開し、ファイルをダウンロードしてください。</p>
             </div>
           </Card>
         )}
