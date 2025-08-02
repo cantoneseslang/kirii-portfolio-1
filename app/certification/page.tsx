@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Footer } from "@/components/footer"
 import { FolderOpen, FileText, Download } from "lucide-react"
+import { downloadFile, getFileId } from "@/lib/google-drive"
 
 export default function CertificationPage() {
   const certificationCategories = [
@@ -230,15 +231,20 @@ export default function CertificationPage() {
 
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
-  const handleDownloadFile = (fileName: string) => {
+  const handleDownloadFile = async (fileName: string) => {
     console.log('Download file clicked:', fileName);
-    // 個別ファイルのダウンロード
-    const link = document.createElement('a');
-    link.href = `/api/download-certification?filename=${encodeURIComponent(fileName)}`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const fileId = getFileId(fileName);
+      if (!fileId) {
+        alert(`File not found: ${fileName}`);
+        return;
+      }
+      
+      await downloadFile(fileId, fileName);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Download failed. Please try again.');
+    }
   };
 
   const handleFileSelection = (fileName: string) => {
@@ -249,24 +255,30 @@ export default function CertificationPage() {
     );
   };
 
-  const handleDownloadSelected = () => {
+  const handleDownloadSelected = async () => {
     if (selectedFiles.length === 0) {
       alert('Please select files to download');
       return;
     }
     
     console.log('Downloading selected files:', selectedFiles);
-    // 複数ファイルのダウンロード処理
-    selectedFiles.forEach(fileName => {
-      const link = document.createElement('a');
-      link.href = `/api/download-certification?filename=${encodeURIComponent(fileName)}`;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
     
-    setSelectedFiles([]);
+    try {
+      // 複数ファイルのダウンロード処理
+      for (const fileName of selectedFiles) {
+        const fileId = getFileId(fileName);
+        if (fileId) {
+          await downloadFile(fileId, fileName);
+        } else {
+          console.warn(`File not found: ${fileName}`);
+        }
+      }
+      
+      setSelectedFiles([]);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Some downloads failed. Please try again.');
+    }
   };
 
   return (
