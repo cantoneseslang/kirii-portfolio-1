@@ -225,33 +225,35 @@ export default function CertificationPage() {
         
         {/* ファイルの表示 */}
         {files.map((file) => (
-          <div
-            key={file.id}
-            className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
-          >
-            <div className="flex items-center space-x-3 flex-1">
-              <input
-                type="checkbox"
-                checked={selectedFiles.includes(file.id)}
-                onChange={() => handleFileSelection(file.id)}
-                className="h-4 w-4"
-              />
-              <FileText className="h-4 w-4 text-gray-500" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{file.name}</p>
-                <p className="text-xs text-gray-500">
-                  {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
-                </p>
+          <Card key={file.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={selectedFiles.includes(file.id)}
+                    onChange={() => handleFileSelection(file.id)}
+                    className="h-4 w-4"
+                  />
+                </div>
+                <div className="flex-shrink-0">
+                  <FileText className="h-8 w-8 text-red-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold">{file.name}</h3>
+                  <p className="text-sm text-gray-500">
+                    {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
+                  </p>
+                </div>
+                <Button 
+                  className="bg-[#02315a] text-white hover:bg-[#02315a] px-4 py-2 rounded-lg flex items-center space-x-2"
+                  onClick={() => handleDownloadFile(file)}
+                >
+                  <span>📄 Download PDF</span>
+                </Button>
               </div>
-            </div>
-            <Button
-              onClick={() => handleDownloadFile(file)}
-              size="sm"
-              className="bg-[#02315a] hover:bg-[#02315a]/90 text-white"
-            >
-              <Download className="h-3 w-3" />
-            </Button>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     );
