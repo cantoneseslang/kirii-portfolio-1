@@ -222,15 +222,23 @@ export default function CertificationPage() {
   ];
 
   const handleDownloadCategory = (categoryName: string) => {
-    // Google Drive APIを使用してカテゴリーフォルダをダウンロード
-    console.log(`Downloading category: ${categoryName}`);
-    // TODO: Google Drive API実装
+    // カテゴリー全体のダウンロード（ZIP形式を想定）
+    const link = document.createElement('a');
+    link.href = `/api/download-certification?category=${encodeURIComponent(categoryName)}`;
+    link.download = `${categoryName}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleDownloadFile = (fileName: string) => {
     // 個別ファイルのダウンロード
-    console.log(`Downloading file: ${fileName}`);
-    // TODO: Google Drive API実装
+    const link = document.createElement('a');
+    link.href = `/api/download-certification?filename=${encodeURIComponent(fileName)}`;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
