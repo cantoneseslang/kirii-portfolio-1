@@ -59,6 +59,8 @@ export default function CertificationPage() {
       const data = await response.json();
 
       console.log(`Subfolder contents for ${subFolderName}:`, data);
+      console.log(`Files in ${subFolderName}:`, data.files);
+      console.log(`Folders in ${subFolderName}:`, data.folders);
 
       if (data.success) {
         // フォルダ構造を更新
@@ -168,6 +170,8 @@ export default function CertificationPage() {
   // フォルダ構造を再帰的に表示
   const renderFolderStructure = (folders: any[], files: any[], level: number = 0) => {
     console.log(`Rendering level ${level}:`, { folders: folders.length, files: files.length });
+    console.log(`Level ${level} folders:`, folders);
+    console.log(`Level ${level} files:`, files);
     
     return (
       <div className="space-y-4">
@@ -195,6 +199,7 @@ export default function CertificationPage() {
             {/* 展開されたフォルダの内容 */}
             {expandedFolders.has(folder.id) && folder.contents && (
               <div className="mt-4 ml-6 border-l-2 border-gray-200 pl-4">
+                {console.log(`Rendering contents for ${folder.name}:`, folder.contents)}
                 {renderFolderStructure(folder.contents.folders || [], folder.contents.files || [], level + 1)}
               </div>
             )}
