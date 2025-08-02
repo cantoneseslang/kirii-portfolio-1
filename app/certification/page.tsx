@@ -222,6 +222,7 @@ export default function CertificationPage() {
   ];
 
   const handleDownloadCategory = (categoryName: string) => {
+    console.log('Download category clicked:', categoryName);
     // カテゴリー全体のダウンロード（ZIP形式を想定）
     const link = document.createElement('a');
     link.href = `/api/download-certification?category=${encodeURIComponent(categoryName)}`;
@@ -232,6 +233,7 @@ export default function CertificationPage() {
   };
 
   const handleDownloadFile = (fileName: string) => {
+    console.log('Download file clicked:', fileName);
     // 個別ファイルのダウンロード
     const link = document.createElement('a');
     link.href = `/api/download-certification?filename=${encodeURIComponent(fileName)}`;

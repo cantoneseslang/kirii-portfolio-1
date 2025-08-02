@@ -1,4 +1,6 @@
 export default function handler(req, res) {
+  console.log('API called with query:', req.query);
+  
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -6,6 +8,8 @@ export default function handler(req, res) {
   const { category, filename } = req.query;
 
   try {
+    console.log('Processing request for:', { category, filename });
+    
     // 一時的な実装：ファイルが見つからない場合のエラーレスポンス
     res.status(404).json({ 
       message: 'File not found',
