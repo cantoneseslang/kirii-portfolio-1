@@ -46,9 +46,20 @@ export default function CertificationPage() {
   };
 
   // ファイルを直接ダウンロード
-  const handleDownloadFile = async (fileId: string, fileName: string) => {
+  const handleDownloadFile = async (file: any) => {
     try {
-      await downloadFile(fileId, fileName);
+      if (file.downloadUrl) {
+        // 直接ダウンロードリンクを使用
+        const link = document.createElement('a');
+        link.href = file.downloadUrl;
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        // 従来の方法（ファイルIDを使用）
+        await downloadFile(file.id, file.name);
+      }
     } catch (error) {
       console.error('Download error:', error);
       alert('Download failed. Please try again.');
@@ -74,7 +85,7 @@ export default function CertificationPage() {
       for (const fileId of selectedFiles) {
         const file = findFileById(fileId);
         if (file) {
-          await downloadFile(fileId, file.name);
+          await handleDownloadFile(file);
         }
       }
       
@@ -214,7 +225,7 @@ export default function CertificationPage() {
                             </div>
                           </div>
                           <Button
-                            onClick={() => handleDownloadFile(file.id, file.name)}
+                            onClick={() => handleDownloadFile(file)}
                             size="sm"
                             className="bg-[#02315a] hover:bg-[#02315a]/90 text-white"
                           >
