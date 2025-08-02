@@ -241,45 +241,46 @@ export default function CertificationPage() {
         {files.map((file) => (
           <Card key={file.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4 sm:p-6">
-              <div className="flex flex-col space-y-3">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
+              <div className="space-y-3">
+                {/* ファイル名とサイズ - 独立した行で全幅使用 */}
+                <div className="w-full">
+                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 w-full">
+                    <h3 className="text-base sm:text-lg font-semibold whitespace-nowrap min-w-max">{file.name}</h3>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                    {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
+                  </p>
+                </div>
+                
+                {/* チェックボックス、アイコン、ボタン - 別の行 */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
                     <input
                       type="checkbox"
                       checked={selectedFiles.includes(file.id)}
                       onChange={() => handleFileSelection(file.id)}
-                      className="h-4 w-4 mt-1"
+                      className="h-4 w-4"
                     />
-                  </div>
-                  <div className="flex-shrink-0">
                     <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style={{ maxWidth: 'calc(100vw - 200px)' }}>
-                      <h3 className="text-base sm:text-lg font-semibold whitespace-nowrap min-w-max pr-2">{file.name}</h3>
-                    </div>
-                    <p className="text-xs sm:text-sm text-gray-500">
-                      {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
-                    </p>
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
+                      onClick={() => handlePreviewFile(file)}
+                    >
+                      <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="text-sm">Preview</span>
+                    </Button>
+                    <Button 
+                      size="sm"
+                      className="bg-[#02315a] text-white hover:bg-[#02315a] px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
+                      onClick={() => handleDownloadFile(file)}
+                    >
+                      <span className="text-sm">📄 Download PDF</span>
+                    </Button>
                   </div>
-                </div>
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 sm:justify-end">
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    className="border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
-                    onClick={() => handlePreviewFile(file)}
-                  >
-                    <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-sm">Preview</span>
-                  </Button>
-                  <Button 
-                    size="sm"
-                    className="bg-[#02315a] text-white hover:bg-[#02315a] px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
-                    onClick={() => handleDownloadFile(file)}
-                  >
-                    <span className="text-sm">📄 Download PDF</span>
-                  </Button>
                 </div>
               </div>
             </CardContent>
