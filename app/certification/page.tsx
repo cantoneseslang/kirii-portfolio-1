@@ -222,15 +222,12 @@ export default function CertificationPage() {
   ];
 
   const handleDownloadCategory = (categoryName: string) => {
-    console.log('Download category clicked:', categoryName);
-    // カテゴリー全体のダウンロード（ZIP形式を想定）
-    const link = document.createElement('a');
-    link.href = `/api/download-certification?category=${encodeURIComponent(categoryName)}`;
-    link.download = `${categoryName}.zip`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    console.log('View category files:', categoryName);
+    // カテゴリー内のファイル一覧を表示（モーダルまたは新しいページ）
+    alert(`Viewing files in category: ${categoryName}\n\nThis will show individual files for download.`);
   };
+
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
   const handleDownloadFile = (fileName: string) => {
     console.log('Download file clicked:', fileName);
@@ -241,6 +238,34 @@ export default function CertificationPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleFileSelection = (fileName: string) => {
+    setSelectedFiles(prev => 
+      prev.includes(fileName) 
+        ? prev.filter(file => file !== fileName)
+        : [...prev, fileName]
+    );
+  };
+
+  const handleDownloadSelected = () => {
+    if (selectedFiles.length === 0) {
+      alert('Please select files to download');
+      return;
+    }
+    
+    console.log('Downloading selected files:', selectedFiles);
+    // 複数ファイルのダウンロード処理
+    selectedFiles.forEach(fileName => {
+      const link = document.createElement('a');
+      link.href = `/api/download-certification?filename=${encodeURIComponent(fileName)}`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+    
+    setSelectedFiles([]);
   };
 
   return (
@@ -270,8 +295,8 @@ export default function CertificationPage() {
                     onClick={() => handleDownloadCategory(category.name)}
                     className="flex items-center space-x-1"
                   >
-                    <Download className="h-4 w-4" />
-                    <span>Download</span>
+                    <FolderOpen className="h-4 w-4" />
+                    <span>View Files</span>
                   </Button>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">{category.nameZh}</p>
@@ -304,18 +329,37 @@ export default function CertificationPage() {
         {/* Important Files Section */}
         <Card className="mt-8">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold flex items-center space-x-2">
-              <FileText className="h-6 w-6 text-green-600" />
-              <span>Important Documents / 重要文件</span>
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold flex items-center space-x-2">
+                <FileText className="h-6 w-6 text-green-600" />
+                <span>Important Documents / 重要文件</span>
+              </CardTitle>
+              {selectedFiles.length > 0 && (
+                <Button
+                  onClick={handleDownloadSelected}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Download Selected ({selectedFiles.length})
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Certificate List_Jan2025.xlsx</p>
-                    <p className="text-sm text-gray-600">認證清單</p>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedFiles.includes("Certificate List_Jan2025.xlsx")}
+                      onChange={() => handleFileSelection("Certificate List_Jan2025.xlsx")}
+                      className="h-4 w-4 text-blue-600"
+                    />
+                    <div>
+                      <p className="font-medium">Certificate List_Jan2025.xlsx</p>
+                      <p className="text-sm text-gray-600">認證清單</p>
+                    </div>
                   </div>
                   <Button
                     variant="outline"
@@ -328,9 +372,17 @@ export default function CertificationPage() {
                 </div>
                 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">PVDF Aluminium Panel Specification</p>
-                    <p className="text-sm text-gray-600">PVDF鋁板規格</p>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedFiles.includes("PVDF Aluminium Panel Specification 20190605_WM.pdf")}
+                      onChange={() => handleFileSelection("PVDF Aluminium Panel Specification 20190605_WM.pdf")}
+                      className="h-4 w-4 text-blue-600"
+                    />
+                    <div>
+                      <p className="font-medium">PVDF Aluminium Panel Specification</p>
+                      <p className="text-sm text-gray-600">PVDF鋁板規格</p>
+                    </div>
                   </div>
                   <Button
                     variant="outline"
@@ -345,9 +397,17 @@ export default function CertificationPage() {
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Powder Coating Aluminium Panel Specification</p>
-                    <p className="text-sm text-gray-600">粉末塗料鋁板規格</p>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedFiles.includes("Powder Coating Aluminium Panel Specification 20190709_WM.pdf")}
+                      onChange={() => handleFileSelection("Powder Coating Aluminium Panel Specification 20190709_WM.pdf")}
+                      className="h-4 w-4 text-blue-600"
+                    />
+                    <div>
+                      <p className="font-medium">Powder Coating Aluminium Panel Specification</p>
+                      <p className="text-sm text-gray-600">粉末塗料鋁板規格</p>
+                    </div>
                   </div>
                   <Button
                     variant="outline"
@@ -360,9 +420,17 @@ export default function CertificationPage() {
                 </div>
                 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">PPG Color Chart.pdf</p>
-                    <p className="text-sm text-gray-600">PPG色卡</p>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedFiles.includes("PPG Color Chart.pdf")}
+                      onChange={() => handleFileSelection("PPG Color Chart.pdf")}
+                      className="h-4 w-4 text-blue-600"
+                    />
+                    <div>
+                      <p className="font-medium">PPG Color Chart.pdf</p>
+                      <p className="text-sm text-gray-600">PPG色卡</p>
+                    </div>
                   </div>
                   <Button
                     variant="outline"
