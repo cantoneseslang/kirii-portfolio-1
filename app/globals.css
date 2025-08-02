@@ -90,7 +90,7 @@
 
 .animate-marquee {
   display: inline-block;
-  animation: marquee 75s linear infinite;
+  animation: marquee 56.25s linear infinite; /* 75s * 0.75 = 56.25s (25% faster) */
   width: 50%;
   padding-left: 1rem;
 }
