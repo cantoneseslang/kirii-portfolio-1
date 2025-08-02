@@ -263,7 +263,7 @@ export default function CertificationPage() {
                     onClick={() => handlePreviewFile(file)}
                   >
                     <Eye className="h-4 w-4" />
-                    <span>👁️ Preview</span>
+                    <span>Preview</span>
                   </Button>
                   <Button 
                     className="bg-[#02315a] text-white hover:bg-[#02315a] px-4 py-2 rounded-lg flex items-center space-x-2"
