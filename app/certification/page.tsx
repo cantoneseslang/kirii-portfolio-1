@@ -211,14 +211,16 @@ export default function CertificationPage() {
               className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded"
               onClick={() => toggleFolder(folder.id, folder.name)}
             >
-              <div className="flex items-center space-x-2 min-w-0 flex-1 overflow-hidden">
+              <div className="flex items-center space-x-2 min-w-0 flex-1">
                 {expandedFolders.has(folder.id) ? (
                   <ChevronDown className="h-4 w-4 flex-shrink-0" />
                 ) : (
                   <ChevronRight className="h-4 w-4 flex-shrink-0" />
                 )}
                 <FolderOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
-                <span className="font-medium break-all overflow-x-auto whitespace-nowrap text-sm sm:text-base">{folder.name}</span>
+                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  <span className="font-medium whitespace-nowrap min-w-max text-sm sm:text-base">{folder.name}</span>
+                </div>
               </div>
               <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0 ml-2">
                 {folder.contents ? `${folder.contents.files?.length || 0} files` : 'Click to expand'}
@@ -252,8 +254,10 @@ export default function CertificationPage() {
                   <div className="flex-shrink-0">
                     <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
                   </div>
-                  <div className="flex-1 min-w-0 overflow-hidden">
-                    <h3 className="text-base sm:text-lg font-semibold break-all overflow-x-auto whitespace-nowrap">{file.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                      <h3 className="text-base sm:text-lg font-semibold whitespace-nowrap min-w-max">{file.name}</h3>
+                    </div>
                     <p className="text-xs sm:text-sm text-gray-500">
                       {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
                     </p>
