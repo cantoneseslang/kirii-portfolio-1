@@ -268,12 +268,9 @@ export default function CertificationPage() {
       <div className="grid gap-6 mt-6">
         {/* ローディング表示 */}
         {isLoading && (
-          <Card className="p-6">
-            <div className="flex items-center justify-center space-x-2">
-              <RefreshCw className="h-6 w-6 animate-spin text-blue-600" />
-              <span className="text-lg">フォルダ構造を取得中...</span>
-            </div>
-          </Card>
+          <div className="flex justify-center items-center py-12">
+            <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
+          </div>
         )}
 
         {/* エラー表示 */}
