@@ -6,7 +6,7 @@ import { DashboardShell } from "@/components/dashboard-shell"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Footer } from "@/components/footer"
-import { FolderOpen, FileText, Download, RefreshCw, Upload, ChevronRight, ChevronDown } from "lucide-react"
+import { FolderOpen, FileText, Download, RefreshCw, Upload, ChevronRight, ChevronDown, Eye } from "lucide-react"
 import { downloadFile } from "@/lib/google-drive"
 
 export default function CertificationPage() {
@@ -133,6 +133,17 @@ export default function CertificationPage() {
     }
   };
 
+  // ファイルをプレビュー
+  const handlePreviewFile = async (file: any) => {
+    try {
+      const downloadUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=AIzaSyAVhBDAR1knpgN_6ZnDKOy5HKVdqpm9_48`;
+      window.open(downloadUrl, '_blank');
+    } catch (error) {
+      console.error('Preview error:', error);
+      alert('Preview failed. Please try again.');
+    }
+  };
+
   const handleFileSelection = (fileId: string) => {
     setSelectedFiles(prev => 
       prev.includes(fileId) 
@@ -245,12 +256,22 @@ export default function CertificationPage() {
                     {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
                   </p>
                 </div>
-                <Button 
-                  className="bg-[#02315a] text-white hover:bg-[#02315a] px-4 py-2 rounded-lg flex items-center space-x-2"
-                  onClick={() => handleDownloadFile(file)}
-                >
-                  <span>📄 Download PDF</span>
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline"
+                    className="border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg flex items-center space-x-2"
+                    onClick={() => handlePreviewFile(file)}
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>👁️ Preview</span>
+                  </Button>
+                  <Button 
+                    className="bg-[#02315a] text-white hover:bg-[#02315a] px-4 py-2 rounded-lg flex items-center space-x-2"
+                    onClick={() => handleDownloadFile(file)}
+                  >
+                    <span>📄 Download PDF</span>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

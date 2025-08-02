@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, FileText, Download } from "lucide-react"
+import { ArrowLeft, FileText, Download, Eye } from "lucide-react"
 import Link from "next/link"
 
 const pdfFiles = [
@@ -49,19 +49,31 @@ export default function JobReferencePage() {
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold">{file.name}</h3>
                 </div>
-                <Button 
-                  className="bg-[#02315a] text-white hover:bg-[#02315a] px-4 py-2 rounded-lg flex items-center space-x-2"
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = file.path;
-                    link.download = file.name;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                >
-                  <span>📄 Download PDF</span>
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline"
+                    className="border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg flex items-center space-x-2"
+                    onClick={() => {
+                      window.open(file.path, '_blank');
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>👁️ Preview</span>
+                  </Button>
+                  <Button 
+                    className="bg-[#02315a] text-white hover:bg-[#02315a] px-4 py-2 rounded-lg flex items-center space-x-2"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = file.path;
+                      link.download = file.name;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                  >
+                    <span>📄 Download PDF</span>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
