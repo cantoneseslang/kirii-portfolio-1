@@ -3,6 +3,9 @@ const GOOGLE_DRIVE_API_KEY = 'AIzaSyAVhBDAR1knpgN_6ZnDKOy5HKVdqpm9_48';
 // Google Drive APIのベースURL
 const GOOGLE_DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
+// フォルダID（CertificateフォルダのID）
+const CERTIFICATE_FOLDER_ID = 'YOUR_FOLDER_ID_HERE'; // 実際のフォルダIDに置き換えてください
+
 // ファイルIDのマッピング（カテゴリー別）
 export const FILE_MAPPINGS = {
   'Certificate List_Jan2025.xlsx': '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
@@ -28,6 +31,25 @@ export const CATEGORY_FILES = {
   ],
   // 他のカテゴリーをここに追加
 };
+
+// フォルダ内のファイル一覧を取得
+export async function getFolderFiles(folderId: string = CERTIFICATE_FOLDER_ID) {
+  try {
+    const response = await fetch(
+      `${GOOGLE_DRIVE_API_BASE}/files?q='${folderId}'+in+parents&key=${GOOGLE_DRIVE_API_KEY}&fields=files(id,name,mimeType,size,modifiedTime)`
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch folder files');
+    }
+    
+    const data = await response.json();
+    return data.files || [];
+  } catch (error) {
+    console.error('Error fetching folder files:', error);
+    throw error;
+  }
+}
 
 // ファイルIDからダウンロードURLを生成
 export function getFileDownloadUrl(fileId: string): string {
