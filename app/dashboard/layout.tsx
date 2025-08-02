@@ -13,6 +13,10 @@ const navItems = [
     href: "/dashboard/profile",
   },
   {
+    title: "Certification",
+    href: "/certification",
+  },
+  {
     title: "Admin",
     href: "/admin",
   },
