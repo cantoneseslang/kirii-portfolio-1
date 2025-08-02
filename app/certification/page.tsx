@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FolderOpen, FileText, Download, RefreshCw, ChevronRight, ChevronDown, Eye } from "lucide-react"
 import { downloadFile } from "@/lib/google-drive"
+import { PDFPreviewModal } from "@/components/pdf-preview-modal"
 
 export default function CertificationPage() {
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -13,6 +14,11 @@ export default function CertificationPage() {
   const [error, setError] = useState("");
   const [folderStructure, setFolderStructure] = useState(null);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
+  const [previewModal, setPreviewModal] = useState<{ isOpen: boolean; fileId: string; fileName: string }>({
+    isOpen: false,
+    fileId: "",
+    fileName: ""
+  });
 
   // フォルダIDからフォルダ構造を取得
   const fetchFolderStructure = async () => {
@@ -132,13 +138,11 @@ export default function CertificationPage() {
 
   // ファイルをプレビュー
   const handlePreviewFile = async (file: any) => {
-    try {
-      const downloadUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=AIzaSyAVhBDAR1knpgN_6ZnDKOy5HKVdqpm9_48`;
-      window.open(downloadUrl, '_blank');
-    } catch (error) {
-      console.error('Preview error:', error);
-      alert('Preview failed. Please try again.');
-    }
+    setPreviewModal({
+      isOpen: true,
+      fileId: file.id,
+      fileName: file.name
+    });
   };
 
   const handleFileSelection = (fileId: string) => {
@@ -352,6 +356,14 @@ export default function CertificationPage() {
             </div>
           </Card>
         )}
+
+        {/* PDFプレビューモーダル */}
+        <PDFPreviewModal
+          isOpen={previewModal.isOpen}
+          onClose={() => setPreviewModal({ isOpen: false, fileId: "", fileName: "" })}
+          fileId={previewModal.fileId}
+          fileName={previewModal.fileName}
+        />
       </div>
     </div>
   )
