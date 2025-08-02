@@ -206,9 +206,9 @@ export default function CertificationPage() {
       <div className="space-y-4">
         {/* フォルダの表示 */}
         {folders.map((folder) => (
-          <div key={folder.id} className="border rounded-lg p-3 sm:p-4">
+          <div key={folder.id} className="p-3 sm:p-4 bg-gray-50 rounded-lg mb-2">
             <div 
-              className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded"
+              className="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded"
               onClick={() => toggleFolder(folder.id, folder.name)}
             >
               <div className="flex items-center space-x-2 min-w-0 flex-1">
@@ -239,59 +239,57 @@ export default function CertificationPage() {
         
         {/* ファイルの表示 */}
         {files.map((file) => (
-          <Card key={file.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4 sm:p-6">
-              <div className="space-y-3">
-                {/* ファイル名とサイズ - 独立した行で全幅使用 */}
-                <div className="w-full">
-                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 w-full">
-                    <h3 className="text-base sm:text-lg font-semibold whitespace-nowrap min-w-max">{file.name}</h3>
-                  </div>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                    {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
-                  </p>
+          <div key={file.id} className="p-4 sm:p-6 bg-white border border-gray-200 rounded-lg mb-2 hover:shadow-md transition-shadow">
+            <div className="space-y-3">
+              {/* ファイル名とサイズ - 独立した行で全幅使用 */}
+              <div className="w-full">
+                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 w-full">
+                  <h3 className="text-base sm:text-lg font-semibold whitespace-nowrap min-w-max">{file.name}</h3>
                 </div>
-                
-                {/* チェックボックス、アイコン、ボタン - 別の行 */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedFiles.includes(file.id)}
-                      onChange={() => handleFileSelection(file.id)}
-                      className="h-4 w-4"
-                    />
-                    <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
-                  </div>
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      className="border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
-                      onClick={() => handlePreviewFile(file)}
-                    >
-                      <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="text-sm">Preview</span>
-                    </Button>
-                    <Button 
-                      size="sm"
-                      className="bg-[#02315a] text-white hover:bg-[#02315a] px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
-                      onClick={() => handleDownloadFile(file)}
-                    >
-                      <span className="text-sm">📄 Download PDF</span>
-                    </Button>
-                  </div>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                  {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
+                </p>
+              </div>
+              
+              {/* チェックボックス、アイコン、ボタン - 別の行 */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedFiles.includes(file.id)}
+                    onChange={() => handleFileSelection(file.id)}
+                    className="h-4 w-4"
+                  />
+                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
+                </div>
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
+                    onClick={() => handlePreviewFile(file)}
+                  >
+                    <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="text-sm">Preview</span>
+                  </Button>
+                  <Button 
+                    size="sm"
+                    className="bg-[#02315a] text-white hover:bg-[#02315a] px-3 py-2 rounded-lg flex items-center justify-center space-x-2"
+                    onClick={() => handleDownloadFile(file)}
+                  >
+                    <span className="text-sm">📄 Download PDF</span>
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     );
   };
 
   return (
-    <div className="container mx-auto max-w-4xl py-10 px-4">
+    <div className="w-full py-10 px-2 sm:px-4">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Certification</h1>
         <p className="text-muted-foreground mt-2">認證文件</p>
@@ -307,7 +305,7 @@ export default function CertificationPage() {
 
         {/* エラー表示 */}
         {error && (
-          <Card className="p-6">
+          <div className="p-6 border rounded-lg bg-white">
             <div className="text-red-600 text-center">
               <p className="text-lg font-semibold">エラーが発生しました</p>
               <p className="text-sm mt-2">{error}</p>
@@ -319,7 +317,7 @@ export default function CertificationPage() {
                 再試行
               </Button>
             </div>
-          </Card>
+          </div>
         )}
 
         {/* フォルダ構造表示 */}
@@ -327,7 +325,7 @@ export default function CertificationPage() {
           <div className="space-y-6">
             {/* 選択されたファイルのダウンロードボタン */}
             {selectedFiles.length > 0 && (
-              <Card className="p-4">
+              <div className="p-4 border rounded-lg bg-white">
                 <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:justify-between">
                   <span className="text-sm sm:text-base">選択されたファイル: {selectedFiles.length}個</span>
                   <Button
@@ -339,27 +337,25 @@ export default function CertificationPage() {
                     選択したファイルをダウンロード
                   </Button>
                 </div>
-              </Card>
+              </div>
             )}
 
-            {/* フォルダ構造の表示 */}
-            <Card>
-              <CardContent className="pt-6">
-                {renderFolderStructure(folderStructure.folders || [], folderStructure.files || [], 0)}
-              </CardContent>
-            </Card>
+            {/* フォルダ構造の表示 - 枠線なし */}
+            <div className="pt-6">
+              {renderFolderStructure(folderStructure.folders || [], folderStructure.files || [], 0)}
+            </div>
           </div>
         )}
 
         {/* 使用方法の説明 */}
         {!folderStructure && !isLoading && !error && (
-          <Card className="p-6">
+          <div className="p-6 border rounded-lg bg-white">
             <h3 className="text-lg font-semibold mb-4">認證文件</h3>
             <div className="space-y-3 text-sm">
               <p>Google Driveから認證文件を自動取得しています...</p>
               <p>フォルダをクリックして展開し、ファイルをダウンロードしてください。</p>
             </div>
-          </Card>
+          </div>
         )}
 
         {/* PDFプレビューモーダル */}
