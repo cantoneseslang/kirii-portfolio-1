@@ -54,8 +54,11 @@ export default function CertificationPage() {
   // サブフォルダの内容を取得
   const fetchSubFolderContents = async (subFolderId: string, subFolderName: string) => {
     try {
+      console.log(`Fetching contents for subfolder: ${subFolderName} (${subFolderId})`);
       const response = await fetch(`/api/get-folder-contents?folderId=${encodeURIComponent(subFolderId)}`);
       const data = await response.json();
+
+      console.log(`Subfolder contents for ${subFolderName}:`, data);
 
       if (data.success) {
         // フォルダ構造を更新
@@ -67,6 +70,8 @@ export default function CertificationPage() {
               : folder
           )
         }));
+      } else {
+        console.error(`Failed to fetch contents for ${subFolderName}:`, data.message);
       }
     } catch (error) {
       console.error("Error fetching subfolder contents:", error);
@@ -161,7 +166,9 @@ export default function CertificationPage() {
   };
 
   // フォルダ構造を再帰的に表示
-  const renderFolderStructure = (folders: any[], files: any[]) => {
+  const renderFolderStructure = (folders: any[], files: any[], level: number = 0) => {
+    console.log(`Rendering level ${level}:`, { folders: folders.length, files: files.length });
+    
     return (
       <div className="space-y-4">
         {/* フォルダの表示 */}
@@ -188,7 +195,7 @@ export default function CertificationPage() {
             {/* 展開されたフォルダの内容 */}
             {expandedFolders.has(folder.id) && folder.contents && (
               <div className="mt-4 ml-6 border-l-2 border-gray-200 pl-4">
-                {renderFolderStructure(folder.contents.folders || [], folder.contents.files || [])}
+                {renderFolderStructure(folder.contents.folders || [], folder.contents.files || [], level + 1)}
               </div>
             )}
           </div>
@@ -286,7 +293,7 @@ export default function CertificationPage() {
             {/* フォルダ構造の表示 */}
             <Card>
               <CardContent className="pt-6">
-                {renderFolderStructure(folderStructure.folders || [], folderStructure.files || [])}
+                {renderFolderStructure(folderStructure.folders || [], folderStructure.files || [], 0)}
               </CardContent>
             </Card>
           </div>
