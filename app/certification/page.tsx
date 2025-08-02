@@ -285,13 +285,7 @@ export default function CertificationPage() {
 
             {/* フォルダ構造の表示 */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FolderOpen className="h-5 w-5 mr-2 text-blue-600" />
-                  フォルダ構造 ({folderStructure.totalItems}個のアイテム)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 {renderFolderStructure(folderStructure.folders || [], folderStructure.files || [])}
               </CardContent>
             </Card>
