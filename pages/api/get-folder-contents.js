@@ -25,10 +25,53 @@ export default async function handler(req, res) {
     const data = await response.json();
     const items = data.files || [];
 
-    // フォルダとファイルを分類
-    const folders = items.filter(item => item.mimeType === 'application/vnd.google-apps.folder');
-    const files = items.filter(item => item.mimeType !== 'application/vnd.google-apps.folder');
+    // ファイル名のエンコーディングを修正
+    const fixFileNameEncoding = (name) => {
+      try {
+        // URLデコードを試行
+        return decodeURIComponent(name);
+      } catch (error) {
+        // デコードに失敗した場合は元の名前を返す
+        return name;
+      }
+    };
 
+    // ファイル名を修正
+    items.forEach(item => {
+      item.name = fixFileNameEncoding(item.name);
+    });
+
+    // 不要なファイルを除外する関数
+    const shouldExcludeFile = (item) => {
+      const name = item.name.toLowerCase();
+      
+      // システムファイルを除外
+      if (name.includes('debug') || 
+          name.includes('thumbs') || 
+          name.includes('desktop') ||
+          name === 'desktop.ini' ||
+          name === 'thumbs.db' ||
+          name.endsWith('.log') ||
+          name.endsWith('.tmp')) {
+        return true;
+      }
+      
+      // 隠しファイルを除外
+      if (name.startsWith('.')) {
+        return true;
+      }
+      
+      return false;
+    };
+
+    // フォルダとファイルを分類（不要なファイルを除外）
+    const folders = items.filter(item => item.mimeType === 'application/vnd.google-apps.folder');
+    const files = items.filter(item => 
+      item.mimeType !== 'application/vnd.google-apps.folder' && 
+      !shouldExcludeFile(item)
+    );
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.json({
       success: true,
       folderId,
