@@ -255,8 +255,8 @@ export default function CertificationPage() {
                     <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                      <h3 className="text-base sm:text-lg font-semibold whitespace-nowrap min-w-max">{file.name}</h3>
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style={{ maxWidth: 'calc(100vw - 200px)' }}>
+                      <h3 className="text-base sm:text-lg font-semibold whitespace-nowrap min-w-max pr-2">{file.name}</h3>
                     </div>
                     <p className="text-xs sm:text-sm text-gray-500">
                       {file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : 'サイズ不明'}
