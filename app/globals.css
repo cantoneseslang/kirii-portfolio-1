@@ -109,6 +109,15 @@
 .news-ticker-content {
   display: inline-flex;
   width: 200%;
+  overflow: hidden;
+}
+
+/* モバイルでの2行制限を確実にする */
+@media (max-width: 768px) {
+  .news-ticker-content {
+    max-height: 3rem;
+    line-height: 1.5;
+  }
 }
 
 .animate-marquee {
