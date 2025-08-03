@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "minimax": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "minimax-mcp-js@latest"
+      ],
+      "env": {
+        "MINIMAX_API_KEY": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiJIIFNha29uIiwiVXNlck5hbWUiOiJIIFNha29uIiwiQWNjb3VudCI6IiIsIlN1YmplY3RJRCI6IjE4NjIwNjE3MzAxMDQ4NzM2NDYiLCJQaG9uZSI6IiIsIkdyb3VwSUQiOiIxODYyMDYxNzMwMDk2NDg1MDM4IiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoiYmVzdGlua3NhbGVzbWFuQGdtYWlsLmNvbSIsIkNyZWF0ZVRpbWUiOiIyMDI1LTA4LTAzIDEyOjQ0OjE1IiwiVG9rZW5UeXBlIjoxLCJpc3MiOiJtaW5pbWF4In0.kXFx-1sQui_YwUeV2COHhcWsqSMWkarPBFAerKx16_v32kluO5Xorrb2dt5nMJeq3vSaKf7hUW63pWP6O64FfDnZbItunJsgfNsVGjGTk6YPSyvJeaHsgAk_f6uo6z8lARY6oqC3XkTIvAHst6ThmQlRmYKeGW3CYdwCMZGS8D1IKMJjvt3frWlYhs76Uh0MgAya0gYNAWErwXd8h8BMbyhaN2F6mfwdARCx64BHjYaz7FG67I_li3Rq1Iu4KHDN5KYIBm4s2-Mv3fy5x1o02QfRGhHrDTFejytIWdfBYNWh8MKM57TJqs-7jzFAZ-e3CtUzwYlH1o2WzOUAbcjdA"
+      }
+    }
+  }
+} 
