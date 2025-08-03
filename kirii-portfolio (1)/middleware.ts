@@ -47,9 +47,10 @@ export async function middleware(request: NextRequest) {
   try {
     const { data: { session } } = await supabase.auth.getSession()
 
-    // ダッシュボードとアドミンページの保護（セッションがない場合はホームにリダイレクト）
+    // ダッシュボード、アドミン、Cantoneseチャットページの保護（セッションがない場合はホームにリダイレクト）
     if ((request.nextUrl.pathname.startsWith('/dashboard') || 
-         request.nextUrl.pathname.startsWith('/admin')) && 
+         request.nextUrl.pathname.startsWith('/admin') ||
+         request.nextUrl.pathname.startsWith('/cantonese-chat')) && 
         !session) {
       return NextResponse.redirect(new URL('/', request.url))
     }
@@ -67,5 +68,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/admin/:path*'],
+  matcher: ['/', '/dashboard/:path*', '/admin/:path*', '/cantonese-chat/:path*'],
 }

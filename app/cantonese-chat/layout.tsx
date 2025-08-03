@@ -26,7 +26,7 @@ const navItems = [
   },
 ]
 
-export default function DashboardLayout({
+export default function CantoneseChatLayout({
   children,
 }: {
   children: React.ReactNode
@@ -47,4 +47,4 @@ export default function DashboardLayout({
       </div>
     </div>
   )
-}
+} 
