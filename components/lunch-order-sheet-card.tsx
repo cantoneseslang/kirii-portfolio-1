@@ -4,7 +4,7 @@ import React from 'react';
 
 const LunchOrderSheetCard = () => {
   return (
-    <a href="https://docs.google.com/spreadsheets/d/1LcDsS3STtTXVIB5LVYy1MvXJU0Ot_U083dSzJPcRA2g/edit?gid=1524617477#gid=1524617477" target="_blank" rel="noopener noreferrer" className="block w-full">
+    <a href="https://docs.google.com/spreadsheets/d/1LcDsS3STtTXVIB5LVYy1MvXJU0Ot_U083dSzJPcRA2g/edit?gid=1524617477#gid=1524617477" target="_blank" rel="noopener" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
         <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Lunch Order Sheet</h3>
         <p className="text-[#3c3852] text-sm mt-4">午餐統計系統(只落單職員使用)</p>

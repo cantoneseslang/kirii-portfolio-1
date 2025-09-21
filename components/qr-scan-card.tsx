@@ -1,12 +1,12 @@
-"use client"
+e"use client"
 
 import React from 'react';
 
 const QRScanCard = () => {
   return (
-    <a href="https://qr-new-six.vercel.app/" target="_blank" rel="noopener noreferrer" className="block w-full">
+    <a href="https://qr-new-six.vercel.app/" target="_blank" rel="noopener" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">KHK-AI-QR-SCAN</h3>
+        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">STOCK-AI-SCAN</h3>
         <p className="text-[#3c3852] text-sm mt-4">庫存AIQR掃描儀</p>
         
         <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">

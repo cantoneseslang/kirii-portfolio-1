@@ -17,8 +17,10 @@ import DeepSeekChatCard from "@/components/deepseek-chat-card"
 import { Footer } from "@/components/footer"
 import GanttChartWBSCard from "@/components/gantt-chart-wbs-card"
 import QRScanCard from "@/components/qr-scan-card";
+import KHK_AI_MONITOR_Card from "@/components/khk-ai-monitor-card";
 import CompanyInfoCard from "@/components/company-info-card";
 import ProductManualCard from "@/components/product-manual-card";
+import PQFormCard from "@/components/pq-form-card";
 import CertificateCard from "@/components/certificate-card";
 
 export default function DashboardPage() {
@@ -28,7 +30,7 @@ export default function DashboardPage() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  // セッションが存在しない場合、ホームページにリダイレクト
+  // Redirect to home page if no session exists
   useEffect(() => {
     if (!isLoading && !user) {
       console.log("Dashboard: No user found, redirecting to home page")
@@ -43,13 +45,13 @@ export default function DashboardPage() {
       router.push("/")
     } catch (error) {
       console.error("Dashboard: Error signing out:", error)
-      // エラー時も強制的にホームページへ
+      // Force redirect to home page even on error
       router.push("/")
     }
   }
 
   useEffect(() => {
-    // ユーザーがロードされたらプロフィールを取得
+    // Load profile when user is loaded
     if (user && !isLoading) {
       loadProfile()
     }
@@ -62,11 +64,11 @@ export default function DashboardPage() {
     setError(null)
 
     try {
-      // プロフィールの取得を試みる
+      // Try to get profile
       console.log("Dashboard: Loading profile for user:", user.id)
       const profileData = await getProfile(user.id)
       
-      // プロフィールが見つからない場合は新しく作成
+      // Create new profile if not found
       if (!profileData) {
         console.log("Dashboard: Profile not found, attempting to create one")
         const result = await createProfile(user.id)
@@ -76,13 +78,13 @@ export default function DashboardPage() {
           const newProfileData = await getProfile(user.id)
           setProfile(newProfileData || {
             id: user.id,
-            full_name: user.user_metadata?.full_name || "ユーザー",
+            full_name: user.user_metadata?.full_name || "User",
           } as Profile)
         } else {
           console.error("Dashboard: Failed to create profile:", result.error)
           setProfile({
             id: user.id,
-            full_name: user.user_metadata?.full_name || "ユーザー",
+            full_name: user.user_metadata?.full_name || "User",
           } as Profile)
         }
       } else {
@@ -91,17 +93,17 @@ export default function DashboardPage() {
       }
     } catch (error: any) {
       console.error("Dashboard: Error in loadProfile:", error)
-      setError(error.message || "プロフィールの読み込みに失敗しました")
+      setError(error.message || "Failed to load profile")
       setProfile({
         id: user.id,
-        full_name: user.user_metadata?.full_name || "ユーザー",
+        full_name: user.user_metadata?.full_name || "User",
       } as Profile)
     } finally {
       setIsLoadingProfile(false)
     }
   }
 
-  // 認証情報のロード中の表示
+  // Loading display while authentication is loading
   if (isLoading) {
     return (
       <div className="container py-10">
@@ -115,7 +117,7 @@ export default function DashboardPage() {
     )
   }
 
-  // ユーザーが認証されていない場合
+  // User not authenticated
   if (!user) {
     return (
       <div className="container py-10">
@@ -142,26 +144,27 @@ export default function DashboardPage() {
       <div className="news-ticker mt-4 mb-2 overflow-hidden border-y border-gray-200 py-2">
         <div className="news-ticker-content max-h-[3rem] md:max-h-none">
           <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">
-            28-7-2025: 追加 Company Information 公司信息 • 26-7-2025: KHK-AI-QR-SCAN Filed Testing庫存AIQR掃描儀 • 25-7-2025至25-8-2025:更新午餐菜單 • 09-05-2025: SalesDepartment 3月份數字更新 • 09-04-2025: Official Testing Begins for In-House Portfolio-1-ec6b0az7f.ver Web App (Until Month-End)🆕
+            28-7-2025: Added Company Information 公司信息 • 26-7-2025: KHK-AI-QR-SCAN Filed Testing庫存AIQR掃描儀 • 25-7-2025 to 25-8-2025: Updated Lunch Menu • 09-05-2025: Sales Department March Numbers Updated • 09-04-2025: Official Testing Begins for In-House Portfolio-1-ec6b0az7f.ver Web App (Until Month-End)🆕
           </span>
         </div>
       </div>
 
       <div className="grid gap-8 mt-6">
         <div>
-          <h3 className="text-lg font-semibold mb-4">Department: All Employees</h3>
+          <h3 className="text-lg font-semibold mb-4">Department: All Employees-ERP</h3>
           <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
             <LunchOrderCard />
             <LunchOrderSheetCard />
           </div>
-          <div className="flex flex-col gap-6 items-center justify-center mt-6">
+          <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
             <QRScanCard />
+            <KHK_AI_MONITOR_Card />
           </div>
         </div>
         
         {(profile?.department?.includes("Sales") || profile?.is_admin) && (
           <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Department: Sales</h3>
+            <h3 className="text-lg font-semibold mb-4">Department: Sales-ERP</h3>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
               <SalesDashboardCard />
               <GanttChartWBSCard />
@@ -176,9 +179,18 @@ export default function DashboardPage() {
           </div>
         )}
         
+        {(profile?.department?.includes("Factory") || profile?.is_admin) && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Department: Factory-ERP</h3>
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+              <PQFormCard />
+            </div>
+          </div>
+        )}
+
         {(profile?.department?.includes("Purchasing") || profile?.is_admin) && (
           <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Department: Purchasing</h3>
+            <h3 className="text-lg font-semibold mb-4">Department: Purchasing-ERP</h3>
             <div className="flex flex-col gap-6 items-start">
               <SupplierInfoCard />
             </div>

@@ -1,12 +1,18 @@
--- RLSポリシーを修正
+-- RLSポリシーを完全にリセットして再作成
 -- Supabaseダッシュボードで「Service Role」権限で実行してください
 
--- 既存のポリシーを削除
+-- 既存のポリシーをすべて削除
 DROP POLICY IF EXISTS "Admin can view all profiles" ON profiles;
 DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
+DROP POLICY IF EXISTS "Authenticated users can view all profiles" ON profiles;
 
--- 新しいポリシーを作成（より緩やかな設定）
--- 管理者は全データにアクセス可能
+DROP POLICY IF EXISTS "Admin can view all login history" ON login_history;
+DROP POLICY IF EXISTS "Users can view own login history" ON login_history;
+DROP POLICY IF EXISTS "System can insert login history" ON login_history;
+DROP POLICY IF EXISTS "Authenticated users can view all login history" ON login_history;
+
+-- 新しいポリシーを作成
+-- profilesテーブル
 CREATE POLICY "Admin can view all profiles" ON profiles
   FOR SELECT USING (
     EXISTS (
@@ -16,7 +22,6 @@ CREATE POLICY "Admin can view all profiles" ON profiles
     )
   );
 
--- ユーザーは自分のプロフィールのみアクセス可能
 CREATE POLICY "Users can view own profile" ON profiles
   FOR SELECT USING (id = auth.uid());
 
@@ -24,8 +29,7 @@ CREATE POLICY "Users can view own profile" ON profiles
 CREATE POLICY "Authenticated users can view all profiles" ON profiles
   FOR SELECT USING (auth.role() = 'authenticated');
 
--- login_historyテーブルのポリシーも確認
--- 管理者は全履歴を閲覧可能
+-- login_historyテーブル
 CREATE POLICY "Admin can view all login history" ON login_history
   FOR SELECT USING (
     EXISTS (
@@ -34,6 +38,12 @@ CREATE POLICY "Admin can view all login history" ON login_history
       AND profiles.is_admin = true
     )
   );
+
+CREATE POLICY "Users can view own login history" ON login_history
+  FOR SELECT USING (user_id = auth.uid());
+
+CREATE POLICY "System can insert login history" ON login_history
+  FOR INSERT WITH CHECK (true);
 
 -- 認証済みユーザーは全ログイン履歴を閲覧可能（テスト用）
 CREATE POLICY "Authenticated users can view all login history" ON login_history

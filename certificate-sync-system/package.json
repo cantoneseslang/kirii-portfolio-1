@@ -1,0 +1,38 @@
+{
+  "name": "certificate-sync-system",
+  "version": "1.0.0",
+  "description": "社内ネットワーク共有フォルダからGoogle Driveへの認証書ファイル自動同期システム",
+  "main": "local_sync.js",
+  "scripts": {
+    "start": "node local_sync.js",
+    "test": "node test_sync.js",
+    "install-deps": "npm install",
+    "setup": "node setup.js"
+  },
+  "keywords": [
+    "google-drive",
+    "file-sync",
+    "certificate",
+    "automation",
+    "nodejs"
+  ],
+  "author": "KIRII Portfolio Team",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "googleapis": "^126.0.1",
+    "chokidar": "^3.5.3",
+    "winston": "^3.10.0",
+    "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "internal-use-only"
+  }
+}
+

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import type React from "react"
 import { supabase } from "@/utils/supabase"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,7 +8,6 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function LoginForm() {
-  // Set initial values to empty and let the user input them
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -44,19 +42,54 @@ export function LoginForm() {
         throw error
       }
 
-      setSuccess("Login successful. Redirecting to dashboard...")
-      console.log("Login successful for user:", data.user?.email)
-
-      // Redirect - using setTimeout to ensure execution after the render cycle
-      setTimeout(() => {
-        // Build the complete URL for redirection
-        const baseUrl = window.location.origin;
-        const dashboardUrl = `${baseUrl}/dashboard`;
-        console.log("Redirecting to:", dashboardUrl);
+      if (data.user) {
+        console.log('Login successful for user:', data.user.id)
         
-        // Force a full page redirect
-        window.location.replace(dashboardUrl);
-      }, 500);
+        // Record login history
+        try {
+          console.log('Recording login history...')
+          
+          const response = await fetch('/api/record-login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: data.user.id,
+              success: true,
+              errorMessage: null,
+              ipAddress: 'client-side',
+              userAgent: navigator.userAgent,
+            }),
+          })
+
+          console.log('API response status:', response.status)
+          
+          if (!response.ok) {
+            const errorData = await response.json()
+            console.error('Failed to record login history:', errorData)
+          } else {
+            const result = await response.json()
+            console.log('Login history recorded successfully:', result)
+          }
+        } catch (apiError) {
+          console.error('API call failed:', apiError)
+        }
+
+        setSuccess("Login successful. Redirecting to dashboard...")
+        console.log("Login successful for user:", data.user?.email)
+
+        // Redirect - using setTimeout to ensure execution after the render cycle
+        setTimeout(() => {
+          // Build the complete URL for redirection
+          const baseUrl = window.location.origin;
+          const dashboardUrl = `${baseUrl}/dashboard`;
+          console.log("Redirecting to:", dashboardUrl);
+          
+          // Force a full page redirect
+          window.location.replace(dashboardUrl);
+        }, 500);
+      }
     } catch (error: any) {
       console.error("Login error:", error)
       

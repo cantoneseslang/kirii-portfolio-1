@@ -112,6 +112,7 @@ export default function CantoneseChatPage() {
       try {
         // 1. 直接ChatCompletion API呼び出し
         console.log('🤖 ChatCompletion API呼び出し中...')
+        console.log('🔑 APIキー確認:', 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiJIIFNha29uIiwiVXNlck5hbWUiOiJIIFNha29uIiwiQWNjb3VudCI6IiIsIlN1YmplY3RJRCI6IjE4NjIwNjE3MzAxMDQ4NzM2NDYiLCJQaG9uZSI6IiIsIkdyb3VwSUQiOiIxODYyMDYxNzMwMDk2NDg1MDM4IiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoiYmVzdGlua3NhbGVzbWFuQGdtYWlsLmNvbSIsIkNyZWF0ZVRpbWUiOiIyMDI1LTA4LTAzIDE1OjMyOjIzIiwiVG9rZW5UeXBlIjoxLCJpc3MiOiJtaW5pbWF4In0.tIDxKjAEo4JWvaPZmcvc3LJUseCyoEW3_6yvKWkx_kB4b4A6eaU_8eUeZtyJQrtILvSAeovjwVt107xJOamPjg_WSe2i0YLShy4SNqfVTKxHa5sqQ_aC0-dXcOJ4bvWvBHB34gLT9FgOrwAl8lLeiCMYFxAfBtAKtWcl6inyZpRiVhDcOZMnhl5rXDBxth_DFhUIhH2bEJf_Y7rYjqnj7fNp_M3yfxGmADlPNdVlBUTD4QWHHpblwN-Ljk9IU9cmqclUDJ35PAnx7rI98CzHNmUw9k3vjFmbVlwgWVEY59_AGBt3pkMB_NhLZpcwtHD4ThwhW7xIuJ1_H6y6kM47yA'.substring(0, 50) + '...')
         const chatResponse = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
           method: 'POST',
           headers: {
@@ -150,6 +151,7 @@ export default function CantoneseChatPage() {
         }
 
         const chatData = await chatResponse.json()
+        console.log('📊 ChatCompletion APIレスポンス:', JSON.stringify(chatData, null, 2))
         
         // APIキーエラーのチェック
         if (chatData.base_resp?.status_code === 1004) {
@@ -486,7 +488,7 @@ export default function CantoneseChatPage() {
             <CardTitle className="text-2xl font-bold text-gray-800">
               🗣️ 廣東話聊天機器人
             </CardTitle>
-            <p className="text-gray-600">MiniMax AI による音声チャット</p>
+            <p className="text-gray-600">MiniMax AI 語音聊天</p>
           </CardHeader>
           
           <CardContent className="space-y-6">
@@ -499,14 +501,14 @@ export default function CantoneseChatPage() {
             
             {/* 音声認識結果 */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800 mb-2">🎤 認識した言葉:</h3>
-              <p className="text-blue-900">{transcript || "音声を待機中..."}</p>
+              <h3 className="font-semibold text-blue-800 mb-2">🎤 認識咗嘅說話:</h3>
+              <p className="text-blue-900">{transcript || "等緊你講嘢..."}</p>
             </div>
             
             {/* AI応答 */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 className="font-semibold text-green-800 mb-2">🤖 AI応答:</h3>
-              <p className="text-green-900">{response || "応答を待機中..."}</p>
+              <h3 className="font-semibold text-green-800 mb-2">🤖 AI回應:</h3>
+              <p className="text-green-900">{response || "等緊回應..."}</p>
             </div>
             
             {/* 処理時間表示 */}
@@ -517,13 +519,13 @@ export default function CantoneseChatPage() {
                   {processingTime}ms (音声認識完了 → 音声再生開始)
                 </p>
                 <p className="text-purple-700 text-sm mt-1">
-                  {processingTime < 1000 ? '🚀 高速' : processingTime < 2000 ? '⚡ 良好' : '🐌 遅い'}
+                  {processingTime < 1000 ? '🚀 好快' : processingTime < 2000 ? '⚡ 良好' : '🐌 好慢'}
                 </p>
               </div>
             )}
             
             {/* コントロールボタン */}
-            <div className="flex justify-center space-x-4">
+            <div className="flex justify-center">
               {/* マイクボタン - 長押しで音声認識 */}
               <Button
                 onMouseDown={startListening}
@@ -536,74 +538,31 @@ export default function CantoneseChatPage() {
                   isListening 
                     ? 'bg-red-600 hover:bg-red-700 animate-pulse' 
                     : 'bg-blue-600 hover:bg-blue-700'
-                } transition-all duration-200`}
+                } transition-all duration-200 rounded-full w-24 h-24`}
                 style={{ 
-                  transform: isListening ? 'scale(1.1)' : 'scale(1)',
+                  transform: isListening ? 'scale(1.25)' : 'scale(1)',
                   boxShadow: isListening ? '0 0 20px rgba(239, 68, 68, 0.5)' : 'none'
                 }}
               >
                 {isListening ? (
-                  <>
-                    <MicOff className="w-5 h-5 mr-2" />
-                    話し中...
-                  </>
+                  <MicOff className="w-[70px] h-[70px]" />
                 ) : (
-                  <>
-                    <Mic className="w-5 h-5 mr-2" />
-                    長押しで話す
-                  </>
+                  <Mic className="w-[70px] h-[70px]" />
                 )}
               </Button>
               
-              {isSpeaking ? (
+              {isSpeaking && (
                 <Button
                   onClick={stopSpeaking}
                   variant="destructive"
+                  className="ml-4 rounded-full w-24 h-24"
                 >
-                  <VolumeX className="w-5 h-5 mr-2" />
-                  音声停止
-                </Button>
-              ) : (
-                <Button
-                  onClick={testVoice}
-                  disabled={isListening}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <Volume2 className="w-5 h-5 mr-2" />
-                  テスト音声
+                  <VolumeX className="w-[70px] h-[70px]" />
                 </Button>
               )}
             </div>
             
-            {/* ステータス表示 */}
-            <div className="text-center text-sm text-gray-600">
-              {isListening && <p>🎤 音声認識中... (ボタンを離すと停止)</p>}
-              {isSpeaking && <p>🔊 音声合成中...</p>}
-              {!isListening && !isSpeaking && <p>⏳ マイクボタンを長押しして話してください</p>}
-            </div>
-            
-            {/* 使用方法説明 */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h3 className="font-semibold text-yellow-800 mb-2">📱 使用方法:</h3>
-              <ul className="text-yellow-900 text-sm space-y-1">
-                <li>• マイクボタンを長押しして話してください</li>
-                <li>• 話し終わったらボタンを離してください</li>
-                <li>• AIが広東語で応答します</li>
-                <li>• 携帯での使用に最適化されています</li>
-              </ul>
-            </div>
-            
-            {/* モバイル用トラブルシューティング */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800 mb-2">🔧 モバイルでのトラブルシューティング:</h3>
-              <ul className="text-blue-900 text-sm space-y-1">
-                <li>• マイクの権限を許可してください</li>
-                <li>• ChromeまたはSafariブラウザを使用してください</li>
-                <li>• 音声認識が動作しない場合は、ブラウザを再読み込みしてください</li>
-                <li>• 静かな環境で話してください</li>
-                <li>• 広東語で話してください</li>
-              </ul>
-            </div>
+
           </CardContent>
         </Card>
       </div>

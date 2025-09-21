@@ -1,0 +1,22 @@
+id,full_name,email,department,position,is_admin,has_all_employees,has_sales,has_purchasing,has_factory,updated_at
+ffaa1ce7-8f23-475b-8492-1ff39d7a0975,Wu Ka Yan,irenewu@kirii.com.hk,"All Employees,Purchasing,Sales",Acc. Manager,FALSE,1,1,1,0,2025-04-08T11:27:51.807337+00:00
+33f2d0fc-e522-4443-9fff-93f307f03e79,Kit Yu Yi,kami@kirii.com.hk,"All Employees,Sales",Ass. Sales Manageress,FALSE,1,1,0,0,2025-04-08T11:27:51.807337+00:00
+291c1dfd-871e-47bd-8fe5-26833ebe9c43,Wong Hong Keung,alexwong@kirii.com.hk,"All Employees,Purchasing,Sales,Factory",Fty. Manager,FALSE,1,1,1,0,2025-04-08T11:27:38.315424+00:00
+875c862b-0f4e-48c4-9c50-9eaf5db5fd63,Lo Leung Kei,ralphlo@kirii.com.hk,All Employees,General Clerk,FALSE,1,0,0,0,2025-04-08T11:27:51.807337+00:00
+852daee1-80fc-4824-9043-1ca0c8ba91ce,Mak Wan Hoi,brontem@kirii.com.hk,"All Employees,factory",General Clerk,FALSE,1,0,0,0,2025-04-08T11:27:51.807337+00:00
+36d38c8f-b488-4771-87c1-b0afda48cdc6,Yeung Siu Tuen,tina@kirii.com.hk,"All Employees,factory",General Clerk,FALSE,1,0,0,0,2025-04-08T11:27:51.807337+00:00
+3f77c95e-2068-42d1-a368-633c04f407d4,Sakon Hiroki,hiroki.sakon@kirii.com.hk,Admin,General Manager,TRUE,0,0,0,0,2025-04-08T11:27:38.315424+00:00
+bb5ab7a2-0bc0-4312-bb8f-6ff395b9ef28,Japan Head Office,japan@kirii.com.hk,"All Employees,Purchasing,Sales,Factory",Head Office,FALSE,1,1,1,0,2025-04-08T11:28:23.459027+00:00
+aefc048f-7672-49b3-81f9-e2ac898c2a55,Poon Hiu Yi,ada@kirii.com.hk,"All Employees,Sales",Project Administrator,FALSE,1,1,0,0,2025-04-08T11:27:51.807337+00:00
+e5c6789a-2a21-4c67-85f4-d303591f660c,Li Pui Lok,billyli@kirii.com.hk,"All Employees,Sales",Project Manager,FALSE,1,1,0,0,2025-04-08T11:27:38.315424+00:00
+4aa0ada4-c1a0-4526-a379-f6d4e521885d,Poon Kit Ling,grace@kirii.com.hk,"All Employees,Sales",S & M Manageress,FALSE,1,1,0,0,2025-04-08T11:27:38.315424+00:00
+0b880ccf-4a4d-4106-8a8d-49ec05c0dde3,Lau Cheuk Ming,billylau@kirii.com.hk,"All Employees,Sales",S & M Manger,FALSE,1,1,0,0,2025-04-08T11:27:38.315424+00:00
+3fa3b706-3c94-41f8-9aef-a41f17742cdd,Lam Wai Lok,anson@kirii.com.hk,"All Employees,Sales",S & M Executive,FALSE,1,1,0,0,2025-04-08T11:27:38.315424+00:00
+dbc7cc9b-87c2-4368-b5b7-d646cdd5c65b,Ip Ting Hin,ivan@kirii.com.hk,"All Employees,Sales",Sales Executive,FALSE,1,1,0,0,2025-04-08T11:27:38.315424+00:00
+f045b71d-d189-45f4-a500-3d348b696985,Cheng Tak Wong,ricky@kirii.com.hk,All Employees,Stock Keeper,FALSE,1,0,0,0,2025-04-08T11:27:51.807337+00:00
+ebfb855c-624b-4fe5-8091-755da51f81b3,Lee Ka Lin,info6@kirii.com.hk,All Employees,Stock Keeper,FALSE,1,0,0,0,2025-04-08T11:28:23.459027+00:00
+b2f6573f-227d-459a-8212-2131bb345d78,Yau Siu Yin,info5@kirii.com.hk,"All Employees,factory",Stock Keeper,FALSE,1,0,0,0,2025-04-08T11:28:23.459027+00:00
+88a6fc60-8752-45b3-a3ff-a7b692a1930c,Lam Wan Tat,info4@kirii.com.hk,"All Employees,Factory",Supervisor,FALSE,1,0,0,0,2025-04-08T11:28:23.459027+00:00
+b5112eaf-dbdd-4e32-9446-dd9f74c601e4,Lin Daoqun,info3@kirii.com.hk,"All Employees,Factory",Technican,FALSE,1,0,0,0,2025-04-08T11:28:23.459027+00:00
+180b8067-e886-4efc-a6da-6bea0cf3e3b9,Hui Oi Han,info2@kirii.com.hk,"All Employees,Factory",Worker,FALSE,1,0,0,0,2025-04-08T11:28:23.459027+00:00
+cdb24e13-ae22-435f-9e79-eddb360ea995,Yau Lai Yuk,info1@kirii.com.hk,"All Employees,Factory",Worker,FALSE,1,0,0,0,2025-04-08T11:27:51.807337+00:00

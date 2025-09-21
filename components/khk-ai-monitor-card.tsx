@@ -2,12 +2,12 @@
 
 import React from 'react';
 
-const LunchOrderCard = () => {
+const KHK_AI_MONITOR_Card = () => {
   return (
-    <a href="https://v0-random-ui-example.vercel.app/" target="_blank" rel="noopener" className="block w-full">
+    <a href="http://192.168.0.119:5013/" target="_blank" rel="noopener noreferrer" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Lunch Order System</h3>
-        <p className="text-[#3c3852] text-sm mt-4">午餐訂購系統</p>
+        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">KHK_AI_MONITOR</h3>
+        <p className="text-[#3c3852] text-sm mt-4">工廠現場監視</p>
         
         <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height={15} width={15} className="transition-transform group-hover:translate-x-0.5">
@@ -19,4 +19,5 @@ const LunchOrderCard = () => {
   );
 }
 
-export default LunchOrderCard;
+export default KHK_AI_MONITOR_Card;
+
