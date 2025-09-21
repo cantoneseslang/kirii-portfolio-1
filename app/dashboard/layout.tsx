@@ -35,7 +35,18 @@ export default function DashboardLayout({
     <div className="flex min-h-screen flex-col">
       <div className="border-b pb-2 pt-2">
         <div className="container flex items-center justify-between">
-          <Logo />
+          <div className="flex items-center gap-4">
+            <Logo />
+            {/* メインメッセージ */}
+            <div className="hidden md:block">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#02315a] mb-0">
+                逆境轉型，革新求存
+              </h2>
+              <p className="text-sm md:text-base text-gray-600 italic -mt-1">
+                Transform in Adversity. Innovate for Survival.
+              </p>
+            </div>
+          </div>
           <DashboardDateDisplay />
         </div>
       </div>
