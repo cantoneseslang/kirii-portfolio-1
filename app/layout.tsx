@@ -4,6 +4,7 @@ import "@/styles/button.css"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/context/auth-context"
+import { OrderProvider } from "@/context/order-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,7 +23,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light">
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <OrderProvider>{children}</OrderProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

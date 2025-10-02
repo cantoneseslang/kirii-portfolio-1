@@ -20,28 +20,81 @@ export default function CertificationPage() {
     fileName: ""
   });
 
-  // フォルダIDからフォルダ構造を取得
-  const fetchFolderStructure = async () => {
-    if (!folderId.trim()) {
-      setError("フォルダIDが設定されていません");
-      return;
-    }
-
+  // 静的なファイル構造を設定
+  const loadStaticFolderStructure = () => {
     setIsLoading(true);
     setError("");
 
     try {
-      const response = await fetch(`/api/get-folder-contents?folderId=${encodeURIComponent(folderId)}`);
-      const data = await response.json();
+      // 静的なファイル構造を設定
+      const staticStructure = {
+        success: true,
+        folderId: folderId,
+        folders: [
+          {
+            id: "folder1",
+            name: "Product Certificates",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [
+                {
+                  id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+                  name: "Certificate List_Jan2025.xlsx",
+                  mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  size: "12345",
+                  modifiedTime: "2025-01-01T00:00:00.000Z"
+                },
+                {
+                  id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+                  name: "PVDF Aluminium Panel Specification 20190605_WM.pdf",
+                  mimeType: "application/pdf",
+                  size: "23456",
+                  modifiedTime: "2019-06-05T00:00:00.000Z"
+                },
+                {
+                  id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+                  name: "Powder Coating Aluminium Panel Specification 20190709_WM.pdf",
+                  mimeType: "application/pdf",
+                  size: "34567",
+                  modifiedTime: "2019-07-09T00:00:00.000Z"
+                },
+                {
+                  id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+                  name: "PPG Color Chart.pdf",
+                  mimeType: "application/pdf",
+                  size: "45678",
+                  modifiedTime: "2025-01-01T00:00:00.000Z"
+                }
+              ],
+              folders: []
+            }
+          },
+          {
+            id: "folder2",
+            name: "Quality Assurance",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [
+                {
+                  id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+                  name: "Quality Control Report 2025.pdf",
+                  mimeType: "application/pdf",
+                  size: "56789",
+                  modifiedTime: "2025-01-01T00:00:00.000Z"
+                }
+              ],
+              folders: []
+            }
+          }
+        ],
+        files: [],
+        totalItems: 2
+      };
 
-      if (data.success) {
-        setFolderStructure(data);
-      } else {
-        setError(data.message || "フォルダ構造の取得に失敗しました");
-      }
+      setFolderStructure(staticStructure);
     } catch (error) {
-      console.error("Error fetching folder structure:", error);
-      setError("フォルダ構造の取得中にエラーが発生しました");
+      console.error("Error loading static folder structure:", error);
+      setError("ファイル構造の読み込み中にエラーが発生しました");
     } finally {
       setIsLoading(false);
     }
@@ -50,58 +103,51 @@ export default function CertificationPage() {
   // ページ読み込み時に自動的にフォルダ構造を取得
   useEffect(() => {
     if (folderId) {
-      fetchFolderStructure();
+      loadStaticFolderStructure();
     }
   }, []);
 
-  // サブフォルダの内容を取得
-  const fetchSubFolderContents = async (subFolderId: string, subFolderName: string) => {
+  // サブフォルダの内容を取得（静的）
+  const loadSubFolderContents = (subFolderId: string, subFolderName: string) => {
     try {
-      console.log(`Fetching contents for subfolder: ${subFolderName} (${subFolderId})`);
-      const response = await fetch(`/api/get-folder-contents?folderId=${encodeURIComponent(subFolderId)}`);
-      const data = await response.json();
+      console.log(`Loading contents for subfolder: ${subFolderName} (${subFolderId})`);
+      
+      // 既にコンテンツが設定されている場合は何もしない
+      setFolderStructure(prev => {
+        if (!prev) return prev;
+        
+        const updateFolderContents = (folders: any[]): any[] => {
+          return folders.map(folder => {
+            if (folder.id === subFolderId && !folder.contents) {
+              // サブフォルダの内容を設定（既に設定されている場合はスキップ）
+              return { ...folder, contents: folder.contents || {} };
+            }
+            // 再帰的に子フォルダも更新
+            if (folder.contents && folder.contents.folders) {
+              return {
+                ...folder,
+                contents: {
+                  ...folder.contents,
+                  folders: updateFolderContents(folder.contents.folders)
+                }
+              };
+            }
+            return folder;
+          });
+        };
 
-      console.log(`Subfolder contents for ${subFolderName}:`, data);
-      console.log(`Files in ${subFolderName}:`, data.files);
-      console.log(`Folders in ${subFolderName}:`, data.folders);
-
-      if (data.success) {
-        // フォルダ構造を更新 - 再帰的に更新
-        setFolderStructure(prev => {
-          const updateFolderContents = (folders: any[]): any[] => {
-            return folders.map(folder => {
-              if (folder.id === subFolderId) {
-                return { ...folder, contents: data };
-              }
-              // 再帰的に子フォルダも更新
-              if (folder.contents && folder.contents.folders) {
-                return {
-                  ...folder,
-                  contents: {
-                    ...folder.contents,
-                    folders: updateFolderContents(folder.contents.folders)
-                  }
-                };
-              }
-              return folder;
-            });
-          };
-
-          return {
-            ...prev,
-            folders: updateFolderContents(prev.folders)
-          };
-        });
-      } else {
-        console.error(`Failed to fetch contents for ${subFolderName}:`, data.message);
-      }
+        return {
+          ...prev,
+          folders: updateFolderContents(prev.folders)
+        };
+      });
     } catch (error) {
-      console.error("Error fetching subfolder contents:", error);
+      console.error("Error loading subfolder contents:", error);
     }
   };
 
   // フォルダの展開/折りたたみ
-  const toggleFolder = async (folderId: string, folderName: string) => {
+  const toggleFolder = (folderId: string, folderName: string) => {
     const newExpanded = new Set(expandedFolders);
     
     if (newExpanded.has(folderId)) {
@@ -109,27 +155,25 @@ export default function CertificationPage() {
     } else {
       newExpanded.add(folderId);
       // フォルダを展開するときに内容を取得
-      await fetchSubFolderContents(folderId, folderName);
+      loadSubFolderContents(folderId, folderName);
     }
     
     setExpandedFolders(newExpanded);
   };
 
   // ファイルを直接ダウンロード
-  const handleDownloadFile = async (file: any) => {
+  const handleDownloadFile = (file: any) => {
     try {
-      if (file.downloadUrl) {
-        // 直接ダウンロードリンクを使用
-        const link = document.createElement('a');
-        link.href = file.downloadUrl;
-        link.download = file.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        // 従来の方法（ファイルIDを使用）
-        await downloadFile(file.id, file.name);
-      }
+      // Google DriveのダウンロードURLを生成
+      const downloadUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=AIzaSyAVhBDAR1knpgN_6ZnDKOy5HKVdqpm9_48`;
+      
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = file.name;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Download error:', error);
       alert('Download failed. Please try again.');

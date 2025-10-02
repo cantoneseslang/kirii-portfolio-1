@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
@@ -22,21 +22,27 @@ import CompanyInfoCard from "@/components/company-info-card";
 import ProductManualCard from "@/components/product-manual-card";
 import PQFormCard from "@/components/pq-form-card";
 import CertificateCard from "@/components/certificate-card";
+import CollectPaymentCardWrapper from "@/components/collect-payment-card-wrapper";
+import SalespersonCalendarCard from "@/components/salesperson-calendar-card";
 
 export default function DashboardPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, isLoading, logout } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  // Redirect to home page if no session exists
+  // バイパス機能の確認
+  const isBypassMode = searchParams.get('bypass') === 'true'
+  
+  // Redirect to home page if no session exists (バイパスモードでない場合のみ)
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isBypassMode && !isLoading && !user) {
       console.log("Dashboard: No user found, redirecting to home page")
       router.push("/")
     }
-  }, [isLoading, user, router])
+  }, [isBypassMode, isLoading, user, router])
   
   const handleSignOut = async () => {
     try {
@@ -51,11 +57,18 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    // Load profile when user is loaded
-    if (user && !isLoading) {
+    // Load profile when user is loaded (バイパスモードの場合はスキップ)
+    if (user && !isLoading && !isBypassMode) {
       loadProfile()
+    } else if (isBypassMode) {
+      // バイパスモードの場合はダミープロファイルを設定
+      setProfile({
+        id: 'bypass-user',
+        full_name: 'Demo User',
+        is_admin: true,
+      } as Profile)
     }
-  }, [user, isLoading])
+  }, [user, isLoading, isBypassMode])
 
   const loadProfile = async () => {
     if (!user) return
@@ -103,8 +116,8 @@ export default function DashboardPage() {
     }
   }
 
-  // Loading display while authentication is loading
-  if (isLoading) {
+  // Loading display while authentication is loading (バイパスモードでない場合のみ)
+  if (isLoading && !isBypassMode) {
     return (
       <div className="container py-10">
         <div className="flex items-center justify-center h-64">
@@ -117,8 +130,8 @@ export default function DashboardPage() {
     )
   }
 
-  // User not authenticated
-  if (!user) {
+  // User not authenticated (バイパスモードでない場合のみ)
+  if (!user && !isBypassMode) {
     return (
       <div className="container py-10">
         <Alert>
@@ -138,8 +151,19 @@ export default function DashboardPage() {
     <DashboardShell>
       <DashboardHeader
         heading="Dashboard"
-        text={`Welcome, ${profile?.full_name || "User"}`}
+        text={`Welcome, ${profile?.full_name || "User"}${isBypassMode ? " (Demo Mode)" : ""}`}
       />
+
+      {isBypassMode && (
+        <Alert className="mt-4">
+          <AlertDescription>
+            <strong>Demo Mode:</strong> You are currently in bypass mode. Some features may be limited.
+            <Link href="/dashboard" className="text-blue-600 hover:underline ml-2">
+              Exit Demo Mode
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="news-ticker mt-4 mb-2 overflow-hidden border-y border-gray-200 py-2">
         <div className="news-ticker-content max-h-[3rem] md:max-h-none">
@@ -166,15 +190,21 @@ export default function DashboardPage() {
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Sales-ERP</h3>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+              <SalespersonCalendarCard />
               <SalesDashboardCard />
-              <GanttChartWBSCard />
             </div>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
+              <GanttChartWBSCard />
               <CompanyInfoCard />
-              <ProductManualCard />
             </div>
-            <div className="flex flex-col gap-6 items-center justify-center mt-6">
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
+              <ProductManualCard />
               <CertificateCard />
+            </div>
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
+              {(profile?.position?.includes("Acc. Manager") || profile?.is_admin) && (
+                <CollectPaymentCardWrapper />
+              )}
             </div>
           </div>
         )}
@@ -193,6 +223,15 @@ export default function DashboardPage() {
             <h3 className="text-lg font-semibold mb-4">Department: Purchasing-ERP</h3>
             <div className="flex flex-col gap-6 items-start">
               <SupplierInfoCard />
+            </div>
+          </div>
+        )}
+
+        {(profile?.position?.includes("Acc. Manager") || profile?.is_admin) && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Department: Account-ERP</h3>
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+              <CollectPaymentCardWrapper />
             </div>
           </div>
         )}

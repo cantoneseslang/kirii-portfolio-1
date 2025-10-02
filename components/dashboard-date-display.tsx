@@ -64,9 +64,19 @@ const DashboardDateDisplay = () => {
       const lunarAny = lunar as any;
       const yi = lunarAny.getDayYi ? lunarAny.getDayYi() || [] : [];
       const ji = lunarAny.getDayJi ? lunarAny.getDayJi() || [] : [];
+      
+      // 6個ずつで改行する関数
+      const formatWithLineBreaks = (items: string[]) => {
+        const chunks = [];
+        for (let i = 0; i < items.length; i += 6) {
+          chunks.push(items.slice(i, i + 6).join(' '));
+        }
+        return chunks.join('\n');
+      };
+      
       setYiJi({
-        yi: yi.join(' '),
-        ji: ji.join(' ')
+        yi: formatWithLineBreaks(yi),
+        ji: formatWithLineBreaks(ji)
       });
     }
     
@@ -124,12 +134,12 @@ const DashboardDateDisplay = () => {
   }
 
   return (
-    <div className="text-right text-sm">
+    <div className="text-right text-sm flex flex-col items-end">
       <div>{formatDate()}</div>
       <div className="text-xl font-bold">{formatTime()}</div>
       <div className="text-xs text-gray-500">{formatLunar()}</div>
-      <div className="text-xs text-green-600">宜: {yiJi.yi}</div>
-      <div className="text-xs text-red-600">忌: {yiJi.ji}</div>
+      <div className="text-[10px] md:text-xs text-green-600 whitespace-pre-line">宜: {yiJi.yi}</div>
+      <div className="text-[10px] md:text-xs text-red-600 whitespace-pre-line">忌: {yiJi.ji}</div>
     </div>
   );
 };

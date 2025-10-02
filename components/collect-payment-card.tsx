@@ -2,12 +2,12 @@
 
 import React from 'react';
 
-const FactoryCard = () => {
+const CollectPaymentCard = () => {
   return (
-    <a href="#" target="_blank" rel="noopener" className="block w-full">
+    <a href="#" target="_blank" rel="noopener noreferrer" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Factory</h3>
-        <p className="text-[#3c3852] text-sm mt-4">工場部門</p>
+        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Collect payment</h3>
+        <p className="text-[#3c3852] text-sm mt-4">回收金額統計表</p>
         
         <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height={15} width={15} className="transition-transform group-hover:translate-x-0.5">
@@ -19,14 +19,7 @@ const FactoryCard = () => {
   );
 }
 
-export default FactoryCard;
-
-
-
-
-
-
-
+export default CollectPaymentCard;
 
 
 

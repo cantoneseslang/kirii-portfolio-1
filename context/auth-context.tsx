@@ -22,6 +22,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   
   useEffect(() => {
+    // タイムアウト設定（10秒で強制的にローディングを終了）
+    const timeoutId = setTimeout(() => {
+      console.log("Auth context: Timeout reached, stopping loading");
+      setIsLoading(false);
+    }, 10000);
+
     // 認証状態を取得する関数
     const getSession = async () => {
       try {
@@ -39,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Auth context: Error getting session:", error);
         setUser(null);
       } finally {
+        clearTimeout(timeoutId);
         setIsLoading(false);
       }
     };
@@ -56,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // クリーンアップ
     return () => {
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);

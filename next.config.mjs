@@ -22,7 +22,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  output: 'standalone',
+  // output: 'standalone', // 一時的に無効化
   env: {
     NEXT_PUBLIC_SUPABASE_URL: 'https://mnshbcvrrzlumfomniim.supabase.co',
     NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uc2hiY3ZycnpsdW1mb21uaWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4Mzk2MDksImV4cCI6MjA1OTQxNTYwOX0.trKf8ddsJh1hEYayUo6Bb3ytSFqZlNFb9lKlHsyhJ9M'
@@ -32,6 +32,8 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  // Pages Routerを有効化
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
 }
 
 if (userConfig) {

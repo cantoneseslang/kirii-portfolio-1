@@ -1,6 +1,7 @@
 import type React from "react"
 import { DashboardNav } from "@/components/dashboard-nav"
 import { Logo } from "@/components/logo"
+import { LogoMobile } from "@/components/logo-mobile"
 import DashboardDateDisplay from "@/components/dashboard-date-display"
 
 const navItems = [
@@ -11,14 +12,6 @@ const navItems = [
   {
     title: "Profile",
     href: "/dashboard/profile",
-  },
-  {
-    title: "Certification",
-    href: "/certification",
-  },
-  {
-    title: "🗣️ Cantonese Chat",
-    href: "/cantonese-chat",
   },
   {
     title: "Admin",
@@ -34,20 +27,31 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <div className="border-b pb-2 pt-2">
-        <div className="container flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Logo />
+        <div className="container flex flex-row items-center justify-between gap-2">
+          {/* 767px以下: ロゴ2のみ表示 */}
+          <div className="flex md:hidden">
+            <LogoMobile />
+          </div>
+          
+          {/* 768px以上: 元のロゴ+標語表示 */}
+          <div className="hidden md:flex md:flex-row md:items-center gap-4">
+            <div className="flex items-center">
+              <Logo />
+            </div>
             {/* メインメッセージ */}
-            <div className="hidden md:block">
-              <h2 className="text-3xl md:text-4xl font-bold text-[#02315a] mb-0">
+            <div className="block">
+              <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-[#02315a] mb-0">
                 逆境轉型，革新求存
               </h2>
-              <p className="text-sm md:text-base text-gray-600 italic -mt-1">
+              <p className="text-[10px] md:text-xs lg:text-sm text-gray-600 italic -mt-1">
                 Transform in Adversity. Innovate for Survival.
               </p>
             </div>
           </div>
-          <DashboardDateDisplay />
+          
+          <div className="flex flex-col items-end">
+            <DashboardDateDisplay />
+          </div>
         </div>
       </div>
       <div className="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10">
