@@ -26,69 +26,295 @@ export default function CertificationPage() {
     setError("");
 
     try {
-      // 静的なファイル構造を設定
+      // Google Driveの実際のフォルダ構造を設定
       const staticStructure = {
         success: true,
         folderId: folderId,
         folders: [
           {
             id: "folder1",
-            name: "Product Certificates",
+            name: "Acoustic Material",
             mimeType: "application/vnd.google-apps.folder",
             contents: {
-              files: [
-                {
-                  id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-                  name: "Certificate List_Jan2025.xlsx",
-                  mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                  size: "12345",
-                  modifiedTime: "2025-01-01T00:00:00.000Z"
-                },
-                {
-                  id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-                  name: "PVDF Aluminium Panel Specification 20190605_WM.pdf",
-                  mimeType: "application/pdf",
-                  size: "23456",
-                  modifiedTime: "2019-06-05T00:00:00.000Z"
-                },
-                {
-                  id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-                  name: "Powder Coating Aluminium Panel Specification 20190709_WM.pdf",
-                  mimeType: "application/pdf",
-                  size: "34567",
-                  modifiedTime: "2019-07-09T00:00:00.000Z"
-                },
-                {
-                  id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-                  name: "PPG Color Chart.pdf",
-                  mimeType: "application/pdf",
-                  size: "45678",
-                  modifiedTime: "2025-01-01T00:00:00.000Z"
-                }
-              ],
+              files: [],
               folders: []
             }
           },
           {
             id: "folder2",
-            name: "Quality Assurance",
+            name: "Aluminium Panel without coating",
             mimeType: "application/vnd.google-apps.folder",
             contents: {
-              files: [
-                {
-                  id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-                  name: "Quality Control Report 2025.pdf",
-                  mimeType: "application/pdf",
-                  size: "56789",
-                  modifiedTime: "2025-01-01T00:00:00.000Z"
-                }
-              ],
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder3",
+            name: "Ceiling System",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder4",
+            name: "Cement Board",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder5",
+            name: "Company Cert",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder6",
+            name: "Galvanized Steel Panel",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder7",
+            name: "Gypsum Board, M2Tech & Cement Board",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder8",
+            name: "KIRII Gypsum Board",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder9",
+            name: "Kirii HK",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder10",
+            name: "M6 Stud Bolt (M6 螺絲)",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder11",
+            name: "Metal",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder12",
+            name: "Mill Cert",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder13",
+            name: "MK",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder14",
+            name: "New Element 新元素",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder15",
+            name: "Powder Coating",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder16",
+            name: "RED",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder17",
+            name: "Soundex",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder18",
+            name: "Stainless Steel",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder19",
+            name: "Standards - pdf for reference",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder20",
+            name: "Sum-Powder Coating",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder21",
+            name: "Sum-PVDF Coating",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder22",
+            name: "Tai Shan 泰山",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder23",
+            name: "Test Standard Info",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder24",
+            name: "Wooden Sticker",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder25",
+            name: "契約書類",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder26",
+            name: "東揚_風喉風咀參考報告",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder27",
+            name: "水性噴塗",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
+              folders: []
+            }
+          },
+          {
+            id: "folder28",
+            name: "阿克蘇",
+            mimeType: "application/vnd.google-apps.folder",
+            contents: {
+              files: [],
               folders: []
             }
           }
         ],
-        files: [],
-        totalItems: 2
+        files: [
+          {
+            id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            name: "Certificate List_Jan2025.xlsx",
+            mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            size: "81 KB",
+            modifiedTime: "2025-09-30T00:00:00.000Z"
+          },
+          {
+            id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            name: "PVDF Aluminium Panel Specification 20190605_WM.pdf",
+            mimeType: "application/pdf",
+            size: "956 KB",
+            modifiedTime: "2025-09-30T00:00:00.000Z"
+          },
+          {
+            id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            name: "Powder Coating Aluminium Panel Specification 20190709_WM.pdf",
+            mimeType: "application/pdf",
+            size: "996 KB",
+            modifiedTime: "2025-09-30T00:00:00.000Z"
+          },
+          {
+            id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            name: "PPG Color Chart.pdf",
+            mimeType: "application/pdf",
+            size: "723 KB",
+            modifiedTime: "2025-09-30T00:00:00.000Z"
+          }
+        ],
+        totalItems: 28
       };
 
       setFolderStructure(staticStructure);
