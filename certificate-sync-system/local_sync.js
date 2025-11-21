@@ -23,6 +23,11 @@ const logger = winston.createLogger({
 // 設定読み込み
 const config = require('./config');
 
+// 設定のログレベルを反映
+if (config && config.LOG_LEVEL) {
+  logger.level = config.LOG_LEVEL;
+}
+
 // Google Drive API設定
 const auth = new google.auth.GoogleAuth({
   keyFile: config.GOOGLE_CREDENTIALS_PATH,
@@ -44,7 +49,7 @@ class CertificateSyncSystem {
       await auth.getClient();
       logger.info('Google Drive API認証成功');
     } catch (error) {
-      logger.error('Google Drive API認証失敗:', error.message);
+      logger.error(`Google Drive API認証失敗: ${error && (error.stack || error.message)}`);
       process.exit(1);
     }
   }
@@ -99,7 +104,7 @@ class CertificateSyncSystem {
 
       logger.info('初回同期完了');
     } catch (error) {
-      logger.error('初回同期エラー:', error.message);
+      logger.error(`初回同期エラー: ${error && (error.stack || error.message)}`);
     }
   }
 
@@ -123,7 +128,7 @@ class CertificateSyncSystem {
         await this.processFile(filePath);
       })
       .on('error', (error) => {
-        logger.error('ファイル監視エラー:', error.message);
+        logger.error(`ファイル監視エラー: ${error && (error.stack || error.message)}`);
       });
 
     // プロセス終了時のクリーンアップ
@@ -198,7 +203,7 @@ class CertificateSyncSystem {
       this.processedFiles.add(fileName);
 
     } catch (error) {
-      logger.error(`ファイル処理エラー: ${path.basename(filePath)}`, error.message);
+      logger.error(`ファイル処理エラー: ${path.basename(filePath)} -> ${error && (error.stack || error.message)}`);
     }
   }
 
@@ -248,7 +253,7 @@ class CertificateSyncSystem {
     try {
       // 既存フォルダを検索
       const response = await drive.files.list({
-        q: `name='${categoryName}' and parents in '${config.TARGET_FOLDER_ID}' and mimeType='application/vnd.google-apps.folder'`,
+        q: `name='${categoryName}' and '${config.TARGET_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'`,
         fields: 'files(id)'
       });
 
@@ -272,7 +277,7 @@ class CertificateSyncSystem {
       return folder.data.id;
 
     } catch (error) {
-      logger.error(`フォルダ作成エラー: ${categoryName}`, error.message);
+      logger.error(`フォルダ作成エラー: ${categoryName} -> ${error && (error.stack || error.message)}`);
       return config.TARGET_FOLDER_ID; // フォールバック
     }
   }
@@ -281,13 +286,13 @@ class CertificateSyncSystem {
   async findExistingFile(fileName, folderId) {
     try {
       const response = await drive.files.list({
-        q: `name='${fileName}' and parents in '${folderId}'`,
+        q: `name='${fileName}' and '${folderId}' in parents`,
         fields: 'files(id)'
       });
 
       return response.data.files.length > 0 ? response.data.files[0].id : null;
     } catch (error) {
-      logger.error(`既存ファイル検索エラー: ${fileName}`, error.message);
+      logger.error(`既存ファイル検索エラー: ${fileName} -> ${error && (error.stack || error.message)}`);
       return null;
     }
   }
@@ -304,11 +309,16 @@ class CertificateSyncSystem {
       body: fs.createReadStream(filePath)
     };
 
-    await drive.files.create({
-      resource: fileMetadata,
-      media: media,
-      fields: 'id'
-    });
+    try {
+      await drive.files.create({
+        resource: fileMetadata,
+        media: media,
+        fields: 'id'
+      });
+    } catch (error) {
+      logger.error(`ファイルアップロード失敗: ${fileName} -> ${error && (error.stack || error.message)}`);
+      throw error;
+    }
   }
 
   // ファイル更新
@@ -318,10 +328,15 @@ class CertificateSyncSystem {
       body: fs.createReadStream(filePath)
     };
 
-    await drive.files.update({
-      fileId: fileId,
-      media: media
-    });
+    try {
+      await drive.files.update({
+        fileId: fileId,
+        media: media
+      });
+    } catch (error) {
+      logger.error(`ファイル更新失敗: ${fileName} -> ${error && (error.stack || error.message)}`);
+      throw error;
+    }
   }
 
   // MIMEタイプ取得
@@ -364,19 +379,19 @@ async function main() {
 
 // エラーハンドリング
 process.on('uncaughtException', (error) => {
-  logger.error('未処理の例外:', error);
+  logger.error(`未処理の例外: ${error && (error.stack || error.message)}`);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('未処理のPromise拒否:', reason);
+  logger.error(`未処理のPromise拒否: ${reason && (reason.stack || reason)}`);
   process.exit(1);
 });
 
 // 実行
 if (require.main === module) {
   main().catch(error => {
-    logger.error('システム起動エラー:', error);
+    logger.error(`システム起動エラー: ${error && (error.stack || error.message)}`);
     process.exit(1);
   });
 }

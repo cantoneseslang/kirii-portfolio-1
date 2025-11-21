@@ -4,12 +4,12 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FolderOpen, FileText, Download, RefreshCw, ChevronRight, ChevronDown, Eye, Share2 } from "lucide-react"
-import { downloadFile } from "@/lib/google-drive"
+// driveダウンロードはサーバーAPI経由のIDを使って直接URL生成
 import { PDFPreviewModal } from "@/components/pdf-preview-modal"
 
 export default function CertificationPage() {
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-  const [folderId, setFolderId] = useState("1QmLSSML9eXFGKktQE-bSq_PXRc7LF6It"); // 直接設定
+  const [folderId, setFolderId] = useState("1QmLSSML9eXFGKktQE-bSq_PXRc7LF6It"); // envのTARGET_FOLDER_ID相当
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [folderStructure, setFolderStructure] = useState(null);
@@ -19,308 +19,163 @@ export default function CertificationPage() {
     fileId: "",
     fileName: ""
   });
+  const CACHE_KEY = 'cert_counts_cache_v1';
+  const CACHE_TTL_MS = 10 * 60 * 1000; // 10分
+  const GLOBAL_CACHE_KEY = 'cert_global_stats_v1';
+  const GLOBAL_TTL_MS = 10 * 60 * 1000;
 
-  // 静的なファイル構造を設定
-  const loadStaticFolderStructure = () => {
+  const [totalFiles, setTotalFiles] = useState<number | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<{ name: string; modifiedTime: string } | null>(null);
+
+  const readCache = (): any => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return { ts: 0, counts: {} };
+      const obj = JSON.parse(raw);
+      if (!obj.ts || Date.now() - obj.ts > CACHE_TTL_MS) return { ts: 0, counts: {} };
+      return obj;
+    } catch (_) {
+      return { ts: 0, counts: {} };
+    }
+  };
+
+  const writeCache = (counts: any) => {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), counts }));
+    } catch (_) {}
+  };
+
+  const readGlobalCache = () => {
+    try {
+      const raw = localStorage.getItem(GLOBAL_CACHE_KEY);
+      if (!raw) return { ts: 0, total: null, latest: null };
+      const obj = JSON.parse(raw);
+      if (!obj.ts || Date.now() - obj.ts > GLOBAL_TTL_MS) return { ts: 0, total: null, latest: null };
+      return obj;
+    } catch (_) {
+      return { ts: 0, total: null, latest: null };
+    }
+  };
+  const writeGlobalCache = (total: number, latest: any) => {
+    try {
+      localStorage.setItem(GLOBAL_CACHE_KEY, JSON.stringify({ ts: Date.now(), total, latest }));
+    } catch (_) {}
+  };
+
+  // ルートフォルダの構造をサーバーから取得（SSRエンドポイント経由）
+  const fetchFolderStructure = async () => {
     setIsLoading(true);
     setError("");
-
     try {
-      // Google Driveの実際のフォルダ構造を設定
-      const staticStructure = {
-        success: true,
-        folderId: folderId,
-        folders: [
-          {
-            id: "folder1",
-            name: "Acoustic Material",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder2",
-            name: "Aluminium Panel without coating",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder3",
-            name: "Ceiling System",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder4",
-            name: "Cement Board",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder5",
-            name: "Company Cert",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder6",
-            name: "Galvanized Steel Panel",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder7",
-            name: "Gypsum Board, M2Tech & Cement Board",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder8",
-            name: "KIRII Gypsum Board",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder9",
-            name: "Kirii HK",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder10",
-            name: "M6 Stud Bolt (M6 螺絲)",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder11",
-            name: "Metal",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder12",
-            name: "Mill Cert",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder13",
-            name: "MK",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder14",
-            name: "New Element 新元素",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder15",
-            name: "Powder Coating",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder16",
-            name: "RED",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder17",
-            name: "Soundex",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder18",
-            name: "Stainless Steel",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder19",
-            name: "Standards - pdf for reference",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder20",
-            name: "Sum-Powder Coating",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder21",
-            name: "Sum-PVDF Coating",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder22",
-            name: "Tai Shan 泰山",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder23",
-            name: "Test Standard Info",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder24",
-            name: "Wooden Sticker",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder25",
-            name: "契約書類",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder26",
-            name: "東揚_風喉風咀參考報告",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder27",
-            name: "水性噴塗",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          },
-          {
-            id: "folder28",
-            name: "阿克蘇",
-            mimeType: "application/vnd.google-apps.folder",
-            contents: {
-              files: [],
-              folders: []
-            }
-          }
-        ],
-        files: [
-          {
-            id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-            name: "Certificate List_Jan2025.xlsx",
-            mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            size: "81 KB",
-            modifiedTime: "2025-09-30T00:00:00.000Z"
-          },
-          {
-            id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-            name: "PVDF Aluminium Panel Specification 20190605_WM.pdf",
-            mimeType: "application/pdf",
-            size: "956 KB",
-            modifiedTime: "2025-09-30T00:00:00.000Z"
-          },
-          {
-            id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-            name: "Powder Coating Aluminium Panel Specification 20190709_WM.pdf",
-            mimeType: "application/pdf",
-            size: "996 KB",
-            modifiedTime: "2025-09-30T00:00:00.000Z"
-          },
-          {
-            id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-            name: "PPG Color Chart.pdf",
-            mimeType: "application/pdf",
-            size: "723 KB",
-            modifiedTime: "2025-09-30T00:00:00.000Z"
-          }
-        ],
-        totalItems: 28
-      };
+      const res = await fetch(`/api/files`, { cache: 'no-store' });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Failed to load');
 
-      setFolderStructure(staticStructure);
-    } catch (error) {
-      console.error("Error loading static folder structure:", error);
-      setError("ファイル構造の読み込み中にエラーが発生しました");
+      const { categories = {}, folders: apiFolders = [], folderId: apiFolderId, rootTotalFileCount } = data;
+      const cache = readCache();
+      const folders = (apiFolders || []).map((f:any) => ({
+        ...f,
+        totalFileCount: cache.counts?.[f.id],
+        contents: { files: [], folders: [] }
+      }));
+      const rootFiles = data.files || categories['Root Files']?.files || [];
+      const structure = {
+        success: true,
+        folderId: apiFolderId || folderId,
+        folders: folders.map((f:any)=>({ ...f })),
+        files: rootFiles,
+        totalItems: folders.length + rootFiles.length
+      } as any;
+      // ルート合計件数（初期はキャッシュ値で合算）
+      structure.totalFileCount = (folders || []).reduce((sum:number, f:any)=> sum + (f.totalFileCount ?? f.fileCount ?? 0), 0) + (rootFiles?.length || 0);
+      setFolderStructure(structure);
+
+      // 初期表示時に各トップレベルフォルダの合計件数をバックグラウンドで取得して更新
+      try {
+        const folderIds = (folders || []).map((f:any) => f.id);
+        // 並列度を制限（6）
+        const pool = async (ids: string[], limit = 6) => {
+          const results: any = {};
+          let i = 0;
+          const workers = new Array(Math.min(limit, ids.length)).fill(0).map(async () => {
+            while (i < ids.length) {
+              const fid = ids[i++];
+              try {
+                const sres = await fetch(`/api/files?folderId=${encodeURIComponent(fid)}`, { cache: 'no-store' });
+                const sdata = await sres.json();
+                const sfiles = sdata.categories?.['Root Files']?.files || sdata.items || sdata.files || [];
+                const schild = sdata.folders || [];
+                const agg = (schild || []).reduce((sum:number, cf:any)=> sum + (cf.fileCount || 0), 0) + (sfiles?.length || 0);
+                results[fid] = agg;
+                setFolderStructure((prev:any) => {
+                  if (!prev) return prev;
+                  const updatedFolders = (prev.folders || []).map((f:any)=> f.id===fid ? { ...f, totalFileCount: agg } : f);
+                  const rootAgg = updatedFolders.reduce((sum:number, f:any)=> sum + (f.totalFileCount ?? f.fileCount ?? 0), 0) + (prev.files?.length || 0);
+                  return { ...prev, folders: updatedFolders, totalFileCount: rootAgg };
+                });
+              } catch (_) {}
+            }
+          });
+          await Promise.all(workers);
+          return results;
+        };
+        const newCounts = await pool(folderIds, 6);
+        writeCache({ ...(cache.counts || {}), ...newCounts });
+      } catch (e) {
+        console.warn('Background total counting failed', e);
+      }
+
+      // 全体トータルと最新更新ファイル名をバックグラウンド集計
+      try {
+        const gcache = readGlobalCache();
+        if (gcache.total != null && gcache.latest) {
+          setTotalFiles(gcache.total);
+          setLastUpdated(gcache.latest);
+        }
+        // BFSで全フォルダを巡回
+        const queue: string[] = (folders || []).map((f:any)=> f.id);
+        let total = (rootFiles?.length || 0);
+        let latest: any = rootFiles.reduce((acc:any, f:any)=>{
+          const t = Date.parse(f.modifiedTime || '');
+          if (!acc || t > Date.parse(acc.modifiedTime || '')) return f;
+          return acc;
+        }, null);
+
+        const run = async (fid: string) => {
+          const res = await fetch(`/api/files?folderId=${encodeURIComponent(fid)}`, { cache: 'no-store' });
+          const data = await res.json();
+          const files = data.files || data.categories?.['Root Files']?.files || [];
+          const childFolders = data.folders || [];
+          total += files.length;
+          for (const cf of childFolders) queue.push(cf.id);
+          for (const file of files) {
+            const t = Date.parse(file.modifiedTime || '');
+            if (!latest || t > Date.parse(latest.modifiedTime || '')) latest = file;
+          }
+        };
+        // 並列制御
+        const workers: Promise<void>[] = [];
+        const limit = 6;
+        for (let k = 0; k < Math.min(limit, queue.length); k++) {
+          workers.push((async () => {
+            while (queue.length) {
+              const id = queue.shift() as string;
+              await run(id);
+              // 途中経過をUIに反映
+              setTotalFiles((prev)=> (total));
+              if (latest) setLastUpdated({ name: latest.name, modifiedTime: latest.modifiedTime });
+            }
+          })());
+        }
+        await Promise.all(workers);
+        setTotalFiles(total);
+        if (latest) setLastUpdated({ name: latest.name, modifiedTime: latest.modifiedTime });
+        writeGlobalCache(total, latest ? { name: latest.name, modifiedTime: latest.modifiedTime } : null);
+      } catch (e) {
+        console.warn('Global stats aggregation failed', e);
+      }
+    } catch (e:any) {
+      setError(e.message || '読み込みに失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -328,47 +183,34 @@ export default function CertificationPage() {
 
   // ページ読み込み時に自動的にフォルダ構造を取得
   useEffect(() => {
-    if (folderId) {
-      loadStaticFolderStructure();
-    }
+    fetchFolderStructure();
   }, []);
 
   // サブフォルダの内容を取得（静的）
-  const loadSubFolderContents = (subFolderId: string, subFolderName: string) => {
+  const loadSubFolderContents = async (subFolderId: string, subFolderName: string) => {
     try {
-      console.log(`Loading contents for subfolder: ${subFolderName} (${subFolderId})`);
-      
-      // 既にコンテンツが設定されている場合は何もしない
-      setFolderStructure(prev => {
+      const res = await fetch(`/api/files?folderId=${encodeURIComponent(subFolderId)}`, { cache: 'no-store' });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Failed to load subfolder');
+      const files = data.categories?.['Root Files']?.files || data.items || data.files || [];
+      const childFolders = data.folders || [];
+      const aggregate = (childFolders || []).reduce((sum:any, cf:any) => sum + (cf.fileCount || 0), 0) + (files?.length || 0);
+      setFolderStructure((prev: any) => {
         if (!prev) return prev;
-        
-        const updateFolderContents = (folders: any[]): any[] => {
-          return folders.map(folder => {
-            if (folder.id === subFolderId && !folder.contents) {
-              // サブフォルダの内容を設定（既に設定されている場合はスキップ）
-              return { ...folder, contents: folder.contents || {} };
-            }
-            // 再帰的に子フォルダも更新
-            if (folder.contents && folder.contents.folders) {
-              return {
-                ...folder,
-                contents: {
-                  ...folder.contents,
-                  folders: updateFolderContents(folder.contents.folders)
-                }
-              };
-            }
-            return folder;
-          });
-        };
-
-        return {
-          ...prev,
-          folders: updateFolderContents(prev.folders)
-        };
+        const update = (currentFolders: any[]): any[] => currentFolders.map((f:any) => {
+          if (f.id === subFolderId) {
+            return { ...f, totalFileCount: aggregate, contents: { ...(f.contents || {}), files, folders: childFolders } };
+          }
+          if (f.contents?.folders) {
+            return { ...f, contents: { ...f.contents, folders: update(f.contents.folders) } };
+          }
+          return f;
+        });
+        return { ...prev, folders: update(prev.folders) };
       });
-    } catch (error) {
-      console.error("Error loading subfolder contents:", error);
+    } catch (e) {
+      console.error('Error loading subfolder contents:', e);
+      alert('子フォルダの読み込みに失敗しました');
     }
   };
 
@@ -390,8 +232,8 @@ export default function CertificationPage() {
   // ファイルを直接ダウンロード
   const handleDownloadFile = (file: any) => {
     try {
-      // Google DriveのダウンロードURLを生成
-      const downloadUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=AIzaSyAVhBDAR1knpgN_6ZnDKOy5HKVdqpm9_48`;
+      // Google Driveの直接ダウンロードURL（権限がある前提）
+      const downloadUrl = `https://drive.google.com/uc?export=download&id=${file.id}`;
       
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -506,10 +348,13 @@ export default function CertificationPage() {
     console.log(`Level ${level} folders:`, folders);
     console.log(`Level ${level} files:`, files);
     
+    const sortedFolders = [...(folders || [])].sort((a:any,b:any)=> (a.name||'').localeCompare(b.name||'', 'en'));
+    const sortedFiles = [...(files || [])].sort((a:any,b:any)=> (a.name||'').localeCompare(b.name||'', 'en'));
+
     return (
       <div className="space-y-4">
         {/* フォルダの表示 */}
-        {folders.map((folder) => (
+        {sortedFolders.map((folder) => (
           <div key={folder.id} className="p-3 sm:p-4 bg-gray-50 rounded-lg mb-2">
             <div 
               className="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded"
@@ -526,8 +371,12 @@ export default function CertificationPage() {
                   <span className="font-medium whitespace-nowrap min-w-max text-sm sm:text-base">{folder.name}</span>
                 </div>
               </div>
-              <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0 ml-2">
-                {folder.contents ? `${folder.contents.files?.length || 0} files` : 'Click to expand'}
+                  <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0 ml-2">
+                {folder.totalFileCount !== undefined
+                  ? `${folder.totalFileCount} files`
+                  : folder.fileCount !== undefined
+                  ? `${folder.fileCount} files`
+                  : (folder.contents ? `${folder.contents.files?.length || 0} files` : 'Click to expand')}
               </span>
             </div>
             
@@ -542,7 +391,7 @@ export default function CertificationPage() {
         ))}
         
         {/* ファイルの表示 */}
-        {files.map((file) => (
+        {sortedFiles.map((file) => (
           <div key={file.id} className="p-4 sm:p-6 bg-white border border-gray-200 rounded-lg mb-2 hover:shadow-md transition-shadow">
             <div className="space-y-3">
               {/* ファイル名とサイズ - 独立した行で全幅使用 */}
@@ -606,6 +455,12 @@ export default function CertificationPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Certification</h1>
         <p className="text-muted-foreground mt-2">認證文件</p>
+        <div className="mt-2 text-sm text-gray-600">
+          <span className="mr-4">Total Files: {totalFiles != null ? `${totalFiles} files` : '計算中...'}</span>
+          {lastUpdated && (
+            <span>Last update file: {lastUpdated.name}</span>
+          )}
+        </div>
       </div>
 
       <div className="space-y-6">
