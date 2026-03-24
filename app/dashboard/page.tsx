@@ -24,6 +24,12 @@ import PQFormCard from "@/components/pq-form-card";
 import CertificateCard from "@/components/certificate-card";
 import CollectPaymentCardWrapper from "@/components/collect-payment-card-wrapper";
 import SalespersonCalendarCard from "@/components/salesperson-calendar-card";
+import NotebookLMCard from "@/components/notebooklm-card";
+import SteelPriceChartCard from "@/components/steel-price-chart-card";
+import AluminumPriceChartCard from "@/components/aluminum-price-chart-card";
+import FormMasterCard from "@/components/form-master-card";
+import HkdRmbRateCard from "@/components/hkd-rmb-rate-card";
+import { isBlockedAuthEmail } from "@/lib/blocked-auth-emails";
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -69,6 +75,18 @@ export default function DashboardPage() {
       } as Profile)
     }
   }, [user, isLoading, isBypassMode])
+
+  useEffect(() => {
+    if (isBypassMode || !user?.email) return
+    if (!isBlockedAuthEmail(user.email)) return
+
+    const forceLogout = async () => {
+      await logout()
+      router.push("/")
+    }
+
+    void forceLogout()
+  }, [isBypassMode, user?.email, logout, router])
 
   const loadProfile = async () => {
     if (!user) return
@@ -154,6 +172,18 @@ export default function DashboardPage() {
         text={`Welcome, ${profile?.full_name || "User"}${isBypassMode ? " (Demo Mode)" : ""}`}
       />
 
+      <HkdRmbRateCard />
+      <SteelPriceChartCard />
+      <AluminumPriceChartCard />
+
+      <div className="news-ticker mt-1 mb-2 overflow-hidden border-y border-gray-200 py-2">
+        <div className="news-ticker-content max-h-[3rem] md:max-h-none">
+          <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">
+            13-02-2026 Added KHK Monitor 工廠現場監視 ・ 13-02-2026 Added NotebookLM 桐井資料博士 ・ 13-02-2026 Collectpayment 回收金額統計表
+          </span>
+        </div>
+      </div>
+
       {isBypassMode && (
         <Alert className="mt-4">
           <AlertDescription>
@@ -164,14 +194,6 @@ export default function DashboardPage() {
           </AlertDescription>
         </Alert>
       )}
-
-      <div className="news-ticker mt-4 mb-2 overflow-hidden border-y border-gray-200 py-2">
-        <div className="news-ticker-content max-h-[3rem] md:max-h-none">
-          <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">
-            28-7-2025: Added Company Information 公司信息 • 26-7-2025: KHK-AI-QR-SCAN Filed Testing庫存AIQR掃描儀 • 25-7-2025 to 25-8-2025: Updated Lunch Menu • 09-05-2025: Sales Department March Numbers Updated • 09-04-2025: Official Testing Begins for In-House Portfolio-1-ec6b0az7f.ver Web App (Until Month-End)🆕
-          </span>
-        </div>
-      </div>
 
       <div className="grid gap-8 mt-6">
         <div>
@@ -202,9 +224,8 @@ export default function DashboardPage() {
               <CertificateCard />
             </div>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
-              {(profile?.position?.includes("Acc. Manager") || profile?.is_admin) && (
-                <CollectPaymentCardWrapper />
-              )}
+              <NotebookLMCard />
+              <CollectPaymentCardWrapper />
             </div>
           </div>
         )}
@@ -215,26 +236,33 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
               <PQFormCard />
             </div>
+            <p className="text-[#3c3852] text-sm mt-1 ml-1">ISO-FAC-10(03/26)</p>
           </div>
         )}
 
         {(profile?.department?.includes("Purchasing") || profile?.is_admin) && (
           <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Department: Purchasing-ERP</h3>
+            <h3 className="text-lg font-semibold mb-4">Department: Purchasing</h3>
             <div className="flex flex-col gap-6 items-start">
               <SupplierInfoCard />
             </div>
           </div>
         )}
 
-        {(profile?.position?.includes("Acc. Manager") || profile?.is_admin) && (
+        {profile?.is_admin && (
           <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Department: Account-ERP</h3>
+            <h3 className="text-lg font-semibold mb-4">Department: ISO</h3>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-              <CollectPaymentCardWrapper />
+              <FormMasterCard />
+            </div>
+            <div className="text-[#3c3852] text-sm mt-1 ml-1">
+              <p>ISO-9001:2015(Certificate No.CC1420)</p>
+              <p>Effective Date 2026-04-28</p>
+              <p>Expiry Date 2029-04-27</p>
             </div>
           </div>
         )}
+
       </div>
       <Footer />
     </DashboardShell>

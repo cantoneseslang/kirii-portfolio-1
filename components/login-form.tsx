@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { isBlockedAuthEmail } from "@/lib/blocked-auth-emails"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -24,6 +25,12 @@ export function LoginForm() {
     // Input validation
     if (!email || !password) {
       setError("Please enter both email and password")
+      setIsLoading(false)
+      return
+    }
+
+    if (isBlockedAuthEmail(email)) {
+      setError("This account is disabled. Please contact an administrator.")
       setIsLoading(false)
       return
     }

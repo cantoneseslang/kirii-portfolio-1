@@ -9,5 +9,19 @@
     "SUPABASE_JWT_SECRET": "plKJI4nEh111c9enCsZweF/yzr+wZeGdeIWpoNu8sNiqPXb16CM0KoeA5/WzKNdPVjh+zqmYWOj1LCs+eFiHgw==",
     "NEXT_PUBLIC_DEEPSEEK_API_KEY": "sk-40536571639a444886ac912aee63eeab",
     "NEXT_PUBLIC_DEEPSEEK_API_URL": "https://api.deepseek.com"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/lunch-menu-switch",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/steel-price-sync",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/hkd-rmb-history-sync",
+      "schedule": "0 1 * * *"
+    }
+  ]
 }
