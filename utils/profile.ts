@@ -1,43 +1,17 @@
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { supabase as directSupabase } from "./supabase"
 import type { Profile } from "@/types/profile"
+
+const supabase = directSupabase
 
 // プロフィールを取得する関数
 export async function getProfile(userId: string): Promise<Profile | null> {
   try {
-    // 両方の方法でSupabaseクライアントを試す
-    const supabase = createClientComponentClient()
-    
-    // プロファイルテーブルが存在するか確認
-    const { count, error: tableError } = await supabase.from("profiles").select("*", { count: "exact", head: true })
-    
-    if (tableError) {
-      // 直接Supabaseクライアントを使用して再試行
-      const { data, error } = await directSupabase.from("profiles").select("*").eq("id", userId).single()
-      
-      if (error) {
-        return null
-      }
-      
-      return data
-    }
-    
-    // 通常のクライアントでプロファイルを取得
     const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
-    
     if (error) {
-      // 直接Supabaseクライアントを使用して再試行
-      const { data: directData, error: directError } = await directSupabase.from("profiles").select("*").eq("id", userId).single()
-      
-      if (directError) {
-        return null
-      }
-      
-      return directData
+      return null
     }
-    
     return data
-  } catch (error: any) {
+  } catch {
     return null
   }
 }
@@ -45,7 +19,6 @@ export async function getProfile(userId: string): Promise<Profile | null> {
 // プロフィールを作成する関数
 export async function createProfile(userId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = createClientComponentClient()
     const { error } = await supabase.from("profiles").insert({
       id: userId,
       updated_at: new Date().toISOString(),
@@ -64,8 +37,7 @@ export async function createProfile(userId: string): Promise<{ success: boolean;
 // プロフィールテーブルの存在を確認する関数
 export async function checkProfilesTable(): Promise<boolean> {
   try {
-    const supabase = createClientComponentClient()
-    const { count, error } = await supabase.from("profiles").select("*", { count: "exact", head: true })
+    const { error } = await supabase.from("profiles").select("*", { count: "exact", head: true })
 
     if (error && error.code === "42P01") {
       // テーブルが存在しない場合
@@ -85,8 +57,6 @@ export async function checkProfilesTable(): Promise<boolean> {
 // プロフィールを更新する関数
 export async function updateProfile(profile: Partial<Profile>): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = createClientComponentClient()
-    
     // まず現在のユーザーの管理者権限を確認
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) {

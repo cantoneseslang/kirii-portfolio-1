@@ -4,7 +4,7 @@ import React from 'react';
 
 const SalesDashboardCard = () => {
   return (
-    <a href="https://sales-dashboard-2-kirii.vercel.app/" target="_blank" rel="noopener noreferrer" className="block w-full">
+    <a href="/api/sales-amount/access" target="_blank" rel="noopener noreferrer" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
         <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Sales Amount Management</h3>
         <p className="text-[#3c3852] text-sm mt-4">銷售金額統計表</p>

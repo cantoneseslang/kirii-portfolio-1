@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KIRII Dashboard - China</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:#f8fafc;color:#1e293b;padding:16px;max-width:1200px;margin:0 auto}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;font-size:12px;color:#64748b}
+.badge{display:inline-block;border:1px solid #e2e8f0;background:#f8fafc;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:500;color:#334155;text-decoration:none}
+.badge:hover{background:#f1f5f9}
+.spec-badge{font-size:10px;padding:2px 8px}
+.chart-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px;margin-bottom:8px;position:relative}
+.chart-spec{position:absolute;top:8px;right:8px}
+table{width:100%;font-size:12px;border-collapse:collapse}
+th{text-align:left;padding:4px 12px 4px 0;color:#64748b;font-weight:500;border-bottom:1px solid #e2e8f0}
+td{padding:4px 12px 4px 0;font-variant-numeric:tabular-nums;font-weight:500}
+.legend{display:flex;flex-direction:column;gap:2px;font-size:11px;margin-top:8px}
+.legend-row{display:grid;grid-template-columns:10px 1fr auto;align-items:center;gap:8px}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-val{text-align:right;font-weight:500;font-variant-numeric:tabular-nums;color:#0f172a}
+.error{color:#ef4444;font-size:11px;margin-top:8px}
+.loading{color:#94a3b8;font-size:11px;margin-top:8px}
+canvas{width:100%!important}
+</style>
+</head>
+<body>
+
+<!-- HKD/RMB -->
+<div class="card" id="hkd-card">
+  <div class="card-header">
+    <a class="badge" href="https://www.chinamoney.com.cn/chinese/bkccpr/" target="_blank" rel="noopener">HKD/RMB</a>
+    <span id="hkd-date">Loading...</span>
+    <span style="color:#94a3b8">100HKD = RMB</span>
+  </div>
+  <div id="hkd-table"><p class="loading">Loading rate...</p></div>
+  <div class="chart-wrap">
+    <div class="chart-spec"><span class="badge spec-badge">中间价</span></div>
+    <canvas id="hkdChart" height="160"></canvas>
+  </div>
+</div>
+
+<!-- Galvanized Steel Coil -->
+<div class="card" id="steel-card">
+  <div class="card-header">
+    <span class="badge">Galvanized steel coil</span>
+    <span id="steel-date">Loading...</span>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-spec"><span class="badge spec-badge">DX51D+Z,120</span></div>
+    <canvas id="steelChart" height="220"></canvas>
+  </div>
+  <div class="legend" id="steel-legend"></div>
+</div>
+
+<!-- Aluminium Coil -->
+<div class="card" id="aluminum-card">
+  <div class="card-header">
+    <span class="badge">Aluminium coil</span>
+    <span id="aluminum-date">Loading...</span>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-spec"><span class="badge spec-badge">长江/南海</span></div>
+    <canvas id="aluminumChart" height="220"></canvas>
+  </div>
+  <div class="legend" id="aluminum-legend"></div>
+</div>
+
+<script>
+const VERCEL_BASE = "https://kirii-portfolio-1.vercel.app";
+const SHEETS_ID = "1RQb5fBTipFZPslbG60vP46DJZ8ZD9D7a7_eaKw718nM";
+
+// --- HKD/RMB ---
+const HKD_HISTORY = [{"date":"2025-03-18","rate":92.32},{"date":"2025-03-19","rate":92.28},{"date":"2025-03-20","rate":92.35},{"date":"2025-03-21","rate":92.33},{"date":"2025-03-24","rate":92.35},{"date":"2025-03-25","rate":92.34},{"date":"2025-03-26","rate":92.29},{"date":"2025-03-27","rate":92.29},{"date":"2025-03-28","rate":92.27},{"date":"2025-03-31","rate":92.28},{"date":"2025-04-01","rate":92.26},{"date":"2025-04-02","rate":92.27},{"date":"2025-04-03","rate":92.35},{"date":"2025-04-07","rate":92.61},{"date":"2025-04-08","rate":92.7},{"date":"2025-04-09","rate":92.79},{"date":"2025-04-10","rate":92.91},{"date":"2025-04-11","rate":92.92},{"date":"2025-04-14","rate":92.95},{"date":"2025-04-15","rate":92.95},{"date":"2025-04-16","rate":93.0},{"date":"2025-04-17","rate":92.89},{"date":"2025-04-18","rate":92.83},{"date":"2025-04-21","rate":92.85},{"date":"2025-04-22","rate":92.87},{"date":"2025-04-23","rate":92.95},{"date":"2025-04-24","rate":92.92},{"date":"2025-04-25","rate":92.88},{"date":"2025-04-28","rate":92.88},{"date":"2025-04-29","rate":92.85},{"date":"2025-04-30","rate":92.81},{"date":"2025-05-06","rate":92.9},{"date":"2025-05-07","rate":92.89},{"date":"2025-05-08","rate":92.87},{"date":"2025-05-09","rate":92.76},{"date":"2025-05-12","rate":92.64},{"date":"2025-05-13","rate":92.37},{"date":"2025-05-14","rate":92.29},{"date":"2025-05-15","rate":92.21},{"date":"2025-05-16","rate":92.15},{"date":"2025-05-19","rate":91.98},{"date":"2025-05-20","rate":91.94},{"date":"2025-05-21","rate":91.89},{"date":"2025-05-22","rate":91.86},{"date":"2025-05-23","rate":91.86},{"date":"2025-05-26","rate":91.69},{"date":"2025-05-27","rate":91.72},{"date":"2025-05-28","rate":91.72},{"date":"2025-05-29","rate":91.76},{"date":"2025-05-30","rate":91.64},{"date":"2025-06-03","rate":91.62},{"date":"2025-06-04","rate":91.64},{"date":"2025-06-05","rate":91.61},{"date":"2025-06-06","rate":91.57},{"date":"2025-06-09","rate":91.57},{"date":"2025-06-10","rate":91.54},{"date":"2025-06-11","rate":91.5},{"date":"2025-06-12","rate":91.48},{"date":"2025-06-13","rate":91.44},{"date":"2025-06-16","rate":91.46},{"date":"2025-06-17","rate":91.4},{"date":"2025-06-18","rate":91.42},{"date":"2025-06-19","rate":91.38},{"date":"2025-06-20","rate":91.33},{"date":"2025-06-23","rate":91.35},{"date":"2025-06-24","rate":91.28},{"date":"2025-06-25","rate":91.3},{"date":"2025-06-26","rate":91.25},{"date":"2025-06-27","rate":91.25},{"date":"2025-06-30","rate":91.2},{"date":"2025-07-01","rate":91.13},{"date":"2025-07-02","rate":91.15},{"date":"2025-07-03","rate":91.11},{"date":"2025-07-04","rate":91.15},{"date":"2025-07-07","rate":91.09},{"date":"2025-07-08","rate":91.13},{"date":"2025-07-09","rate":91.14},{"date":"2025-07-10","rate":91.1},{"date":"2025-07-11","rate":91.05},{"date":"2025-07-14","rate":91.07},{"date":"2025-07-15","rate":91.08},{"date":"2025-07-16","rate":91.12},{"date":"2025-07-17","rate":91.03},{"date":"2025-07-18","rate":91.09},{"date":"2025-07-21","rate":91.12},{"date":"2025-07-22","rate":91.03},{"date":"2025-07-23","rate":90.97},{"date":"2025-07-24","rate":90.94},{"date":"2025-07-25","rate":90.98},{"date":"2025-07-28","rate":91.05},{"date":"2025-07-29","rate":91.1},{"date":"2025-07-30","rate":91.01},{"date":"2025-07-31","rate":91.08},{"date":"2025-08-01","rate":91.08},{"date":"2025-08-04","rate":90.95},{"date":"2025-08-05","rate":90.92},{"date":"2025-08-06","rate":90.97},{"date":"2025-08-07","rate":90.9},{"date":"2025-08-08","rate":90.94},{"date":"2025-08-11","rate":90.96},{"date":"2025-08-12","rate":90.98},{"date":"2025-08-13","rate":90.9},{"date":"2025-08-14","rate":90.89},{"date":"2025-08-15","rate":91.05},{"date":"2025-08-18","rate":91.11},{"date":"2025-08-19","rate":91.25},{"date":"2025-08-20","rate":91.48},{"date":"2025-08-21","rate":91.25},{"date":"2025-08-22","rate":91.29},{"date":"2025-08-25","rate":91.07},{"date":"2025-08-26","rate":91.16},{"date":"2025-08-27","rate":91.3},{"date":"2025-08-28","rate":91.27},{"date":"2025-08-29","rate":91.16},{"date":"2025-09-01","rate":91.17},{"date":"2025-09-02","rate":91.18},{"date":"2025-09-03","rate":91.09},{"date":"2025-09-04","rate":91.11},{"date":"2025-09-05","rate":91.1},{"date":"2025-09-08","rate":91.09},{"date":"2025-09-09","rate":91.12},{"date":"2025-09-10","rate":91.23},{"date":"2025-09-11","rate":91.19},{"date":"2025-09-12","rate":91.19},{"date":"2025-09-15","rate":91.33},{"date":"2025-09-16","rate":91.3},{"date":"2025-09-17","rate":91.28},{"date":"2025-09-18","rate":91.42},{"date":"2025-09-19","rate":91.46},{"date":"2025-09-22","rate":91.5},{"date":"2025-09-23","rate":91.45},{"date":"2025-09-24","rate":91.43},{"date":"2025-09-25","rate":91.43},{"date":"2025-09-26","rate":91.43},{"date":"2025-09-29","rate":91.37},{"date":"2025-09-30","rate":91.3},{"date":"2025-10-09","rate":91.38},{"date":"2025-10-10","rate":91.3},{"date":"2025-10-13","rate":91.25},{"date":"2025-10-14","rate":91.31},{"date":"2025-10-15","rate":91.34},{"date":"2025-10-16","rate":91.3},{"date":"2025-10-17","rate":91.32},{"date":"2025-10-20","rate":91.36},{"date":"2025-10-21","rate":91.3},{"date":"2025-10-22","rate":91.3},{"date":"2025-10-23","rate":91.25},{"date":"2025-10-24","rate":91.27},{"date":"2025-10-27","rate":91.25},{"date":"2025-10-28","rate":91.23},{"date":"2025-10-29","rate":91.2},{"date":"2025-10-30","rate":91.2},{"date":"2025-10-31","rate":91.23},{"date":"2025-11-03","rate":91.17},{"date":"2025-11-04","rate":91.18},{"date":"2025-11-05","rate":91.2},{"date":"2025-11-06","rate":91.15},{"date":"2025-11-07","rate":91.11},{"date":"2025-11-10","rate":91.11},{"date":"2025-11-11","rate":91.16},{"date":"2025-11-12","rate":91.14},{"date":"2025-11-13","rate":91.2},{"date":"2025-11-14","rate":91.14},{"date":"2025-11-17","rate":91.12},{"date":"2025-11-18","rate":91.14},{"date":"2025-11-19","rate":91.02},{"date":"2025-11-20","rate":91.06},{"date":"2025-11-21","rate":91.03},{"date":"2025-11-24","rate":91.03},{"date":"2025-11-25","rate":91.02},{"date":"2025-11-26","rate":91.06},{"date":"2025-11-27","rate":91.0},{"date":"2025-11-28","rate":90.99},{"date":"2025-12-01","rate":90.88},{"date":"2025-12-02","rate":90.88},{"date":"2025-12-03","rate":90.9},{"date":"2025-12-04","rate":90.89},{"date":"2025-12-05","rate":90.91},{"date":"2025-12-08","rate":90.92},{"date":"2025-12-09","rate":90.98},{"date":"2025-12-10","rate":90.93},{"date":"2025-12-11","rate":90.86},{"date":"2025-12-12","rate":90.78},{"date":"2025-12-15","rate":90.78},{"date":"2025-12-16","rate":90.73},{"date":"2025-12-17","rate":90.72},{"date":"2025-12-18","rate":90.74},{"date":"2025-12-19","rate":90.67},{"date":"2025-12-22","rate":90.7},{"date":"2025-12-23","rate":90.67},{"date":"2025-12-24","rate":90.62},{"date":"2025-12-25","rate":90.53},{"date":"2025-12-26","rate":90.49},{"date":"2025-12-29","rate":90.49},{"date":"2025-12-30","rate":90.45},{"date":"2025-12-31","rate":90.32},{"date":"2026-01-05","rate":90.14},{"date":"2026-01-06","rate":90.16},{"date":"2026-01-07","rate":90.13},{"date":"2026-01-08","rate":90.15},{"date":"2026-01-09","rate":89.97},{"date":"2026-01-12","rate":89.96},{"date":"2026-01-13","rate":89.91},{"date":"2026-01-14","rate":89.88},{"date":"2026-01-15","rate":89.88},{"date":"2026-01-16","rate":89.88},{"date":"2026-01-19","rate":89.83},{"date":"2026-01-20","rate":89.78},{"date":"2026-01-21","rate":89.78},{"date":"2026-01-22","rate":89.82},{"date":"2026-01-23","rate":89.68},{"date":"2026-01-26","rate":89.59},{"date":"2026-01-27","rate":89.59},{"date":"2026-01-28","rate":89.43},{"date":"2026-01-29","rate":89.44},{"date":"2026-01-30","rate":89.26},{"date":"2026-02-02","rate":89.25},{"date":"2026-02-03","rate":89.12},{"date":"2026-02-04","rate":88.98},{"date":"2026-02-05","rate":89.06},{"date":"2026-02-06","rate":89.08},{"date":"2026-02-09","rate":88.97},{"date":"2026-02-10","rate":88.88},{"date":"2026-02-11","rate":88.83},{"date":"2026-02-12","rate":88.88},{"date":"2026-02-13","rate":88.79},{"date":"2026-02-24","rate":88.77},{"date":"2026-02-25","rate":88.61},{"date":"2026-02-26","rate":88.56},{"date":"2026-02-27","rate":88.48},{"date":"2026-03-02","rate":88.52},{"date":"2026-03-03","rate":88.33},{"date":"2026-03-04","rate":88.57},{"date":"2026-03-05","rate":88.26},{"date":"2026-03-06","rate":88.25},{"date":"2026-03-09","rate":88.5},{"date":"2026-03-10","rate":88.2},{"date":"2026-03-11","rate":88.08},{"date":"2026-03-12","rate":88.13},{"date":"2026-03-13","rate":88.16},{"date":"2026-03-16","rate":88.22},{"date":"2026-03-17","rate":88.07}];
+
+function shortDate(d){const p=d.split("-");return p[0].slice(-2)+"/"+p[1]+"/"+p[2]}
+function fmt2(v){return Number(v).toFixed(2)}
+function fmtPct(cur,base){if(!base)return"";const p=((cur-base)/base)*100;const s=p.toFixed(2)+"%";return p>0?"+"+s:s}
+function normDate(d){return String(d).replace(/\//g,"-").replace(/\./g,"-")}
+function toYmdKey(d){return Number(normDate(d).replace(/-/g,""))}
+function calendarPrevDay(todayDate){const p=normDate(todayDate).split("-").map(Number);const dt=new Date(Date.UTC(p[0],p[1]-1,p[2]));dt.setUTCDate(dt.getUTCDate()-1);return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,"0")}-${String(dt.getUTCDate()).padStart(2,"0")}`}
+function previousBusinessDay(todayDate){let cursor=calendarPrevDay(todayDate);for(let i=0;i<7;i++){const p=cursor.split("-").map(Number);const wd=new Date(Date.UTC(p[0],p[1]-1,p[2])).getUTCDay();if(wd!==0&&wd!==6)return cursor;cursor=calendarPrevDay(cursor)}return cursor}
+function resolvePrev(history,todayDate){const targetDate=previousBusinessDay(todayDate);const point=history.find(h=>h.date===targetDate)||null;return{targetDate,point,label:"前一个工作日"}}
+function resolveMonthStart(history,todayDate){const t=normDate(todayDate);const [y,m,day]=t.split("-").map(Number);let targetDate;if(day<=2){const prevEnd=new Date(Date.UTC(y,m-1,0));targetDate=`${prevEnd.getUTCFullYear()}-${String(prevEnd.getUTCMonth()+1).padStart(2,"0")}-${String(prevEnd.getUTCDate()).padStart(2,"0")}`}else{targetDate=t.slice(0,7)+"-01"}const point=history.find(h=>h.date===targetDate)||null;return{targetDate,point}}
+
+function renderHkdChart(){
+  const labels=HKD_HISTORY.map(h=>shortDate(h.date));
+  const data=HKD_HISTORY.map(h=>h.rate);
+  new Chart(document.getElementById("hkdChart"),{
+    type:"line",
+    data:{labels,datasets:[{label:"中间价",data,borderColor:"#16a34a",borderWidth:2,pointRadius:0,tension:0.1,fill:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+      x:{ticks:{maxTicksLimit:12,font:{size:8},maxRotation:45,minRotation:45}},
+      y:{min:85,max:93,reverse:true,ticks:{stepSize:1,callback:v=>v.toFixed(2),font:{size:9}}}
+    }}
+  });
+}
+
+async function loadHkdRate(){
+  try{
+    const [rateRes,historyRes]=await Promise.all([
+      fetch(VERCEL_BASE+"/api/dashboard/hkd-rmb-rate"),
+      fetch(VERCEL_BASE+"/api/dashboard/hkd-rmb-history")
+    ]);
+    if(!rateRes.ok||!historyRes.ok) throw new Error("API error");
+    const d=await rateRes.json();
+    const history=await historyRes.json();
+    document.getElementById("hkd-date").textContent=d.date+(d.time?" "+d.time:"");
+    const resolvedPrev=resolvePrev(history,d.date);
+    const resolvedMonth=resolveMonthStart(history,d.date);
+    const prev=resolvedPrev.point;
+    const ms=resolvedMonth.point;
+    document.getElementById("hkd-table").innerHTML=
+      `<table><thead><tr><th></th><th>日期</th><th>汇买</th><th>汇卖</th><th>中行折算价</th><th>买入变动</th><th>卖出变动</th><th>折算变动</th></tr></thead><tbody>`+
+      `<tr><td>最新外汇价</td><td>${shortDate(d.date.replace(/\//g,"-"))}</td><td>${fmt2(d.buyRate)}</td><td>${fmt2(d.sellRate)}</td><td>${fmt2(d.midRate)}</td><td></td><td></td><td></td></tr>`+
+      `<tr><td>${resolvedPrev.label}</td><td>${shortDate(resolvedPrev.targetDate)}</td><td>${prev&&prev.buy!=null?fmt2(prev.buy):"--"}</td><td>${prev&&prev.sell!=null?fmt2(prev.sell):"--"}</td><td>${prev?fmt2(prev.rate):"--"}</td><td>${prev&&prev.buy!=null?fmtPct(d.buyRate,prev.buy):"--"}</td><td>${prev&&prev.sell!=null?fmtPct(d.sellRate,prev.sell):"--"}</td><td>${prev?fmtPct(d.midRate,prev.rate):"--"}</td></tr>`+
+      `<tr><td>与本月初对比</td><td>${shortDate(resolvedMonth.targetDate)}</td><td>${ms&&ms.buy!=null?fmt2(ms.buy):"--"}</td><td>${ms&&ms.sell!=null?fmt2(ms.sell):"--"}</td><td>${ms?fmt2(ms.rate):"--"}</td><td>${ms&&ms.buy!=null?fmtPct(d.buyRate,ms.buy):"--"}</td><td>${ms&&ms.sell!=null?fmtPct(d.sellRate,ms.sell):"--"}</td><td>${ms?fmtPct(d.midRate,ms.rate):"--"}</td></tr>`+
+      `</tbody></table>`;
+  }catch(e){
+    const last=HKD_HISTORY[HKD_HISTORY.length-1];
+    document.getElementById("hkd-date").textContent=last.date+" (cached)";
+    document.getElementById("hkd-table").innerHTML=`<p class="error">Live rate unavailable. Showing cached mid-rate: ${fmt2(last.rate)}</p>`;
+  }
+}
+
+// --- Steel ---
+const STEEL_COLORS=["#ef4444","#3b82f6","#f59e0b","#111827","#22c55e","#8b5cf6"];
+const STEEL_LABELS=["有花：1*1219*C：乐从镇：鞍钢","无花：1*1250*C：乐从镇：鞍钢","无花：1*1250*C：济南：宝钢","无花：1*1250*C：广州：鞍钢","无花：0.8*1250*C：乐从：鞍钢","无花：0.8*1250*C：广州：鞍钢"];
+
+async function loadSteel(){
+  try{
+    const r=await fetch(VERCEL_BASE+"/api/dashboard/steel-price?seriesLimit=6&pointLimit=365");
+    if(!r.ok) throw new Error("API error "+r.status);
+    const d=await r.json();
+    const pts=d.points||[];
+    const series=d.series||[];
+    if(!pts.length){throw new Error("No data")}
+
+    document.getElementById("steel-date").textContent="Updated "+pts[pts.length-1].date;
+
+    const labels=pts.map(p=>shortDate(p.date.replace(/\//g,"-")));
+    const datasets=series.map((s,i)=>({
+      label:s.label,data:pts.map(p=>p[s.key]),
+      borderColor:s.color||STEEL_COLORS[i],borderWidth:2,pointRadius:0,tension:0.1,fill:false
+    }));
+
+    new Chart(document.getElementById("steelChart"),{
+      type:"line",data:{labels,datasets},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{maxTicksLimit:15,font:{size:8},maxRotation:45,minRotation:45}},
+          y:{min:4200,max:5700,ticks:{stepSize:300,callback:v=>(v/1000).toFixed(1)+"K",font:{size:9}}}}}
+    });
+
+    const leg=document.getElementById("steel-legend");
+    leg.innerHTML=series.map((s,i)=>
+      `<div class="legend-row"><span class="legend-dot" style="background:${s.color||STEEL_COLORS[i]}"></span>`+
+      `<span>${s.label}</span><span class="legend-val">${s.latestValue!=null?Number(s.latestValue).toLocaleString():"--"}</span></div>`
+    ).join("");
+  }catch(e){
+    document.getElementById("steel-date").textContent="Error: "+e.message;
+    document.getElementById("steel-legend").innerHTML=`<p class="error">${e.message}</p>`;
+  }
+}
+
+// --- Aluminum ---
+async function loadAluminum(){
+  try{
+    const r=await fetch(VERCEL_BASE+"/api/dashboard/aluminum-price?seriesLimit=2&pointLimit=2000");
+    if(!r.ok) throw new Error("API error "+r.status);
+    const d=await r.json();
+    const pts=d.points||[];
+    const series=d.series||[];
+    if(!pts.length){throw new Error("No data")}
+
+    document.getElementById("aluminum-date").textContent="Updated "+pts[pts.length-1].date;
+
+    const labels=pts.map(p=>shortDate(p.date.replace(/\//g,"-")));
+    const datasets=series.map((s,i)=>({
+      label:s.label,data:pts.map(p=>p[s.key]),
+      borderColor:s.color||["#ef4444","#3b82f6"][i],borderWidth:2,pointRadius:0,tension:0.1,fill:false
+    }));
+
+    new Chart(document.getElementById("aluminumChart"),{
+      type:"line",data:{labels,datasets},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{maxTicksLimit:15,font:{size:8},maxRotation:45,minRotation:45}},
+          y:{min:19000,max:26000,ticks:{stepSize:1000,callback:v=>(v/1000).toFixed(1)+"K",font:{size:9}}}}}
+    });
+
+    const leg=document.getElementById("aluminum-legend");
+    leg.innerHTML=series.map((s,i)=>
+      `<div class="legend-row"><span class="legend-dot" style="background:${s.color||["#ef4444","#3b82f6"][i]}"></span>`+
+      `<span>${s.label}</span><span class="legend-val">${s.latestValue!=null?Number(s.latestValue).toLocaleString():"--"}</span></div>`
+    ).join("");
+  }catch(e){
+    document.getElementById("aluminum-date").textContent="Error: "+e.message;
+    document.getElementById("aluminum-legend").innerHTML=`<p class="error">${e.message}</p>`;
+  }
+}
+
+// --- Init ---
+renderHkdChart();
+loadHkdRate();
+loadSteel();
+loadAluminum();
+</script>
+</body>
+</html>

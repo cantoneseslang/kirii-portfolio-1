@@ -20,5 +20,3 @@ const PQFormCard = () => {
 }
 
 export default PQFormCard;
-
-

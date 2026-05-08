@@ -16,6 +16,16 @@ import {
 } from "@/components/ui/chart"
 import { Card, CardContent } from "@/components/ui/card"
 import type { ChartConfig } from "@/components/ui/chart"
+import {
+  formatYmdToShort,
+  getCurrentYmdInTimeZone,
+  normalizeDateToYmd,
+} from "@/lib/hkd-rmb-date"
+import {
+  resolveMonthStartComparison,
+  resolvePrevBusinessDayComparison,
+  sortHistoryByDate,
+} from "@/lib/hkd-rmb-comparison"
 
 type HkdRmbRate = {
   date: string
@@ -32,8 +42,9 @@ type HistoryPoint = {
   sell?: number
 }
 
-const FIXED_Y_DOMAIN: [number, number] = [87, 93]
-const FIXED_Y_TICKS = [87, 88, 89, 90, 91, 92, 93]
+/** 画面上端=85.0、下端=93.0（数値が大きいほど下）。 */
+const FIXED_Y_DOMAIN: [number, number] = [85, 93]
+const FIXED_Y_TICKS = [85, 86, 87, 88, 89, 90, 91, 92, 93]
 
 const chartConfig: ChartConfig = {
   rate: { label: "中间价", color: "#16a34a" },
@@ -52,57 +63,12 @@ function fmtPct(current: number, base: number) {
 }
 
 function formatAxisDate(value: string) {
-  const parts = value.split("-")
-  if (parts.length < 3) return value
-  return `${parts[0].slice(-2)}/${parts[1]}/${parts[2]}`
+  return formatYmdToShort(value)
 }
 
-function normDate(d: string) {
-  return d.replace(/\//g, "-")
-}
-
-/** Calendar previous day as YYYY-MM-DD (Hong Kong calendar; no holiday handling). */
-function calendarPrevDayStr(todayDate: string): string {
-  const ymd = normDate(todayDate)
-  const [y, m, d] = ymd.split("-").map(Number)
-  const dt = new Date(Date.UTC(y, m - 1, d))
-  dt.setUTCDate(dt.getUTCDate() - 1)
-  const yy = dt.getUTCFullYear()
-  const mm = String(dt.getUTCMonth() + 1).padStart(2, "0")
-  const dd = String(dt.getUTCDate()).padStart(2, "0")
-  return `${yy}-${mm}-${dd}`
-}
-
-function findPrevTradingDay(history: HistoryPoint[], todayDate: string) {
-  const today = normDate(todayDate)
-  for (let i = history.length - 1; i >= 0; i--) {
-    if (history[i].date < today) return history[i]
-  }
-  return null
-}
-
-/** Prefer exact calendar "yesterday" in history; otherwise last point before today (may be stale). */
-function resolvePrevComparison(
-  history: HistoryPoint[],
-  todayDate: string
-): { point: HistoryPoint; label: "前一天" | "上一笔" } | null {
-  const today = normDate(todayDate)
-  const yPrev = calendarPrevDayStr(todayDate)
-  const exact = history.find((h) => h.date === yPrev)
-  if (exact) return { point: exact, label: "前一天" }
-
-  const lastBefore = findPrevTradingDay(history, todayDate)
-  if (!lastBefore) return null
-  return { point: lastBefore, label: "上一笔" }
-}
-
-function findMonthStart(history: HistoryPoint[], todayDate: string) {
-  const today = normDate(todayDate)
-  const monthPrefix = today.slice(0, 7) + "-01"
-  for (let i = 0; i < history.length; i++) {
-    if (history[i].date >= monthPrefix && history[i].date < today) return history[i]
-  }
-  return null
+/** Table 日期 column: YY/MM/DD with slashes (same as chart axis). */
+function formatTableDate(ymd: string) {
+  return formatAxisDate(ymd)
 }
 
 export default function HkdRmbRateCard() {
@@ -163,25 +129,36 @@ export default function HkdRmbRateCard() {
   }, [])
 
   const mergedHistory = useMemo(() => {
-    if (!history.length) return []
-    if (!rate) return history
+    const normalized = sortHistoryByDate(
+      history
+      .map((h) => {
+        const date = normalizeDateToYmd(h.date)
+        if (!date) return null
+        return { ...h, date }
+      })
+      .filter((h): h is HistoryPoint => h !== null)
+    )
 
-    const todayDate = normDate(rate.date)
-    const existing = history.find((h) => h.date === todayDate)
+    if (!normalized.length) return []
+    if (!rate) return normalized
+
+    const todayDate = normalizeDateToYmd(rate.date)
+    if (!todayDate) return normalized
+    const existing = normalized.find((h) => h.date === todayDate)
     if (existing) {
       if (existing.buy == null || existing.sell == null) {
-        return history.map((h) =>
+        return normalized.map((h) =>
           h.date === todayDate
             ? { ...h, buy: rate.buyRate, sell: rate.sellRate, rate: rate.midRate }
             : h
         )
       }
-      return history
+      return normalized
     }
     return [
-      ...history,
+      ...normalized,
       { date: todayDate, rate: rate.midRate, buy: rate.buyRate, sell: rate.sellRate },
-    ].sort((a, b) => (a.date < b.date ? -1 : 1))
+    ].sort((a, b) => (toYmdKey(a.date) ?? 0) - (toYmdKey(b.date) ?? 0))
   }, [history, rate])
 
   const chartData = useMemo(() => {
@@ -189,11 +166,26 @@ export default function HkdRmbRateCard() {
     return mergedHistory
   }, [mergedHistory])
 
-  const dateLabel = rate
-    ? `${rate.date}${rate.time ? ` ${rate.time}` : ""}`
-    : error
-      ? "Error"
-      : "Loading..."
+  const dateLabel = (() => {
+    if (rate) {
+      const normalized = normalizeDateToYmd(rate.date) ?? rate.date
+      return `${normalized}${rate.time ? ` ${rate.time}` : ""}`
+    }
+    if (error) return "Error"
+    return "Loading..."
+  })()
+  const todayHongKong = getCurrentYmdInTimeZone("Asia/Hong_Kong")
+
+  const resolvedPrev = useMemo(() => {
+    if (!mergedHistory.length || !todayHongKong) return null
+    return resolvePrevBusinessDayComparison(mergedHistory, todayHongKong)
+  }, [mergedHistory, todayHongKong])
+
+  const monthStartComparison = useMemo(() => {
+    if (!rate || !mergedHistory.length) return null
+    const monthStart = resolveMonthStartComparison(mergedHistory, rate.date)
+    return monthStart
+  }, [mergedHistory, rate])
 
   return (
     <section className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen px-2 md:static md:ml-0 md:mr-0 md:w-full md:px-0">
@@ -234,7 +226,7 @@ export default function HkdRmbRateCard() {
                 <tbody>
                   <tr className="text-slate-900 bg-amber-50/50">
                     <td className="py-1 pr-2 font-medium text-amber-700">最新外汇价</td>
-                    <td className="py-1 pr-2 tabular-nums">{rate.date.replace(/^\d{2}/, "")}</td>
+                    <td className="py-1 pr-2 tabular-nums">{formatTableDate(rate.date)}</td>
                     <td className="py-1 pr-2 tabular-nums font-medium text-right">{fmt(rate.buyRate)}</td>
                     <td className="py-1 pr-2 tabular-nums font-medium text-right">{fmt(rate.sellRate)}</td>
                     <td className="py-1 pr-2 tabular-nums font-medium text-right">{fmt(rate.midRate)}</td>
@@ -242,41 +234,42 @@ export default function HkdRmbRateCard() {
                     <td className="py-1 pr-2 text-right"></td>
                     <td className="py-1 text-right"></td>
                   </tr>
-                  {(() => {
-                    const resolved = resolvePrevComparison(mergedHistory, rate.date)
-                    if (!resolved) return null
-                    const { point: prev, label } = resolved
-                    const hasBuySell = prev.buy != null && prev.sell != null
-                    return (
-                      <tr className="text-slate-700 border-t border-slate-100">
-                        <td className="py-1 pr-2 font-medium">{label}</td>
-                        <td className="py-1 pr-2 tabular-nums">{prev.date.replace(/-/g, "/").replace(/^\d{2}/, "")}</td>
-                        <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmt(prev.buy!) : ""}</td>
-                        <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmt(prev.sell!) : ""}</td>
-                        <td className="py-1 pr-2 tabular-nums text-right">{fmt(prev.rate)}</td>
-                        <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmtPct(rate.buyRate, prev.buy!) : ""}</td>
-                        <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmtPct(rate.sellRate, prev.sell!) : ""}</td>
-                        <td className="py-1 tabular-nums text-right">{fmtPct(rate.midRate, prev.rate)}</td>
-                      </tr>
-                    )
-                  })()}
-                  {(() => {
-                    const monthStart = findMonthStart(mergedHistory, rate.date)
-                    if (!monthStart) return null
-                    const hasBuySell = monthStart.buy != null && monthStart.sell != null
-                    return (
-                      <tr className="text-slate-700 border-t border-slate-100">
-                        <td className="py-1 pr-2 font-medium">本月初</td>
-                        <td className="py-1 pr-2 tabular-nums">{monthStart.date.replace(/-/g, "/").replace(/^\d{2}/, "")}</td>
-                        <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmt(monthStart.buy!) : ""}</td>
-                        <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmt(monthStart.sell!) : ""}</td>
-                        <td className="py-1 pr-2 tabular-nums text-right">{fmt(monthStart.rate)}</td>
-                        <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmtPct(rate.buyRate, monthStart.buy!) : ""}</td>
-                        <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmtPct(rate.sellRate, monthStart.sell!) : ""}</td>
-                        <td className="py-1 tabular-nums text-right">{fmtPct(rate.midRate, monthStart.rate)}</td>
-                      </tr>
-                    )
-                  })()}
+                  {resolvedPrev ? (
+                    (() => {
+                      const { point, targetDate, label } = resolvedPrev
+                      const hasBuySell = point?.buy != null && point?.sell != null
+                      return (
+                        <tr className="text-slate-700 border-t border-slate-100">
+                          <td className="py-1 pr-2 font-medium">{label}</td>
+                          <td className="py-1 pr-2 tabular-nums">{formatTableDate(targetDate)}</td>
+                          <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmt(point!.buy!) : "--"}</td>
+                          <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmt(point!.sell!) : "--"}</td>
+                          <td className="py-1 pr-2 tabular-nums text-right">{point ? fmt(point.rate) : "--"}</td>
+                          <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmtPct(rate.buyRate, point!.buy!) : "--"}</td>
+                          <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmtPct(rate.sellRate, point!.sell!) : "--"}</td>
+                          <td className="py-1 tabular-nums text-right">{point ? fmtPct(rate.midRate, point.rate) : "--"}</td>
+                        </tr>
+                      )
+                    })()
+                  ) : null}
+                  {monthStartComparison ? (
+                    (() => {
+                      const { point, targetDate } = monthStartComparison
+                      const hasBuySell = point?.buy != null && point?.sell != null
+                      return (
+                        <tr className="text-slate-700 border-t border-slate-100">
+                          <td className="py-1 pr-2 font-medium">与本月初对比</td>
+                          <td className="py-1 pr-2 tabular-nums">{formatTableDate(targetDate)}</td>
+                          <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmt(point!.buy!) : "--"}</td>
+                          <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmt(point!.sell!) : "--"}</td>
+                          <td className="py-1 pr-2 tabular-nums text-right">{point ? fmt(point.rate) : "--"}</td>
+                          <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmtPct(rate.buyRate, point!.buy!) : "--"}</td>
+                          <td className="py-1 pr-2 tabular-nums text-right">{hasBuySell ? fmtPct(rate.sellRate, point!.sell!) : "--"}</td>
+                          <td className="py-1 tabular-nums text-right">{point ? fmtPct(rate.midRate, point.rate) : "--"}</td>
+                        </tr>
+                      )
+                    })()
+                  ) : null}
                 </tbody>
               </table>
             </div>
@@ -317,6 +310,7 @@ export default function HkdRmbRateCard() {
                     tickFormatter={formatAxisDate}
                   />
                   <YAxis
+                    reversed
                     tickLine={false}
                     axisLine={false}
                     width={46}

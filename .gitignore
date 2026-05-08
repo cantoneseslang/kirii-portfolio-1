@@ -20,9 +20,13 @@ yarn-error.log*
 .env*
 !.env.local.example
 
+# local MCP credentials (never commit)
+.mcp.json
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.env*.local

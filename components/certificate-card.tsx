@@ -4,7 +4,7 @@ import React from 'react';
 
 const CertificateCard = () => {
   return (
-    <a href="/certification" className="block w-full">
+    <a href="/api/certification/access" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
         <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Product Certificate</h3>
         <p className="text-[#3c3852] text-sm mt-4">保證書</p>

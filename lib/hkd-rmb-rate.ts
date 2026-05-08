@@ -1,4 +1,5 @@
 import "server-only"
+import { normalizeDateToYmd } from "@/lib/hkd-rmb-date"
 
 export type HkdRmbRate = {
   date: string
@@ -20,6 +21,27 @@ function extractTdValues(rowHtml: string): string[] {
   return values
 }
 
+/** BOC 行が 7〜8 列になっても、行内の YYYY/MM/DD から日付を拾う（列ズレに強くする） */
+function parseBocHkdDate(rowInnerHtml: string, fallbackCell: string): { date: string; time: string } {
+  const plain = rowInnerHtml.replace(/<[^>]*>/g, " ")
+  const dm = plain.match(/(\d{4})[./-](\d{1,2})[./-](\d{1,2})/)
+  if (dm) {
+    const y = dm[1]
+    const mo = dm[2].padStart(2, "0")
+    const da = dm[3].padStart(2, "0")
+    const normalized = normalizeDateToYmd(`${y}-${mo}-${da}`)
+    const timeFull =
+      plain.match(/\b(\d{2}:\d{2}:\d{2})\b/)?.[1] ?? plain.match(/\b(\d{2}:\d{2})\b/)?.[1] ?? ""
+    const time = timeFull.length >= 5 ? timeFull.slice(0, 5) : timeFull
+    if (normalized) return { date: normalized, time }
+  }
+
+  const raw = (fallbackCell || "").trim()
+  const dateOnly = normalizeDateToYmd(raw.split(/\s+/)[0] || raw)
+  const timeMatch = raw.match(/\d{2}:\d{2}/)
+  return { date: dateOnly ?? "", time: timeMatch ? timeMatch[0] : "" }
+}
+
 export async function fetchHkdRmbRate(): Promise<HkdRmbRate> {
   const response = await fetch(BOC_URL, {
     cache: "no-store",
@@ -34,7 +56,7 @@ export async function fetchHkdRmbRate(): Promise<HkdRmbRate> {
 
   const html = await response.text()
 
-  const hkdRowMatch = html.match(/<tr\s+data-currency='港币'>([\s\S]*?)<\/tr>/)
+  const hkdRowMatch = html.match(/<tr\s+data-currency=['"]港币['"]>([\s\S]*?)<\/tr>/)
   if (!hkdRowMatch) {
     throw new Error("HKD row not found in BOC exchange rate page")
   }
@@ -47,15 +69,15 @@ export async function fetchHkdRmbRate(): Promise<HkdRmbRate> {
   const buyRate = parseFloat(tds[1])
   const sellRate = parseFloat(tds[3])
   const midRate = parseFloat(tds[5])
-  const date = tds[6]
 
   if (isNaN(buyRate) || isNaN(sellRate) || isNaN(midRate)) {
     throw new Error(`Failed to parse HKD rates: buy=${tds[1]} sell=${tds[3]} mid=${tds[5]}`)
   }
 
-  const dateOnly = date.split(" ")[0] || date
-  const timeMatch = date.match(/\d{2}:\d{2}/)
-  const time = timeMatch ? timeMatch[0] : ""
+  const { date: dateOnly, time } = parseBocHkdDate(hkdRowMatch[1], tds[6] ?? "")
+  if (!dateOnly) {
+    throw new Error(`Failed to parse HKD date (cells=${tds.length})`)
+  }
 
   return {
     date: dateOnly,

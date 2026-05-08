@@ -134,7 +134,7 @@ const DashboardDateDisplay = () => {
   }
 
   return (
-    <div className="text-right text-sm flex flex-col items-end">
+    <div className="text-right text-sm flex flex-col items-end pr-2 sm:pr-4">
       <div>{formatDate()}</div>
       <div className="text-xl font-bold">{formatTime()}</div>
       <div className="text-xs text-gray-500">{formatLunar()}</div>

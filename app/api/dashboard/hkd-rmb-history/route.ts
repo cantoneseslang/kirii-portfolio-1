@@ -10,7 +10,7 @@ export async function GET() {
     const history = await getHkdHistoryMergedWithLiveRate()
     return NextResponse.json(history, {
       headers: {
-        "Cache-Control": "private, max-age=0, s-maxage=300, stale-while-revalidate=60",
+        "Cache-Control": "no-store, must-revalidate",
         "Access-Control-Allow-Origin": "*",
       },
     })

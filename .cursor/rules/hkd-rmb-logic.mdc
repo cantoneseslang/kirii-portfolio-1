@@ -1,0 +1,45 @@
+---
+description: HKD/RMB カードの正式ロジックと禁止事項
+globs:
+  - components/hkd-rmb-rate-card.tsx
+  - lib/hkd-rmb-*.ts
+  - lib/dashboard-hkd-rmb-history-cache.ts
+  - app/api/dashboard/hkd-rmb-*/route.ts
+  - app/api/cron/hkd-rmb-history-sync/route.ts
+alwaysApply: false
+---
+
+# HKD/RMB Logic Rule
+
+詳細仕様: `docs/HKD_RMB_LOGIC_SPEC.md`
+
+## 変更前に必ず確認すること
+
+- 触るのが `最新外汇价` / `前一个工作日` / `与本月初对比` のどれか
+- `targetDate` を何として扱うか
+- `base` をどのデータ点として使うか
+- `point.date === targetDate` を満たすか
+
+## 絶対禁止
+
+- 比較行に当日 `latest` 値を流用する
+- `targetDate` と一致しない別日データで比較行の値を埋める
+- `buy/sell` だけ別日から拾う
+- `最新外汇价` と `与本月初对比` を同値にする
+- 3行以外を勝手に追加する
+- 仕様書未確認で HKD/RMB ロジックを変更する
+
+## 実装ルール
+
+- `最新外汇价` は `/api/dashboard/hkd-rmb-rate` の値のみ使う
+- `前一个工作日` は香港基準の前営業日を `targetDate` とする
+- `与本月初对比` は毎月 `1日` と `2日` は前月末日、`3日` 以降は当月 `01` を `targetDate` とする
+- 比較計算は `docs/HKD_RMB_LOGIC_SPEC.md` の式に従う
+- 比較行の `base` は厳密一致のみ。表示ロジックで別日補完しない
+- 履歴欠損は `public/data/hkd-rmb-history-backfill.json` または `daily blob` で補完する
+
+## 検証ルール
+
+- 変更後は `npm test -- --reporter=verbose lib/hkd-rmb-date.test.ts` を実行する
+- `/api/dashboard/hkd-rmb-rate` と `/api/dashboard/hkd-rmb-history` を確認する
+- ローカル `/dashboard` で3行表示を確認する

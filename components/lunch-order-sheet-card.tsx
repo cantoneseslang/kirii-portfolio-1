@@ -1,13 +1,14 @@
 "use client"
 
 import React from 'react';
+import Link from "next/link";
 
 const LunchOrderSheetCard = () => {
   return (
-    <a href="https://docs.google.com/spreadsheets/d/1LcDsS3STtTXVIB5LVYy1MvXJU0Ot_U083dSzJPcRA2g/edit?gid=1524617477#gid=1524617477" target="_blank" rel="noopener" className="block w-full">
+    <Link href="/dashboard/lunch-menu-setting" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Lunch Order Sheet</h3>
-        <p className="text-[#3c3852] text-sm mt-4">午餐統計系統(只落單職員使用)</p>
+        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">New Lunch Menu Setting</h3>
+        <p className="text-[#3c3852] text-sm mt-4">(只落單職員使用)</p>
         
         <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height={15} width={15} className="transition-transform group-hover:translate-x-0.5">
@@ -15,7 +16,7 @@ const LunchOrderSheetCard = () => {
           </svg>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
 

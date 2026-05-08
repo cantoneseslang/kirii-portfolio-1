@@ -3,10 +3,25 @@
 import React from 'react';
 
 const CollectPaymentCard = () => {
+  const handleOpenSecurePortal = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Mark an intentional click from dashboard to support strict gate checks
+    // even when some browsers/automation omit the Referer on new-tab open.
+    e.preventDefault();
+    const secureAttr = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `format7_dashboard_intent=1; Path=/; Max-Age=30; SameSite=Lax${secureAttr}`;
+    window.open("/api/format7/access", "_blank", "noopener");
+  };
+
   return (
-    <a href="#" target="_blank" rel="noopener noreferrer" className="block w-full">
+    <a
+      href="/api/format7/access"
+      target="_blank"
+      rel="noopener"
+      className="block w-full"
+      onClick={handleOpenSecurePortal}
+    >
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Collect payment</h3>
+        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Collect payment 🆕</h3>
         <p className="text-[#3c3852] text-sm mt-4">回收金額統計表</p>
         
         <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">

@@ -1,0 +1,41 @@
+---
+description: Google Sheets からダッシュボード用データを取得する際の必須ルール
+globs:
+  - lib/dashboard-*.ts
+  - app/api/dashboard/**/*.ts
+  - components/*-chart-card.tsx
+alwaysApply: false
+---
+
+# Google Sheets データ取得ルール
+
+詳細な経緯: docs/POSTMORTEM_STEEL_PRICE_UPDATE.md
+
+## 取得手段
+
+- CSV export (`/export?format=csv&gid=...`) のみ使用する
+- OAuth (Sheets API v4) は使わない（数日遅延する場合がある）
+- gviz (`/gviz/tq?...`) は使わない（同様に遅延する）
+- フォールバックチェーンに OAuth/gviz を入れない
+
+## キャッシュ
+
+- Vercel Blob にスナップショットを保存して返す設計は使わない
+- s-maxage は 300 秒以下にする（86400 は禁止）
+
+## Updated 表示
+
+- シートの最終行日付を表示する
+- API取得時刻（new Date()）を表示しない
+
+## デバッグ
+
+- 問題発生時はまず本番 API の JSON を直接 curl で確認する
+- ローカルと本番で差がある場合、環境変数（OAuth認証）の有無を疑う
+
+## シート参照変更時の確認対象
+
+- lib/dashboard-price-sheet.ts（DEFAULT_SHEET_TITLE, DEFAULT_SHEET_GID）
+- lib/dashboard-aluminum-price-sheet.ts（同上）
+- components/*-chart-card.tsx（fallback URL）
+- Vercel 環境変数

@@ -26,6 +26,8 @@ NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
+Supabaseの対象プロジェクト情報とMCP接続先は `SUPABASE_PROJECT_RECORD.md` に固定記録しています。
+
 ## ローカル開発
 
 ```bash

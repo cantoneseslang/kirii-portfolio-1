@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KIRII Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Microsoft YaHei",sans-serif;background:#f8fafc;color:#1e293b;padding:16px;max-width:1200px;margin:0 auto}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;font-size:12px;color:#64748b}
+.badge{display:inline-block;border:1px solid #e2e8f0;background:#f8fafc;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:500;color:#334155}
+.spec-badge{font-size:10px;padding:2px 8px}
+.chart-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px;margin-bottom:8px;position:relative;height:240px;width:100%}
+.chart-wrap--compact{height:180px}
+.chart-spec{position:absolute;top:8px;right:8px;z-index:1}
+table{width:100%;font-size:12px;border-collapse:collapse}
+th{text-align:left;padding:4px 12px 4px 0;color:#64748b;font-weight:500;border-bottom:1px solid #e2e8f0}
+td{padding:4px 12px 4px 0;font-variant-numeric:tabular-nums;font-weight:500}
+.legend{display:flex;flex-direction:column;gap:2px;font-size:11px;margin-top:8px}
+.legend-row{display:grid;grid-template-columns:10px 1fr auto;align-items:center;gap:8px}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-val{text-align:right;font-weight:500;font-variant-numeric:tabular-nums;color:#0f172a}
+.status{font-size:10px;color:#94a3b8;text-align:right;margin-top:12px}
+canvas{width:100%!important}
+</style>
+</head>
+<body>
+<div class="card"><div class="card-header"><span class="badge">HKD/RMB</span><span id="hkd-date"></span><span style="color:#94a3b8">100HKD = RMB</span></div><div id="hkd-table"></div><div class="chart-wrap chart-wrap--compact"><div class="chart-spec"><span class="badge spec-badge">中间价</span></div><canvas id="hkdChart" height="160"></canvas></div></div>
+<div class="card"><div class="card-header"><span class="badge">Galvanized steel coil</span><span id="steel-date"></span></div><div id="steel-comp"></div><div class="chart-wrap"><div class="chart-spec"><span class="badge spec-badge">DX51D+Z,120</span></div><canvas id="steelChart" height="220"></canvas></div><div class="legend" id="steel-legend"></div></div>
+<div class="card"><div class="card-header"><span class="badge">Aluminium coil</span><span id="aluminum-date"></span></div><div id="aluminum-comp"></div><div class="chart-wrap"><div class="chart-spec"><span class="badge spec-badge">长江/南海</span></div><canvas id="aluminumChart" height="220"></canvas></div><div class="legend" id="aluminum-legend"></div></div>
+<div class="status">Data last fetched: __TIMESTAMP__</div>
+<script>
+__CHARTJS__
+</script>
+<script>
+var HKD_DATA=__HKD_DATA__;
+var STEEL_DATA=__STEEL_DATA__;
+var ALUMINUM_DATA=__ALUMINUM_DATA__;
+function __diag(msg){
+var el=document.getElementById("chart-diag");
+if(!el){el=document.createElement("div");el.id="chart-diag";el.style.cssText="margin-top:8px;padding:8px;border:1px solid #fecaca;background:#fff1f2;color:#991b1b;font-size:11px;border-radius:8px";var st=document.querySelector(".status");if(st&&st.parentNode){st.parentNode.insertBefore(el,st)}else{document.body.appendChild(el)}}
+el.innerHTML+=(el.innerHTML?"<br>":"")+"[Chart] "+msg;
+}
+function __chartBoot(run){
+if(typeof Chart!=="undefined"){run();return;}
+var s=document.createElement("script");
+s.src="chart.min.js";
+s.onload=function(){if(typeof Chart!=="undefined"){run();}else{__diag("chart.min.js loaded but Chart is undefined")}};
+s.onerror=function(){__diag("chart.min.js failed to load. Put chart.min.js next to dashboard.html");};
+document.head.appendChild(s);
+}
+function fmt2(v){return Number(v).toFixed(2)}
+function fmtPct(cur,base){if(!base)return"";var p=((cur-base)/base)*100;var s=p.toFixed(2)+"%";return p>0?"+"+s:s}
+function toDateNum(d){if(d==null)return NaN;return Number(String(d).replace(/\//g,"").replace(/-/g,""))}
+function findClosest(pts,targetNum){var best=null;for(var i=pts.length-1;i>=0;i--){var num=toDateNum(pts[i].date);if(num<=targetNum){if(!best||num>toDateNum(best.date))best=pts[i];if(num===targetNum)return best;}}return best;}
+function buildCompTable(elId,data){
+var pts=data.points||[];var series=data.series||[];if(!pts.length)return;
+var latest=pts[pts.length-1];var latestDate=(latest&&typeof latest.date==="string"?latest.date:(latest&&typeof latest.label==="string"?latest.label:""));if(!latestDate)return;var p=latestDate.replace(/-/g,"/").split("/").map(Number);var ly=p[0],lm=p[1],ld=p[2];
+var prevDay=pts.length>=2?pts[pts.length-2]:null;
+var wa=new Date(ly,lm-1,ld-7);var weekAgo=findClosest(pts,Number(""+wa.getFullYear()+String(wa.getMonth()+1).padStart(2,"0")+String(wa.getDate()).padStart(2,"0")));
+var monthStart=findClosest(pts,Number(""+ly+String(lm).padStart(2,"0")+"01"));
+var pm=new Date(ly,lm-2,ld);var prevMonth=findClosest(pts,Number(""+pm.getFullYear()+String(pm.getMonth()+1).padStart(2,"0")+String(pm.getDate()).padStart(2,"0")));
+var qa=new Date(ly,lm-4,ld);var quarterAgo=findClosest(pts,Number(""+qa.getFullYear()+String(qa.getMonth()+1).padStart(2,"0")+String(qa.getDate()).padStart(2,"0")));
+var yearStart=findClosest(pts,Number(""+ly+"0101"));
+var rows=[{l:"最新单价",p:latest},{l:"前一天",p:prevDay},{l:"上周同期",p:weekAgo},{l:"本月初",p:monthStart},{l:"上月同期",p:prevMonth},{l:"上一季同期",p:quarterAgo},{l:"年初",p:yearStart}];
+var h='<table><thead><tr><th></th><th>日期</th>';
+for(var si=0;si<series.length;si++){h+='<th style="text-align:center;font-size:10px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+series[si].color+';margin-right:4px"></span>'+series[si].label+'</th>';}
+h+='</tr></thead><tbody>';
+for(var ri=0;ri<rows.length;ri++){var r=rows[ri];if(!r.p)continue;
+var rowDate=(r.p&&typeof r.p.date==="string"?r.p.date:(r.p&&typeof r.p.label==="string"?r.p.label:""));h+='<tr'+(ri===0?' style="background:rgba(251,191,36,.08)"':'')+'><td style="font-weight:500;white-space:nowrap;'+(ri===0?'color:#b45309':'')+'">'+r.l+'</td><td>'+rowDate.replace(/\//g,"/")+'</td>';
+for(var sj=0;sj<series.length;sj++){var k=series[sj].key;var v=typeof r.p[k]==="number"?r.p[k]:null;
+if(ri===0){h+='<td style="text-align:right;font-weight:500;font-variant-numeric:tabular-nums">'+(v!=null?v.toLocaleString():"--")+'</td>';}
+else{var lv=typeof latest[k]==="number"?latest[k]:null;var pct=fmtPct(lv,v);h+='<td style="text-align:right;font-variant-numeric:tabular-nums;line-height:1.3"><div style="font-weight:500">'+(v!=null?v.toLocaleString():"--")+'</div><div style="font-size:9px;color:#64748b">'+pct+'</div></td>';}
+}h+='</tr>';}
+h+='</tbody></table>';document.getElementById(elId).innerHTML=h;
+}
+function shortDate(d){if(d==null)return"";var s=String(d);var p=s.split("-");if(p.length<3){p=s.split("/");}if(p.length<3){p=s.split(".");}if(p.length<3)return s;return p[0].slice(-2)+"/"+p[1]+"/"+p[2]}
+function normDate(d){return d.replace(/\//g,"-").replace(/\./g,"-")}
+function toYmdKey(d){return Number(normDate(d).replace(/-/g,""))}
+function calendarPrevDay(todayDate){var ymd=normDate(todayDate);var p=ymd.split("-").map(Number);var dt=new Date(Date.UTC(p[0],p[1]-1,p[2]));dt.setUTCDate(dt.getUTCDate()-1);return dt.getUTCFullYear()+"-"+String(dt.getUTCMonth()+1).padStart(2,"0")+"-"+String(dt.getUTCDate()).padStart(2,"0");}
+function previousBusinessDay(todayDate){var cursor=calendarPrevDay(todayDate);for(var i=0;i<7;i++){var p=cursor.split("-").map(Number);var wd=new Date(Date.UTC(p[0],p[1]-1,p[2])).getUTCDay();if(wd!==0&&wd!==6)return cursor;cursor=calendarPrevDay(cursor)}return cursor}
+function resolvePrev(h,td){var target=previousBusinessDay(td);var exact=null;for(var i=0;i<h.length;i++){if(h[i].date===target){exact=h[i];break;}}return{point:exact,label:"前一个工作日",targetDate:target};}
+function resolveMonthStart(h,td){var t=normDate(td);var p=t.split("-").map(Number);var y=p[0],m=p[1],day=p[2];var target;if(day<=2){var prevEnd=new Date(Date.UTC(y,m-1,0));target=prevEnd.getUTCFullYear()+"-"+String(prevEnd.getUTCMonth()+1).padStart(2,"0")+"-"+String(prevEnd.getUTCDate()).padStart(2,"0")}else{target=t.slice(0,7)+"-01"}var exact=null;for(var i=0;i<h.length;i++){if(h[i].date===target){exact=h[i];break;}}return{point:exact,targetDate:target};}
+function renderAllCharts(){
+(function(){var rate=HKD_DATA.rate;var history=(HKD_DATA.history||[]).filter(function(h){return h&&typeof h.date==="string"&&typeof h.rate==="number"});if(!rate)return;var td=normDate(rate.date);var ex=false;for(var i=0;i<history.length;i++){if(history[i].date===td){history[i].buy=rate.buyRate;history[i].sell=rate.sellRate;history[i].rate=rate.midRate;ex=true;break}}if(!ex){history.push({date:td,rate:rate.midRate,buy:rate.buyRate,sell:rate.sellRate});history.sort(function(a,b){return toYmdKey(a.date)-toYmdKey(b.date)})}document.getElementById("hkd-date").textContent=rate.date+(rate.time?" "+rate.time:"");var resolved=resolvePrev(history,rate.date);var prev=resolved?resolved.point:null;var prevLabel=resolved?resolved.label:"前一个工作日";var prevTarget=resolved?resolved.targetDate:"";var ms=resolveMonthStart(history,rate.date);var msPoint=ms?ms.point:null;var msTarget=ms?ms.targetDate:"";var t='<table><thead><tr><th style="text-align:left"></th><th style="text-align:left">日期</th><th style="text-align:center">汇买</th><th style="text-align:center">汇卖</th><th style="text-align:center">中行折算价</th><th style="text-align:center">买入变动</th><th style="text-align:center">卖出变动</th><th style="text-align:center">折算变动</th></tr></thead><tbody>';t+='<tr style="background:rgba(251,191,36,.08)"><td style="font-weight:500;color:#b45309">最新外汇价</td><td>'+shortDate(rate.date)+'</td><td style="text-align:right">'+fmt2(rate.buyRate)+'</td><td style="text-align:right">'+fmt2(rate.sellRate)+'</td><td style="text-align:right">'+fmt2(rate.midRate)+'</td><td></td><td></td><td></td></tr>';t+='<tr><td style="font-weight:500">'+prevLabel+'</td><td>'+shortDate(prevTarget)+'</td><td style="text-align:right">'+(prev&&prev.buy!=null?fmt2(prev.buy):"--")+'</td><td style="text-align:right">'+(prev&&prev.sell!=null?fmt2(prev.sell):"--")+'</td><td style="text-align:right">'+(prev?fmt2(prev.rate):"--")+'</td><td style="text-align:right">'+(prev&&prev.buy!=null?fmtPct(rate.buyRate,prev.buy):"--")+'</td><td style="text-align:right">'+(prev&&prev.sell!=null?fmtPct(rate.sellRate,prev.sell):"--")+'</td><td style="text-align:right">'+(prev?fmtPct(rate.midRate,prev.rate):"--")+'</td></tr>';t+='<tr><td style="font-weight:500">与本月初对比</td><td>'+shortDate(msTarget)+'</td><td style="text-align:right">'+(msPoint&&msPoint.buy!=null?fmt2(msPoint.buy):"--")+'</td><td style="text-align:right">'+(msPoint&&msPoint.sell!=null?fmt2(msPoint.sell):"--")+'</td><td style="text-align:right">'+(msPoint?fmt2(msPoint.rate):"--")+'</td><td style="text-align:right">'+(msPoint&&msPoint.buy!=null?fmtPct(rate.buyRate,msPoint.buy):"--")+'</td><td style="text-align:right">'+(msPoint&&msPoint.sell!=null?fmtPct(rate.sellRate,msPoint.sell):"--")+'</td><td style="text-align:right">'+(msPoint?fmtPct(rate.midRate,msPoint.rate):"--")+'</td></tr>';t+='</tbody></table>';document.getElementById("hkd-table").innerHTML=t;if(history.length){new Chart(document.getElementById("hkdChart"),{type:"line",data:{labels:history.map(function(h){return shortDate(h.date)}),datasets:[{label:"中间价",data:history.map(function(h){return h.rate}),borderColor:"#16a34a",borderWidth:2,pointRadius:0,tension:0.1,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:12,font:{size:8},maxRotation:45,minRotation:45}},y:{min:85,max:93,reverse:true,ticks:{stepSize:1,callback:function(v){return v.toFixed(2)},font:{size:9}}}}}});}})();
+buildCompTable("steel-comp",STEEL_DATA);
+buildCompTable("aluminum-comp",ALUMINUM_DATA);
+(function(){var pts=(STEEL_DATA.points||[]).filter(function(p){return p&&typeof p==="object"});var series=STEEL_DATA.series||[];if(!pts.length)return;var steelLast=pts[pts.length-1];var steelLastDate=(steelLast&&typeof steelLast.date==="string"?steelLast.date:(steelLast&&typeof steelLast.label==="string"?steelLast.label:""));document.getElementById("steel-date").textContent="Updated "+steelLastDate;new Chart(document.getElementById("steelChart"),{type:"line",data:{labels:pts.map(function(p){var d=(typeof p.date==="string"?p.date:(typeof p.label==="string"?p.label:""));return shortDate(String(d).replace(/\//g,"-"))}),datasets:series.map(function(s){return{label:s.label,data:pts.map(function(p){return p[s.key]}),borderColor:s.color,borderWidth:2,pointRadius:0,tension:0.1,fill:false};})},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:15,font:{size:8},maxRotation:45,minRotation:45}},y:{min:4200,max:5700,ticks:{stepSize:300,callback:function(v){return(v/1000).toFixed(1)+"K"},font:{size:9}}}}}});document.getElementById("steel-legend").innerHTML=series.map(function(s){return'<div class="legend-row"><span class="legend-dot" style="background:'+s.color+'"></span><span>'+s.label+'</span><span class="legend-val">'+(s.latestValue!=null?Number(s.latestValue).toLocaleString():"--")+'</span></div>';}).join("");})();
+(function(){var pts=(ALUMINUM_DATA.points||[]).filter(function(p){return p&&typeof p==="object"});var series=ALUMINUM_DATA.series||[];if(!pts.length)return;var aluLast=pts[pts.length-1];var aluLastDate=(aluLast&&typeof aluLast.date==="string"?aluLast.date:(aluLast&&typeof aluLast.label==="string"?aluLast.label:""));document.getElementById("aluminum-date").textContent="Updated "+aluLastDate;new Chart(document.getElementById("aluminumChart"),{type:"line",data:{labels:pts.map(function(p){var d=(typeof p.date==="string"?p.date:(typeof p.label==="string"?p.label:""));return shortDate(String(d).replace(/\//g,"-"))}),datasets:series.map(function(s){return{label:s.label,data:pts.map(function(p){return p[s.key]}),borderColor:s.color,borderWidth:2,pointRadius:0,tension:0.1,fill:false};})},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:15,font:{size:8},maxRotation:45,minRotation:45}},y:{min:19000,max:26000,ticks:{stepSize:1000,callback:function(v){return(v/1000).toFixed(1)+"K"},font:{size:9}}}}}});document.getElementById("aluminum-legend").innerHTML=series.map(function(s){return'<div class="legend-row"><span class="legend-dot" style="background:'+s.color+'"></span><span>'+s.label+'</span><span class="legend-val">'+(s.latestValue!=null?Number(s.latestValue).toLocaleString():"--")+'</span></div>';}).join("");})();
+}
+try{__chartBoot(renderAllCharts)}catch(e){__diag((e&&e.message)?e.message:String(e))}
+</script>
+</body>
+</html>

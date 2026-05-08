@@ -21,7 +21,7 @@
     },
     {
       "path": "/api/cron/hkd-rmb-history-sync",
-      "schedule": "0 1 * * *"
+      "schedule": "0 * * * *"
     }
   ]
 }
