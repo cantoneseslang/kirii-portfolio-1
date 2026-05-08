@@ -23,6 +23,9 @@ yarn-error.log*
 # local MCP credentials (never commit)
 .mcp.json
 
+# local full-folder backups (GitHub 100MB limit)
+kirii-portfolio-backup-*.tar.gz
+
 # vercel
 .vercel
 
