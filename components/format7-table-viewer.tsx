@@ -38,6 +38,20 @@ function getDisplayHeader(cell: string, index: number) {
   return cell;
 }
 
+/** Excel column width (wch) so long headers are not all truncated to "Days Outsta…". */
+function sheetColsFromAoA(headerRow: string[], dataRows: string[][]): { wch: number }[] {
+  const sampleRows = Math.min(dataRows.length, 100);
+  return headerRow.map((header, c) => {
+    let maxChars = [...header].length;
+    for (let r = 0; r < sampleRows; r++) {
+      const cell = dataRows[r]?.[c] ?? "";
+      maxChars = Math.max(maxChars, [...cell].length);
+    }
+    const wch = Math.min(Math.max(maxChars + 2, 14), 52);
+    return { wch };
+  });
+}
+
 /** Align with create_format7_customer_summary.py / GAS format7ApplySummarySheetPresentation_ */
 const FORMAT7_HEADER_FILL = "#D3D3D3";
 const FORMAT7_FILL_61_90 = "#FFE6CC";
@@ -182,6 +196,7 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
     const headerRow = headers.map((header, index) => getDisplayHeader(header, index));
     const sheetRows = sortedRows.map((row) => row.map((cell) => normalizeCellText(cell ?? "")));
     const worksheet = XLSX.utils.aoa_to_sheet([headerRow, ...sheetRows]);
+    worksheet["!cols"] = sheetColsFromAoA(headerRow, sheetRows);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Collect Payment");
     XLSX.writeFile(workbook, "collect-payment-latest.xlsx");
@@ -244,11 +259,18 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
           type="button"
           onClick={handleDownload}
           className="px-3 py-2 rounded-md border border-gray-400 bg-white text-gray-800 text-sm hover:bg-gray-50"
-          title="Values only; no colors or column formatting from Google Sheets"
+          title="Same numbers as the table here; no Sheet colors. Column widths are auto-sized."
         >
           Plain XLSX (this view)
         </button>
       </div>
+      <p className="mt-2 text-right text-xs text-gray-500 max-w-full ml-auto">
+        <span className="font-medium text-gray-600">Download Excel (sheet):</span> full Google Sheet
+        workbook (.xlsx), same formatting and colors as the Sheet.
+        <span className="mx-1 text-gray-400">·</span>
+        <span className="font-medium text-gray-600">Plain XLSX:</span> snapshot of this web table only
+        (file saves as collect-payment-latest.xlsx).
+      </p>
       <div className="mt-3 overflow-auto border rounded-lg bg-white">
         <table
           className="w-max table-fixed border-separate border-spacing-0 text-sm"
