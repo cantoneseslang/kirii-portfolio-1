@@ -52,6 +52,21 @@ function sheetColsFromAoA(headerRow: string[], dataRows: string[][]): { wch: num
   });
 }
 
+function parseFilenameFromContentDisposition(headerValue: string | null): string | null {
+  if (!headerValue) return null;
+  const star = headerValue.match(/filename\*=UTF-8''([^;\s]+)/i);
+  if (star?.[1]) {
+    try {
+      return decodeURIComponent(star[1].replace(/^"+|"+$/g, ""));
+    } catch {
+      return null;
+    }
+  }
+  const ascii = headerValue.match(/filename="([^"]+)"/i);
+  if (ascii?.[1]) return ascii[1];
+  return null;
+}
+
 /** Align with create_format7_customer_summary.py / GAS format7ApplySummarySheetPresentation_ */
 const FORMAT7_HEADER_FILL = "#D3D3D3";
 const FORMAT7_FILL_61_90 = "#FFE6CC";
@@ -99,6 +114,7 @@ function agingHighlightPositive(cellText: string): boolean {
 
 export default function Format7TableViewer({ headers, rows, customerDetailBasePath }: Props) {
   const [sortState, setSortState] = useState<{ index: number; direction: SortDirection } | null>(null);
+  const [formattedDownloading, setFormattedDownloading] = useState(false);
   const defaultColumnWidths = useMemo(() => getDefaultColumnWidths(headers), [headers]);
   const [columnWidths, setColumnWidths] = useState<number[]>(defaultColumnWidths);
   const [searchQuery, setSearchQuery] = useState("");
@@ -199,7 +215,54 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
     worksheet["!cols"] = sheetColsFromAoA(headerRow, sheetRows);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Collect Payment");
-    XLSX.writeFile(workbook, "collect-payment-latest.xlsx");
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    XLSX.writeFile(workbook, `collect-payment-plain-${stamp}.xlsx`);
+  };
+
+  const handleFormattedSheetDownload = async () => {
+    setFormattedDownloading(true);
+    try {
+      const res = await fetch("/format7/latest/export", {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        let msg = `Could not download Excel (${res.status}).`;
+        try {
+          const data = (await res.json()) as { error?: string };
+          if (data?.error) msg = data.error;
+        } catch {
+          /* ignore */
+        }
+        window.alert(msg);
+        return;
+      }
+      const ct = res.headers.get("content-type") || "";
+      if (!ct.includes("spreadsheetml") && !ct.includes("octet-stream")) {
+        window.alert(
+          "Server did not return an Excel file. You may need to open Collect Payment again from the dashboard."
+        );
+        return;
+      }
+      const blob = await res.blob();
+      const name =
+        parseFilenameFromContentDisposition(res.headers.get("content-disposition")) ||
+        "format7-google-sheet.xlsx";
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      window.alert("Download failed (network error).");
+    } finally {
+      setFormattedDownloading(false);
+    }
   };
 
   const handleResizeStart = (columnIndex: number, startX: number) => {
@@ -249,12 +312,15 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
           placeholder="Search customer name"
           className="h-10 w-64 rounded-md border border-gray-300 bg-white px-3 text-sm text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#02315a]/40"
         />
-        <a
-          href="/format7/latest/export"
-          className="px-3 py-2 rounded-md bg-[#02315a] text-white text-sm hover:opacity-90 inline-flex items-center justify-center no-underline"
+        <button
+          type="button"
+          disabled={formattedDownloading}
+          onClick={() => void handleFormattedSheetDownload()}
+          className="px-3 py-2 rounded-md bg-[#02315a] text-white text-sm hover:opacity-90 disabled:opacity-60"
+          title="Downloads the live Google Sheet workbook via the server (formatting preserved)."
         >
-          Download Excel (sheet)
-        </a>
+          {formattedDownloading ? "Preparing…" : "Download Excel (sheet)"}
+        </button>
         <button
           type="button"
           onClick={handleDownload}
@@ -269,7 +335,7 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
         workbook (.xlsx), same formatting and colors as the Sheet.
         <span className="mx-1 text-gray-400">·</span>
         <span className="font-medium text-gray-600">Plain XLSX:</span> snapshot of this web table only
-        (file saves as collect-payment-latest.xlsx).
+        (file name starts with collect-payment-plain-).
       </p>
       <div className="mt-3 overflow-auto border rounded-lg bg-white">
         <table

@@ -4,6 +4,7 @@ import { verifyFormat7AccessTokenEdge } from "@/lib/format7-access-token-edge";
 const PRODUCT_MANUAL_COOKIE = "product_manual_portal_access";
 const CERTIFICATION_COOKIE = "certification_portal_access";
 const FORMAT7_GATE_COOKIE = "format7_portal_gate";
+const FORMAT7_SESSION_COOKIE = "format7_portal_session";
 
 function redirectToDashboard(request: NextRequest) {
   return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -37,6 +38,8 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/format7/latest")) {
     const gate = request.cookies.get(FORMAT7_GATE_COOKIE)?.value;
+    const session = request.cookies.get(FORMAT7_SESSION_COOKIE)?.value;
+    const allowBySession = Boolean(session);
     let allowByReferer = false;
 
     // Keep strict referer validation when available, but don't require it.
@@ -63,7 +66,7 @@ export async function middleware(request: NextRequest) {
       allowByReferer = true;
     }
 
-    if (!gate && !allowByReferer) {
+    if (!gate && !allowByReferer && !allowBySession) {
       return redirectToLogin(request);
     }
 

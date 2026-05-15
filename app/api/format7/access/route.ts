@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 
 const COOKIE_NAME = "format7_portal_gate";
+/** Lets /format7/latest/* work after the one-time gate cookie is consumed (e.g. export fetch without Referer). */
+const SESSION_COOKIE_NAME = "format7_portal_session";
 const INTENT_COOKIE_NAME = "format7_dashboard_intent";
+const SESSION_MAX_AGE_SEC = 60 * 45;
 
 export const runtime = "nodejs";
 
@@ -49,6 +52,13 @@ export async function GET(req: Request) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/format7",
+  });
+  response.cookies.set(SESSION_COOKIE_NAME, randomUUID(), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/format7",
+    maxAge: SESSION_MAX_AGE_SEC,
   });
   response.cookies.set(INTENT_COOKIE_NAME, "", {
     httpOnly: false,
