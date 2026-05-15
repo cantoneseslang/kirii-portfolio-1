@@ -3,6 +3,24 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/utils/supabase'
 
+function isOrdersTableMissingError(fetchError: {
+  code?: string;
+  message?: string;
+  status?: number;
+}): boolean {
+  const msg = fetchError.message ?? "";
+  const code = fetchError.code ?? "";
+  if (fetchError.status === 404) return true;
+  return (
+    code === "PGRST116" ||
+    code === "PGRST205" ||
+    msg.includes('relation "orders" does not exist') ||
+    msg.includes("Could not find the table") ||
+    msg.includes("schema cache") ||
+    /orders['\"]?\s+does not exist/i.test(msg)
+  );
+}
+
 // 注文データの型定義
 interface Order {
   id: string
@@ -50,13 +68,15 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
         .order('created_at', { ascending: false })
 
       if (fetchError) {
-        // テーブルが存在しない場合は空の配列を設定
-        if (fetchError.code === 'PGRST116' || fetchError.message.includes('relation "orders" does not exist')) {
-          console.log('Orders table does not exist, using empty array')
-          setOrders([])
-          return
+        // Table missing / not exposed: PostgREST often returns PGRST205 or a 404-style message.
+        if (isOrdersTableMissingError(fetchError)) {
+          if (process.env.NODE_ENV === "development") {
+            console.warn("[orders] Table unavailable; continuing with empty orders.");
+          }
+          setOrders([]);
+          return;
         }
-        throw fetchError
+        throw fetchError;
       }
 
       setOrders(data || [])
@@ -85,6 +105,9 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
         .eq('id', orderId)
 
       if (updateError) {
+        if (isOrdersTableMissingError(updateError)) {
+          return;
+        }
         console.error('Error updating order status:', updateError)
         return
       }
@@ -119,6 +142,9 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
         .neq('status', 'cancelled')
 
       if (resetError) {
+        if (isOrdersTableMissingError(resetError)) {
+          return;
+        }
         console.error('Error resetting order status:', resetError)
         return
       }
