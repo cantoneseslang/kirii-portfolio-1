@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import * as XLSX from "xlsx";
 
@@ -38,6 +38,51 @@ function getDisplayHeader(cell: string, index: number) {
   return cell;
 }
 
+/** Align with create_format7_customer_summary.py / GAS format7ApplySummarySheetPresentation_ */
+const FORMAT7_HEADER_FILL = "#D3D3D3";
+const FORMAT7_FILL_61_90 = "#FFE6CC";
+const FORMAT7_FILL_91_120 = "#FFE0E0";
+const FORMAT7_FILL_120_PLUS = "#FFCCCC";
+const FORMAT7_FILL_TOTAL_ROW = "#E6E6FA";
+const FORMAT7_FILL_FY_POSITIVE = "#E06666";
+
+const FORMAT7_FOLLOWUP_HEADERS_LOWER = [
+  "date",
+  "contact person",
+  "job title",
+  "specific ways to follow up on payments",
+  "payment schedule",
+  "next actions",
+] as const;
+
+function normalizeHeaderKey(value: string) {
+  return value.replace(/\r?\n+/g, " ").replace(/\s{2,}/g, " ").trim().toLowerCase();
+}
+
+const FORMAT7_FOLLOWUP_HEADER_SET = new Set<string>(FORMAT7_FOLLOWUP_HEADERS_LOWER);
+
+function isFollowupColumnHeader(header: string) {
+  return FORMAT7_FOLLOWUP_HEADER_SET.has(normalizeHeaderKey(header));
+}
+
+function isFyOutstandingColumn(header: string) {
+  // Sheet labels may be "2024-2025年outstanding" or "2024-2025年 outstanding" (space).
+  const collapsed = normalizeHeaderKey(header).replace(/\s+/g, "");
+  return collapsed.includes("年outstanding");
+}
+
+/** Python format7_fy_cell_highlight_positive_only: round(x, 2) > 0 */
+function fyHighlightPositiveOnly(cellText: string): boolean {
+  const numeric = parseNumber(cellText);
+  if (numeric == null) return false;
+  return Math.round(numeric * 100) / 100 > 0;
+}
+
+function agingHighlightPositive(cellText: string): boolean {
+  const numeric = parseNumber(cellText);
+  return numeric != null && numeric > 0;
+}
+
 export default function Format7TableViewer({ headers, rows, customerDetailBasePath }: Props) {
   const [sortState, setSortState] = useState<{ index: number; direction: SortDirection } | null>(null);
   const defaultColumnWidths = useMemo(() => getDefaultColumnWidths(headers), [headers]);
@@ -47,11 +92,39 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
   const resizeCleanupRef = useRef<(() => void) | null>(null);
 
   const colIndex61to90 = useMemo(
-    () => headers.findIndex((h) => h.trim().toLowerCase() === "days outstanding 61-90"),
+    () =>
+      headers.findIndex((h) => normalizeHeaderKey(h) === normalizeHeaderKey("Days Outstanding 61-90")),
     [headers]
   );
-  const colIndex91Plus = useMemo(
-    () => headers.findIndex((h) => h.trim().toLowerCase() === "days outstanding 91-plus"),
+  const colIndex91to120 = useMemo(
+    () =>
+      headers.findIndex((h) => normalizeHeaderKey(h) === normalizeHeaderKey("Days Outstanding 91-120")),
+    [headers]
+  );
+  const colIndex120Plus = useMemo(
+    () =>
+      headers.findIndex(
+        (h) =>
+          normalizeHeaderKey(h) ===
+          normalizeHeaderKey("Days Outstanding 120-Plus半年以上")
+      ),
+    [headers]
+  );
+  /** Legacy single-column layout → treat like 120+ bucket styling */
+  const colIndex91PlusLegacy = useMemo(
+    () =>
+      headers.findIndex((h) => normalizeHeaderKey(h) === normalizeHeaderKey("Days Outstanding 91-plus")),
+    [headers]
+  );
+  const fyColumnIndices = useMemo(
+    () =>
+      headers
+        .map((h, i) => (isFyOutstandingColumn(h) ? i : -1))
+        .filter((i) => i >= 0),
+    [headers]
+  );
+  const followupColumnIndices = useMemo(
+    () => headers.map((h, i) => (isFollowupColumnHeader(h) ? i : -1)).filter((i) => i >= 0),
     [headers]
   );
   const customerNameColIndex = useMemo(() => {
@@ -179,7 +252,7 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
               <col key={`col-${index}`} style={{ width: `${columnWidths[index] || getInitialColumnWidth(index)}px` }} />
             ))}
           </colgroup>
-          <thead className="bg-gray-100">
+          <thead style={{ backgroundColor: FORMAT7_HEADER_FILL }}>
             <tr>
               {headers.map((cell, index) => {
                 const isSorted = sortState?.index === index;
@@ -219,7 +292,7 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
                         event.stopPropagation();
                         handleResizeStart(index, point.clientX);
                       }}
-                      className="absolute top-0 right-0 translate-x-1/2 z-30 h-full w-3 cursor-col-resize select-none touch-none bg-transparent hover:bg-blue-100/70 active:bg-blue-200/80"
+                      className="absolute top-0 right-0 translate-x-1/2 z-30 h-full w-3 cursor-col-resize select-none bg-transparent hover:bg-blue-100/70 active:bg-blue-200/80"
                       title="Drag to resize column width"
                     >
                       <span className="absolute left-1/2 top-0 h-full -translate-x-1/2 border-l-2 border-[#4b5563]" />
@@ -231,24 +304,39 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
           </thead>
           <tbody>
             {sortedRows.map((row, rowIndex) => (
-              <tr key={`row-${rowIndex}`} className="odd:bg-white even:bg-gray-50">
+              <tr key={`row-${rowIndex}`}>
                 {headers.map((_, colIndex) => {
                   const rawCellText = row[colIndex] ?? "";
                   const cellText = normalizeCellText(rawCellText);
                   const numeric = parseNumber(cellText);
-                  const hasData = numeric != null && numeric !== 0;
+                  const customerCode = normalizeCellText(row[customerCodeColIndex] ?? "");
+                  const isSummaryRow = customerCode === "" || customerCode === "合計";
+                  const isFollowupCol = followupColumnIndices.includes(colIndex);
 
-                  let highlightClass = "";
-                  if (hasData && colIndex === colIndex61to90) {
-                    highlightClass = "bg-[#f5e6d1]";
-                  } else if (hasData && colIndex === colIndex91Plus) {
-                    highlightClass = "bg-[#f8d7da]";
+                  let cellBgStyle: CSSProperties | undefined;
+                  if (isSummaryRow) {
+                    if (isFollowupCol) {
+                      cellBgStyle = { backgroundColor: "#ffffff" };
+                    } else {
+                      cellBgStyle = { backgroundColor: FORMAT7_FILL_TOTAL_ROW };
+                    }
+                  } else if (isFollowupCol) {
+                    cellBgStyle = { backgroundColor: "#ffffff" };
+                  } else if (fyColumnIndices.includes(colIndex) && fyHighlightPositiveOnly(cellText)) {
+                    cellBgStyle = { backgroundColor: FORMAT7_FILL_FY_POSITIVE };
+                  } else if (colIndex === colIndex61to90 && agingHighlightPositive(cellText)) {
+                    cellBgStyle = { backgroundColor: FORMAT7_FILL_61_90 };
+                  } else if (colIndex === colIndex91to120 && agingHighlightPositive(cellText)) {
+                    cellBgStyle = { backgroundColor: FORMAT7_FILL_91_120 };
+                  } else if (
+                    (colIndex === colIndex120Plus || colIndex === colIndex91PlusLegacy) &&
+                    agingHighlightPositive(cellText)
+                  ) {
+                    cellBgStyle = { backgroundColor: FORMAT7_FILL_120_PLUS };
                   }
 
                   const numericAlignClass = numeric != null ? "text-right tabular-nums" : "text-left";
                   const clipClass = numeric != null ? "" : "overflow-hidden text-ellipsis";
-                  const customerCode = normalizeCellText(row[customerCodeColIndex] ?? "");
-                  const isSummaryRow = customerCode === "" || customerCode === "合計";
                   const isCustomerLinkCell =
                     !!customerDetailBasePath &&
                     !isSummaryRow &&
@@ -261,7 +349,8 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
                     <td
                       key={`cell-${rowIndex}-${colIndex}`}
                       title={cellText}
-                      className={`px-3 py-2 h-12 border-r border-b border-gray-300 align-middle whitespace-nowrap first:border-l ${numericAlignClass} ${clipClass} ${highlightClass}`}
+                      style={cellBgStyle}
+                      className={`px-3 py-2 h-12 border-r border-b border-gray-300 align-middle whitespace-nowrap first:border-l bg-white ${numericAlignClass} ${clipClass}`}
                     >
                       {isCustomerLinkCell ? (
                         <Link
