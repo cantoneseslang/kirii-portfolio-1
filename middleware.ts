@@ -82,5 +82,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/product-manual/:path*", "/certification/:path*", "/format7/latest/:path*"],
+  matcher: [
+    "/product-manual/:path*",
+    "/certification/:path*",
+    "/format7/latest",
+    "/format7/latest/:path*",
+  ],
 };

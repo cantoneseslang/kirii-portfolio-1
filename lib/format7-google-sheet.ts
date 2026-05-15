@@ -355,6 +355,38 @@ export async function getLatestFormat7GoogleSheetUrl() {
   return toGoogleSheetUrl(fixedSpreadsheetId, latestTab.properties?.sheetId ?? null);
 }
 
+/** Full workbook as .xlsx via Drive export (preserves sheet formatting, colors, etc.). */
+export async function exportLatestFormat7SpreadsheetAsXlsx(): Promise<{
+  buffer: Buffer;
+  filenameStem: string;
+}> {
+  const auth = getOAuth2Client();
+  const spreadsheetId = resolveFixedSpreadsheetId();
+  const tabs = await getSpreadsheetTabs(auth, spreadsheetId);
+
+  let filenameStem = "format7-latest";
+  if (tabs.length > 0) {
+    const latestTab = selectLatestFormat7Tab(tabs);
+    filenameStem = (latestTab.properties?.title || "").trim() || filenameStem;
+    await pinTabToFirstIndex(auth, spreadsheetId, latestTab.properties?.sheetId ?? null);
+  }
+
+  const drive = google.drive({ version: "v3", auth });
+  const res = await drive.files.export(
+    {
+      fileId: spreadsheetId,
+      mimeType: XLSX_MIME,
+    },
+    { responseType: "arraybuffer" }
+  );
+
+  const data = res.data as ArrayBuffer;
+  return {
+    buffer: Buffer.from(data),
+    filenameStem,
+  };
+}
+
 export async function getLatestFormat7SheetData() {
   const auth = getOAuth2Client();
   const fixedSpreadsheetId = resolveFixedSpreadsheetId();

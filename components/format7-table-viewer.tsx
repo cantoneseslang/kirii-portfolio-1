@@ -226,7 +226,7 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
 
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-2 flex-wrap">
         <input
           type="text"
           value={searchQuery}
@@ -234,12 +234,19 @@ export default function Format7TableViewer({ headers, rows, customerDetailBasePa
           placeholder="Search customer name"
           className="h-10 w-64 rounded-md border border-gray-300 bg-white px-3 text-sm text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#02315a]/40"
         />
+        <a
+          href="/format7/latest/export"
+          className="px-3 py-2 rounded-md bg-[#02315a] text-white text-sm hover:opacity-90 inline-flex items-center justify-center no-underline"
+        >
+          Download Excel (sheet)
+        </a>
         <button
           type="button"
           onClick={handleDownload}
-          className="px-3 py-2 rounded-md bg-[#02315a] text-white text-sm hover:opacity-90"
+          className="px-3 py-2 rounded-md border border-gray-400 bg-white text-gray-800 text-sm hover:bg-gray-50"
+          title="Values only; no colors or column formatting from Google Sheets"
         >
-          Download XLSX
+          Plain XLSX (this view)
         </button>
       </div>
       <div className="mt-3 overflow-auto border rounded-lg bg-white">
