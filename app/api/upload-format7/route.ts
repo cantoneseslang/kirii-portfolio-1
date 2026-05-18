@@ -56,6 +56,7 @@ export async function POST(req: Request) {
             access: "public",
             contentType: "application/json",
             addRandomSuffix: false,
+            allowOverwrite: true,
             token,
           } as any
         );
@@ -66,6 +67,7 @@ export async function POST(req: Request) {
             access: "public",
             contentType: "application/json",
             addRandomSuffix: false,
+            allowOverwrite: true,
             token,
           } as any
         );
