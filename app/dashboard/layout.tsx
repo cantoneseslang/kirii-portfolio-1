@@ -21,6 +21,14 @@ const navItems = [
     title: "Lunch Menu Setting",
     href: "/dashboard/lunch-menu-setting",
   },
+  {
+    title: "NewCustomer Setting",
+    href: "/dashboard/new-customer-setting",
+  },
+  {
+    title: "NewCustomer Approvals",
+    href: "/dashboard/new-customer-setting/approvals",
+  },
 ]
 
 export default function DashboardLayout({

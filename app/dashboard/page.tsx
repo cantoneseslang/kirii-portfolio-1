@@ -29,6 +29,7 @@ import SteelPriceChartCard from "@/components/steel-price-chart-card";
 import AluminumPriceChartCard from "@/components/aluminum-price-chart-card";
 import FormMasterCard from "@/components/form-master-card";
 import HkdRmbRateCard from "@/components/hkd-rmb-rate-card";
+import NewCustomerSettingCard from "@/components/new-customer-setting-card";
 import { isBlockedAuthEmail } from "@/lib/blocked-auth-emails";
 
 export default function DashboardPage() {
@@ -226,6 +227,9 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
               <NotebookLMCard />
               <CollectPaymentCardWrapper />
+            </div>
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
+              <NewCustomerSettingCard />
             </div>
           </div>
         )}

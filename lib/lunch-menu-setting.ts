@@ -1,4 +1,5 @@
 import { list, put } from "@vercel/blob"
+import type { SendEmailParams, SendEmailResult } from "@/lib/send-email"
 
 export const LATEST_CONFIG_PATH = "lunch-menu-settings/latest.json"
 export const HISTORY_PREFIX = "lunch-menu-settings/history"
@@ -78,41 +79,8 @@ export async function saveConfig(config: SavedMenuConfig, token?: string): Promi
   })
 }
 
-export async function sendEmail(params: {
-  to: string | string[]
-  subject: string
-  html: string
-}): Promise<{ sent: boolean; message: string }> {
-  const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.RESEND_FROM_EMAIL || "Lunch Menu <onboarding@resend.dev>"
-  if (!apiKey) {
-    return { sent: false, message: "RESEND_API_KEY is not set" }
-  }
-
-  const recipients = Array.isArray(params.to) ? params.to : [params.to]
-  const validRecipients = recipients.map((email) => email.trim()).filter(Boolean)
-  if (validRecipients.length === 0) {
-    return { sent: false, message: "No recipients provided" }
-  }
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: validRecipients,
-      subject: params.subject,
-      html: params.html,
-    }),
-  })
-
-  if (!response.ok) {
-    const body = await response.text()
-    return { sent: false, message: `Resend error: ${body}` }
-  }
-  return { sent: true, message: "sent" }
+export async function sendEmail(params: SendEmailParams): Promise<SendEmailResult> {
+  const { sendEmail: sendEmailViaSmtp } = await import("@/lib/send-email")
+  return sendEmailViaSmtp(params)
 }
 
