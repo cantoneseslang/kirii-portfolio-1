@@ -20,6 +20,7 @@ import {
   emptyStructuredAddress,
   formatStructuredAddress,
   getAreaLabel,
+  getDistrictLabel,
   getRegionLabel,
   resolveStructuredAddress,
 } from "@/lib/hk-new-customer-address"
@@ -71,7 +72,8 @@ function AddressSummary({ detail, legacyText }: { detail?: StructuredAddress; le
       {address.region === "hong_kong" && address.area && <div>{getAreaLabel(address.area)}</div>}
       {address.district && (
         <div>
-          {address.region === "china" ? "Province / City / District / 省市区" : "District / 分區"}: {address.district}
+          {address.region === "china" ? "Province / City / District / 省市区" : "District / 分區"}:{" "}
+          {getDistrictLabel(address.district, address.region)}
         </div>
       )}
       {address.region === "china" && address.postalCode && (

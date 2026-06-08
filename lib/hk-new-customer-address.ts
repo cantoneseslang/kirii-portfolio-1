@@ -21,6 +21,61 @@ export const HK_ADDRESS_AREAS: {
   { value: "new_territories", labelEn: "New Territories", labelZh: "新界" },
 ]
 
+export const HK_DISTRICTS: {
+  value: string
+  area: HkAddressArea
+  labelEn: string
+  labelZh: string
+}[] = [
+  { value: "central_and_western", area: "hong_kong_island", labelEn: "Central and Western", labelZh: "中西區" },
+  { value: "wan_chai", area: "hong_kong_island", labelEn: "Wan Chai", labelZh: "灣仔區" },
+  { value: "eastern", area: "hong_kong_island", labelEn: "Eastern", labelZh: "東區" },
+  { value: "southern", area: "hong_kong_island", labelEn: "Southern", labelZh: "南區" },
+  { value: "yau_tsim_mong", area: "kowloon", labelEn: "Yau Tsim Mong", labelZh: "油尖旺區" },
+  { value: "sham_shui_po", area: "kowloon", labelEn: "Sham Shui Po", labelZh: "深水埗區" },
+  { value: "kowloon_city", area: "kowloon", labelEn: "Kowloon City", labelZh: "九龍城區" },
+  { value: "wong_tai_sin", area: "kowloon", labelEn: "Wong Tai Sin", labelZh: "黃大仙區" },
+  { value: "kwun_tong", area: "kowloon", labelEn: "Kwun Tong", labelZh: "觀塘區" },
+  { value: "north", area: "new_territories", labelEn: "North", labelZh: "北區" },
+  { value: "tai_po", area: "new_territories", labelEn: "Tai Po", labelZh: "大埔區" },
+  { value: "sha_tin", area: "new_territories", labelEn: "Sha Tin", labelZh: "沙田區" },
+  { value: "sai_kung", area: "new_territories", labelEn: "Sai Kung", labelZh: "西貢區" },
+  { value: "tsuen_wan", area: "new_territories", labelEn: "Tsuen Wan", labelZh: "荃灣區" },
+  { value: "tuen_mun", area: "new_territories", labelEn: "Tuen Mun", labelZh: "屯門區" },
+  { value: "yuen_long", area: "new_territories", labelEn: "Yuen Long", labelZh: "元朗區" },
+  { value: "kwai_tsing", area: "new_territories", labelEn: "Kwai Tsing", labelZh: "葵青區" },
+  { value: "islands", area: "new_territories", labelEn: "Islands", labelZh: "離島區" },
+]
+
+export const MACAU_DISTRICTS: {
+  value: string
+  labelEn: string
+  labelZh: string
+}[] = [
+  { value: "nossa_senhora_de_fatima", labelEn: "Nossa Senhora de Fátima", labelZh: "花地瑪堂區" },
+  { value: "santo_antonio", labelEn: "Santo António", labelZh: "花王堂區" },
+  { value: "sao_lazaro", labelEn: "São Lázaro", labelZh: "望德堂區" },
+  { value: "se", labelEn: "Sé", labelZh: "大堂區" },
+  { value: "sao_lourenco", labelEn: "São Lourenço", labelZh: "風順堂區" },
+  { value: "taipa", labelEn: "Taipa", labelZh: "嘉模堂區" },
+  { value: "coloane", labelEn: "Coloane", labelZh: "聖方濟各堂區" },
+]
+
+export function getHkDistrictsForArea(area?: HkAddressArea) {
+  if (!area) return []
+  return HK_DISTRICTS.filter((entry) => entry.area === area)
+}
+
+export function getDistrictLabel(district: string, region?: AddressRegion): string {
+  if (!district) return ""
+  const hkMatch = HK_DISTRICTS.find((entry) => entry.value === district)
+  if (hkMatch) return `${hkMatch.labelEn} / ${hkMatch.labelZh}`
+  const macauMatch = MACAU_DISTRICTS.find((entry) => entry.value === district)
+  if (macauMatch) return `${macauMatch.labelEn} / ${macauMatch.labelZh}`
+  if (region === "hong_kong" || region === "macau") return district
+  return district
+}
+
 export function emptyStructuredAddress(): StructuredAddress {
   return {
     region: "hong_kong",
@@ -81,7 +136,7 @@ export function formatStructuredAddress(address?: StructuredAddress): string {
   }
 
   if (address.district) {
-    parts.push(address.district)
+    parts.push(getDistrictLabel(address.district, address.region))
   }
 
   if (address.region === "china" && address.postalCode) {
