@@ -343,18 +343,55 @@ export default function NewCustomerSettingPage() {
           <CardTitle>Protocol Reference / 指引參考</CardTitle>
           <CardDescription>
             Hong Kong New Customer Account Setup &amp; Credit Management Protocol v3. Required documents:
-            BR, CI, NAR1, Bank Proof. Verify via{" "}
+            BR, CI, NAR1, Bank Proof.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <div>
+            <span className="font-medium text-foreground">Hong Kong / 香港：</span> Verify via{" "}
             <a
               href="https://www.e-services.cr.gov.hk/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#02315a] underline"
             >
-              Companies Registry e-Services Portal
+              Companies Registry e-Services Portal / 公司註冊處電子服務
             </a>
             .
-          </CardDescription>
-        </CardHeader>
+          </div>
+          <div>
+            <span className="font-medium text-foreground">Macau / 澳門：</span> Free basic lookup via{" "}
+            <a
+              href="https://eservice.dsaj.gov.mo/dsajservice9/commercial-platform"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#02315a] underline"
+            >
+              Commercial Registration Information Platform / 商業登記訊息平台
+            </a>
+            {" "}
+            (search by registration no. or business name / 以登記編號或商業名稱搜尋). For formal certificates
+            (查公司紙 / 商業登記證明), apply via{" "}
+            <a
+              href="https://www.ab.gov.mo/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#02315a] underline"
+            >
+              商社通
+            </a>{" "}
+            or 一戶通, or see{" "}
+            <a
+              href="https://www.gov.mo/zh-hant/services/ps-2000/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#02315a] underline"
+            >
+              DSAJ commercial registration services / 法務局商業登記服務
+            </a>
+            . Issued by CRCBM / 商業及動產登記局.
+          </div>
+        </CardContent>
       </Card>
 
       {completedFormUrl && (
