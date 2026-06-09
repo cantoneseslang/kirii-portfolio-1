@@ -3,30 +3,59 @@ import {
   formatContactNameFull,
   normalizeContactNameFields,
 } from "@/lib/hk-new-customer-contact-name"
+import { WORLD_PHONE_COUNTRY_CODES, type PhoneCountryCodeEntry } from "@/lib/phone-country-codes-data"
 
-export const PHONE_COUNTRY_CODES = [
-  { code: "+852", labelEn: "Hong Kong", labelZh: "香港" },
-  { code: "+853", labelEn: "Macau", labelZh: "澳門" },
-  { code: "+86", labelEn: "China", labelZh: "中國" },
-  { code: "+886", labelEn: "Taiwan", labelZh: "台灣" },
-  { code: "+65", labelEn: "Singapore", labelZh: "新加坡" },
-  { code: "+60", labelEn: "Malaysia", labelZh: "馬來西亞" },
-  { code: "+81", labelEn: "Japan", labelZh: "日本" },
-  { code: "+82", labelEn: "South Korea", labelZh: "韓國" },
-  { code: "+1", labelEn: "USA/Canada", labelZh: "美國/加拿大" },
-  { code: "+44", labelEn: "United Kingdom", labelZh: "英國" },
-  { code: "+61", labelEn: "Australia", labelZh: "澳洲" },
+export type { PhoneCountryCodeEntry }
+
+const PRIORITY_COUNTRY_CODES = [
+  "+852",
+  "+853",
+  "+86",
+  "+886",
+  "+65",
+  "+60",
+  "+81",
+  "+82",
+  "+66",
+  "+84",
+  "+63",
+  "+91",
+  "+971",
+  "+1",
+  "+44",
+  "+61",
+  "+64",
+  "+49",
+  "+33",
+  "+39",
 ] as const
+
+const worldByCode = new Map(WORLD_PHONE_COUNTRY_CODES.map((entry) => [entry.code, entry]))
+
+export const PHONE_COUNTRY_CODES: PhoneCountryCodeEntry[] = [
+  ...PRIORITY_COUNTRY_CODES.map((code) => worldByCode.get(code)).filter(
+    (entry): entry is PhoneCountryCodeEntry => Boolean(entry),
+  ),
+  ...WORLD_PHONE_COUNTRY_CODES.filter((entry) => !PRIORITY_COUNTRY_CODES.includes(entry.code as (typeof PRIORITY_COUNTRY_CODES)[number])),
+]
+
+export function findPhoneCountryCode(phone: string): PhoneCountryCodeEntry | undefined {
+  return [...PHONE_COUNTRY_CODES]
+    .sort((a, b) => b.code.length - a.code.length)
+    .find((entry) => phone.startsWith(entry.code))
+}
+
+export function getPhoneCountryCodeEntry(code?: string): PhoneCountryCodeEntry | undefined {
+  if (!code) return worldByCode.get("+852")
+  return worldByCode.get(code)
+}
 
 export function normalizeContactEntry(contact: Partial<ContactEntry>): ContactEntry {
   const phone = String(contact.phone || "").trim()
   let phoneCountryCode = String(contact.phoneCountryCode || "").trim()
 
   if (!phoneCountryCode && phone.startsWith("+")) {
-    const matched = PHONE_COUNTRY_CODES.find((entry) => phone.startsWith(entry.code))
-    if (matched) {
-      phoneCountryCode = matched.code
-    }
+    phoneCountryCode = findPhoneCountryCode(phone)?.code || ""
   }
 
   const nameFields = normalizeContactNameFields(contact)
@@ -50,7 +79,10 @@ export function formatContactPhone(contact?: Pick<ContactEntry, "phoneCountryCod
 }
 
 export function getCountryCodeLabel(code?: string): string {
-  if (!code) return "+852"
-  const item = PHONE_COUNTRY_CODES.find((entry) => entry.code === code)
-  return item ? `${item.code} (${item.labelEn})` : code
+  const item = getPhoneCountryCodeEntry(code)
+  return item ? `${item.code} ${item.labelEn} / ${item.labelZh}` : code || "+852"
+}
+
+export function formatCountryCodeOptionLabel(entry: PhoneCountryCodeEntry): string {
+  return `${entry.code} ${entry.labelEn} / ${entry.labelZh}`
 }

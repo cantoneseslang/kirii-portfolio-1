@@ -9,7 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { PHONE_COUNTRY_CODES } from "@/lib/phone-country-codes"
+import {
+  formatCountryCodeOptionLabel,
+  getPhoneCountryCodeEntry,
+  PHONE_COUNTRY_CODES,
+} from "@/lib/phone-country-codes"
 
 type PhoneWithCountryCodeInputProps = {
   id: string
@@ -28,18 +32,25 @@ export function PhoneWithCountryCodeInput({
   onCountryCodeChange,
   onPhoneChange,
 }: PhoneWithCountryCodeInputProps) {
+  const selectedCode = countryCode || "+852"
+  const selectedEntry = getPhoneCountryCodeEntry(selectedCode)
+
   return (
     <div className="space-y-2">
       <Label htmlFor={`${id}-phone`}>{label}</Label>
       <div className="flex gap-2">
-        <Select value={countryCode || "+852"} onValueChange={onCountryCodeChange}>
+        <Select value={selectedCode} onValueChange={onCountryCodeChange}>
           <SelectTrigger id={`${id}-country-code`} className="w-[5.5rem] shrink-0">
-            <SelectValue placeholder="+852" />
+            <SelectValue placeholder="+852">{selectedCode}</SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-80 min-w-[20rem]">
             {PHONE_COUNTRY_CODES.map((entry) => (
-              <SelectItem key={entry.code} value={entry.code}>
-                {entry.code}
+              <SelectItem
+                key={entry.code}
+                value={entry.code}
+                textValue={`${entry.code} ${entry.labelEn} ${entry.labelZh}`}
+              >
+                {formatCountryCodeOptionLabel(entry)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -52,6 +63,11 @@ export function PhoneWithCountryCodeInput({
           className="min-w-0 flex-1"
         />
       </div>
+      {selectedEntry && (
+        <div className="text-xs text-muted-foreground">
+          {selectedEntry.labelEn} / {selectedEntry.labelZh}
+        </div>
+      )}
     </div>
   )
 }
