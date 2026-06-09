@@ -152,15 +152,11 @@ export const REGION_VERIFICATION_DOCUMENTS = {
     key: "cr_company_particulars",
     labelEn: "Companies Registry Company Particulars",
     labelZh: "公司註冊處公司資料",
-    hintEn: "Download from CR e-Services after online verification",
-    hintZh: "經公司註冊處電子服務查冊後之下載副本",
   },
   macau: {
     key: "macau_commercial_registration",
     labelEn: "Commercial Registration Certificate",
     labelZh: "商業登記證明",
-    hintEn: "Certificate issued by CRCBM via 商社通 or 一戶通",
-    hintZh: "商業及動產登記局發出之商業登記證明",
   },
 } as const
 

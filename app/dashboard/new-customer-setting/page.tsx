@@ -188,6 +188,22 @@ export default function NewCustomerSettingPage() {
     [registeredAddressDetail.region],
   )
 
+  const requiredDocumentSlots = useMemo(() => {
+    const slots = DOCUMENT_TYPES.map((doc) => ({
+      key: doc.key,
+      labelEn: doc.labelEn,
+      labelZh: doc.labelZh,
+    }))
+    if (regionVerificationDocument) {
+      slots.push({
+        key: regionVerificationDocument.key,
+        labelEn: regionVerificationDocument.labelEn,
+        labelZh: regionVerificationDocument.labelZh,
+      })
+    }
+    return slots
+  }, [regionVerificationDocument])
+
   const updateContact = (index: number, field: keyof ContactEntry, value: string) => {
     setContacts((prev) => {
       const next = [...prev]
@@ -708,11 +724,11 @@ export default function NewCustomerSettingPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {DOCUMENT_TYPES.map((doc) => {
+                {requiredDocumentSlots.map((doc) => {
                   const file = attachmentFiles[doc.key] || null
                   return (
                     <div key={doc.key} className="space-y-3 rounded-lg border border-[#02315a]/20 bg-slate-50/50 p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="font-medium text-[#02315a]">
                             {doc.labelEn} <span className="text-red-600">*</span>
@@ -720,7 +736,7 @@ export default function NewCustomerSettingPage() {
                           <div className="text-sm text-muted-foreground">{doc.labelZh}</div>
                         </div>
                         <span
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             file
                               ? "bg-green-100 text-green-800"
                               : "bg-amber-100 text-amber-900"
@@ -742,42 +758,6 @@ export default function NewCustomerSettingPage() {
                     </div>
                   )
                 })}
-                {regionVerificationDocument && (
-                  <div className="space-y-3 rounded-lg border-2 border-[#02315a]/30 bg-blue-50/40 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <div className="font-medium text-[#02315a]">
-                          {regionVerificationDocument.labelEn} <span className="text-red-600">*</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">{regionVerificationDocument.labelZh}</div>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          {regionVerificationDocument.hintEn} / {regionVerificationDocument.hintZh}
-                        </div>
-                      </div>
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          attachmentFiles[regionVerificationDocument.key]
-                            ? "bg-green-100 text-green-800"
-                            : "bg-amber-100 text-amber-900"
-                        }`}
-                      >
-                        {attachmentFiles[regionVerificationDocument.key]
-                          ? "Uploaded / 已上載"
-                          : "Required / 必須上載"}
-                      </span>
-                    </div>
-                    <DocumentFileInput
-                      className="w-full max-w-md"
-                      value={attachmentFiles[regionVerificationDocument.key] || null}
-                      onChange={(nextFile) =>
-                        setAttachmentFiles((prev) => ({
-                          ...prev,
-                          [regionVerificationDocument.key]: nextFile,
-                        }))
-                      }
-                    />
-                  </div>
-                )}
                 <div className="space-y-3 rounded-lg border border-dashed p-4">
                   <div>
                     <div className="font-medium">Other Supporting Document / 其他附件</div>
