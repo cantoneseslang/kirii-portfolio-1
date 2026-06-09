@@ -8,6 +8,7 @@ import type {
 import { getRequiredAttachmentKeys } from "@/types/hk-new-customer"
 import { normalizeContactEntry } from "@/lib/phone-country-codes"
 import { collectLegalNameIssues } from "@/lib/hk-new-customer-name-validation"
+import { collectContactNameIssues } from "@/lib/hk-new-customer-contact-name"
 import { notifyApproversForStatus } from "@/lib/hk-new-customer-approval-notify"
 import {
   formatStructuredAddress,
@@ -119,28 +120,37 @@ export async function POST(request: Request) {
     const statusRaw = String(formData.get("status") || "submitted")
     const status = statusRaw === "draft" ? "draft" : "submitted"
 
-    const nameIssues = collectLegalNameIssues([
-      ...parseContacts(formData.get("contactsJson")).map((contact, index) => ({
-        key: `contact-${index}`,
-        label: `Contact ${index + 1}`,
-        value: contact.name,
-      })),
-      {
-        key: "ap-contact",
-        label: "Accounts Payable Contact Name",
-        value: String(formData.get("apContactName") || ""),
-      },
-      {
-        key: "authorized-signature",
-        label: "Authorized Signature",
-        value: String(formData.get("authorizedSignature") || ""),
-      },
-      {
-        key: "signer-name-title",
-        label: "Name & Title",
-        value: String(formData.get("signerNameTitle") || ""),
-      },
-    ])
+    const contacts = parseContacts(formData.get("contactsJson"))
+    const apContactDetail = parseJsonField<Partial<ContactEntry>>(formData.get("apContactNameJson"), {})
+
+    const nameIssues = [
+      ...collectContactNameIssues(
+        contacts.map((contact, index) => ({
+          key: `contact-${index}`,
+          label: `Contact ${index + 1}`,
+          contact,
+        })),
+      ),
+      ...collectContactNameIssues([
+        {
+          key: "ap-contact",
+          label: "Accounts Payable Contact Name",
+          contact: apContactDetail,
+        },
+      ]),
+      ...collectLegalNameIssues([
+        {
+          key: "authorized-signature",
+          label: "Authorized Signature",
+          value: String(formData.get("authorizedSignature") || ""),
+        },
+        {
+          key: "signer-name-title",
+          label: "Name & Title",
+          value: String(formData.get("signerNameTitle") || ""),
+        },
+      ]),
+    ]
     if (nameIssues.length > 0) {
       return NextResponse.json(
         {
@@ -181,7 +191,7 @@ export async function POST(request: Request) {
       deliveryAddress: deliveryAddressData.formatted,
       registeredAddressDetail: registeredAddressData.detail,
       deliveryAddressDetail: deliveryAddressData.detail,
-      contacts: parseContacts(formData.get("contactsJson")),
+      contacts,
       apContactName: String(formData.get("apContactName") || "").trim() || undefined,
       apEmail: String(formData.get("apEmail") || "").trim() || undefined,
       invoiceDelivery: parseInvoiceDelivery(formData.get("invoiceDeliveryJson")),

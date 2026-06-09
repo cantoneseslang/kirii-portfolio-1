@@ -1,4 +1,8 @@
 import type { ContactEntry } from "@/types/hk-new-customer"
+import {
+  formatContactNameFull,
+  normalizeContactNameFields,
+} from "@/lib/hk-new-customer-contact-name"
 
 export const PHONE_COUNTRY_CODES = [
   { code: "+852", labelEn: "Hong Kong", labelZh: "香港" },
@@ -25,8 +29,11 @@ export function normalizeContactEntry(contact: Partial<ContactEntry>): ContactEn
     }
   }
 
+  const nameFields = normalizeContactNameFields(contact)
+
   return {
-    name: String(contact.name || "").trim(),
+    ...nameFields,
+    name: formatContactNameFull(nameFields),
     title: String(contact.title || "").trim(),
     email: String(contact.email || "").trim(),
     phoneCountryCode: phoneCountryCode || "+852",

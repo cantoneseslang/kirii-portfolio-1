@@ -1,5 +1,10 @@
 export type ContactEntry = {
-  name: string
+  nameEnFirst: string
+  nameEnMiddle: string
+  nameEnLast: string
+  nameZh: string
+  /** @deprecated Legacy combined name; derived on save for older records */
+  name?: string
   title: string
   email: string
   phoneCountryCode: string

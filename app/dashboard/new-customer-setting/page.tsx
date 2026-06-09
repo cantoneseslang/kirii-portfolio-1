@@ -17,8 +17,14 @@ import {
   getRegionVerificationDocument,
   getRequiredAttachmentKeys,
 } from "@/types/hk-new-customer"
+import { ContactNameFields } from "@/components/contact-name-fields"
 import { LegalNameInput } from "@/components/legal-name-input"
 import { DocumentFileInput } from "@/components/document-file-input"
+import {
+  collectContactNameIssues,
+  emptyContactName,
+  formatContactNameFull,
+} from "@/lib/hk-new-customer-contact-name"
 import { collectLegalNameIssues } from "@/lib/hk-new-customer-name-validation"
 import { getApprovalStatusLabel, getApproverRole } from "@/lib/hk-new-customer-approval"
 import {
@@ -42,7 +48,7 @@ import type {
 type AttachmentFiles = Record<string, File | null>
 
 const EMPTY_CONTACT: ContactEntry = {
-  name: "",
+  ...emptyContactName(),
   title: "",
   email: "",
   phoneCountryCode: "+852",
@@ -123,7 +129,7 @@ export default function NewCustomerSettingPage() {
   const [registeredAddressDetail, setRegisteredAddressDetail] = useState<StructuredAddress>(emptyStructuredAddress)
   const [deliveryAddressDetail, setDeliveryAddressDetail] = useState<StructuredAddress>(emptyStructuredAddress)
   const [contacts, setContacts] = useState<ContactEntry[]>(emptyContacts)
-  const [apContactName, setApContactName] = useState("")
+  const [apContactNameDetail, setApContactNameDetail] = useState(emptyContactName)
   const [apEmail, setApEmail] = useState("")
   const [invoiceEmail, setInvoiceEmail] = useState(true)
   const [invoicePost, setInvoicePost] = useState(false)
@@ -197,18 +203,22 @@ export default function NewCustomerSettingPage() {
   }, [invoiceEmail, invoicePost])
 
   const nameValidationIssues = useMemo(
-    () =>
-      collectLegalNameIssues([
-        ...contacts.map((contact, index) => ({
+    () => [
+      ...collectContactNameIssues(
+        contacts.map((contact, index) => ({
           key: `contact-${index}`,
           label: `Contact ${index + 1} / 聯絡人 ${index + 1}`,
-          value: contact.name,
+          contact,
         })),
+      ),
+      ...collectContactNameIssues([
         {
           key: "ap-contact",
           label: "Accounts Payable Contact Name / 應付賬款聯絡人",
-          value: apContactName,
+          contact: apContactNameDetail,
         },
+      ]),
+      ...collectLegalNameIssues([
         {
           key: "authorized-signature",
           label: "Authorized Signature / 獲授權人簽署",
@@ -220,7 +230,8 @@ export default function NewCustomerSettingPage() {
           value: signerNameTitle,
         },
       ]),
-    [contacts, apContactName, authorizedSignature, signerNameTitle],
+    ],
+    [contacts, apContactNameDetail, authorizedSignature, signerNameTitle],
   )
 
   const buildFormData = (status: "draft" | "submitted") => {
@@ -239,7 +250,8 @@ export default function NewCustomerSettingPage() {
     formData.append("registeredAddress", formatStructuredAddress(registeredAddressDetail))
     formData.append("deliveryAddress", formatStructuredAddress(deliveryAddressDetail))
     formData.append("contactsJson", JSON.stringify(contacts))
-    formData.append("apContactName", apContactName)
+    formData.append("apContactName", formatContactNameFull(apContactNameDetail))
+    formData.append("apContactNameJson", JSON.stringify(apContactNameDetail))
     formData.append("apEmail", apEmail)
     formData.append("invoiceDeliveryJson", JSON.stringify(invoiceDelivery))
     formData.append("bankName", bankName)
@@ -526,7 +538,8 @@ export default function NewCustomerSettingPage() {
               <CardHeader>
                 <CardTitle>Part 2: Contact Information / 聯絡資料</CardTitle>
                 <CardDescription>
-                  Primary contacts must use full legal names (no nicknames). / 必須填寫真實姓名全名，嚴禁使用花名。
+                  Primary contacts must use full legal names in English (given name, middle name, surname) and
+                  Chinese. Nicknames are not allowed. / 必須分別填寫英文名字、中間名、姓氏及中文姓名全名，嚴禁使用花名。
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -548,11 +561,16 @@ export default function NewCustomerSettingPage() {
                 {contacts.map((contact, index) => (
                   <div key={index} className="grid gap-4 rounded-lg border p-4 md:grid-cols-2">
                     <div className="md:col-span-2 font-medium">Contact {index + 1} / 聯絡人 {index + 1}</div>
-                    <LegalNameInput
-                      id={`contact-name-${index}`}
-                      label="Name / 姓名"
-                      value={contact.name}
-                      onChange={(value) => updateContact(index, "name", value)}
+                    <ContactNameFields
+                      idPrefix={`contact-${index}`}
+                      value={contact}
+                      onChange={(value) =>
+                        setContacts((prev) => {
+                          const next = [...prev]
+                          next[index] = { ...next[index], ...value }
+                          return next
+                        })
+                      }
                     />
                     <div className="space-y-2">
                       <Label>Title</Label>
@@ -574,12 +592,14 @@ export default function NewCustomerSettingPage() {
                   </div>
                 ))}
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <LegalNameInput
-                    id="apContactName"
-                    label="Accounts Payable Contact Name / 應付賬款聯絡人"
-                    value={apContactName}
-                    onChange={setApContactName}
+                <div className="grid gap-4 rounded-lg border p-4 md:grid-cols-2">
+                  <div className="md:col-span-2 font-medium">
+                    Accounts Payable Contact / 應付賬款聯絡人
+                  </div>
+                  <ContactNameFields
+                    idPrefix="ap-contact"
+                    value={apContactNameDetail}
+                    onChange={setApContactNameDetail}
                   />
                   <div className="space-y-2">
                     <Label htmlFor="apEmail">A/P Email</Label>

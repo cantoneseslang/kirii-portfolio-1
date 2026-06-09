@@ -5,6 +5,7 @@ import PizZip from "pizzip"
 import type { HkNewCustomerRegistration } from "@/types/hk-new-customer"
 import { formatStructuredAddress } from "@/lib/hk-new-customer-address"
 import { formatContactPhone } from "@/lib/phone-country-codes"
+import { formatContactNameFull } from "@/lib/hk-new-customer-contact-name"
 
 const TEMPLATE_PATH = path.join(
   process.cwd(),
@@ -43,15 +44,15 @@ function buildTemplateData(registration: HkNewCustomerRegistration) {
       formatStructuredAddress(registration.deliveryAddressDetail) ||
       registration.deliveryAddress ||
       "",
-    contact1Name: c1?.name || "",
+    contact1Name: formatContactNameFull(c1) || c1?.name || "",
     contact1Title: c1?.title || "",
     contact1Email: c1?.email || "",
     contact1Phone: formatContactPhone(c1) || c1?.phone || "",
-    contact2Name: c2?.name || "",
+    contact2Name: formatContactNameFull(c2) || c2?.name || "",
     contact2Title: c2?.title || "",
     contact2Email: c2?.email || "",
     contact2Phone: formatContactPhone(c2) || c2?.phone || "",
-    contact3Name: c3?.name || "",
+    contact3Name: formatContactNameFull(c3) || c3?.name || "",
     contact3Title: c3?.title || "",
     contact3Email: c3?.email || "",
     contact3Phone: formatContactPhone(c3) || c3?.phone || "",
