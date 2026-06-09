@@ -24,11 +24,22 @@ export type DocumentChecklist = {
   ci: boolean
   nar1: boolean
   bankProof: boolean
+  crCompanyParticulars?: boolean
+  macauCommercialRegistration?: boolean
 }
+
+export type AttachmentDocumentType =
+  | "br"
+  | "ci"
+  | "nar1"
+  | "bank_proof"
+  | "cr_company_particulars"
+  | "macau_commercial_registration"
+  | "other"
 
 export type AttachmentRecord = {
   id: string
-  documentType: "br" | "ci" | "nar1" | "bank_proof" | "other"
+  documentType: AttachmentDocumentType
   fileName: string
   fileUrl: string
   fileSize?: number
@@ -130,3 +141,46 @@ export const DOCUMENT_TYPES = [
   { key: "nar1", labelEn: "Annual Return (NAR1)", labelZh: "最新周年申報表副本" },
   { key: "bank_proof", labelEn: "Bank Proof", labelZh: "銀行戶口證明" },
 ] as const
+
+export const REGION_VERIFICATION_DOCUMENTS = {
+  hong_kong: {
+    key: "cr_company_particulars",
+    labelEn: "Companies Registry Company Particulars",
+    labelZh: "公司註冊處公司資料",
+    hintEn: "Download from CR e-Services after online verification",
+    hintZh: "經公司註冊處電子服務查冊後之下載副本",
+  },
+  macau: {
+    key: "macau_commercial_registration",
+    labelEn: "Commercial Registration Certificate",
+    labelZh: "商業登記證明",
+    hintEn: "Certificate issued by CRCBM via 商社通 or 一戶通",
+    hintZh: "商業及動產登記局發出之商業登記證明",
+  },
+} as const
+
+export function getRegionVerificationDocument(region: AddressRegion) {
+  if (region === "hong_kong") return REGION_VERIFICATION_DOCUMENTS.hong_kong
+  if (region === "macau") return REGION_VERIFICATION_DOCUMENTS.macau
+  return null
+}
+
+export function getRequiredAttachmentKeys(region: AddressRegion): string[] {
+  const keys = DOCUMENT_TYPES.map((doc) => doc.key)
+  const verification = getRegionVerificationDocument(region)
+  if (verification) keys.push(verification.key)
+  return keys
+}
+
+export function getAttachmentTypeLabel(documentType: string): string {
+  const base = DOCUMENT_TYPES.find((doc) => doc.key === documentType)
+  if (base) return `${base.labelEn} / ${base.labelZh}`
+  if (documentType === "cr_company_particulars") {
+    return `${REGION_VERIFICATION_DOCUMENTS.hong_kong.labelEn} / ${REGION_VERIFICATION_DOCUMENTS.hong_kong.labelZh}`
+  }
+  if (documentType === "macau_commercial_registration") {
+    return `${REGION_VERIFICATION_DOCUMENTS.macau.labelEn} / ${REGION_VERIFICATION_DOCUMENTS.macau.labelZh}`
+  }
+  if (documentType === "other") return "Other Supporting Document / 其他附件"
+  return documentType
+}

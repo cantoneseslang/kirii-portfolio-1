@@ -5,6 +5,7 @@ import type {
   DocumentChecklist,
   HkNewCustomerRegistration,
 } from "@/types/hk-new-customer"
+import { getRequiredAttachmentKeys } from "@/types/hk-new-customer"
 import { normalizeContactEntry } from "@/lib/phone-country-codes"
 import { collectLegalNameIssues } from "@/lib/hk-new-customer-name-validation"
 import { notifyApproversForStatus } from "@/lib/hk-new-customer-approval-notify"
@@ -45,6 +46,8 @@ function parseChecklist(value: FormDataEntryValue | null): DocumentChecklist {
     ci: Boolean(parsed.ci),
     nar1: Boolean(parsed.nar1),
     bankProof: Boolean(parsed.bankProof),
+    crCompanyParticulars: Boolean(parsed.crCompanyParticulars),
+    macauCommercialRegistration: Boolean(parsed.macauCommercialRegistration),
   }
 }
 
@@ -210,7 +213,15 @@ export async function POST(request: Request) {
       completedFormFileName: existing?.completedFormFileName,
     }
 
-    const attachmentTypes = ["br", "ci", "nar1", "bank_proof", "other"] as const
+    const attachmentTypes = [
+      "br",
+      "ci",
+      "nar1",
+      "bank_proof",
+      "cr_company_particulars",
+      "macau_commercial_registration",
+      "other",
+    ] as const
     for (const documentType of attachmentTypes) {
       const file = formData.get(`attachment_${documentType}`)
       if (!(file instanceof File) || file.size === 0) continue
@@ -240,10 +251,17 @@ export async function POST(request: Request) {
       ci: registration.attachments.some((item) => item.documentType === "ci"),
       nar1: registration.attachments.some((item) => item.documentType === "nar1"),
       bankProof: registration.attachments.some((item) => item.documentType === "bank_proof"),
+      crCompanyParticulars: registration.attachments.some(
+        (item) => item.documentType === "cr_company_particulars",
+      ),
+      macauCommercialRegistration: registration.attachments.some(
+        (item) => item.documentType === "macau_commercial_registration",
+      ),
     }
 
     if (status === "submitted") {
-      const requiredTypes = ["br", "ci", "nar1", "bank_proof"] as const
+      const region = registration.registeredAddressDetail?.region || "hong_kong"
+      const requiredTypes = getRequiredAttachmentKeys(region)
       const missingTypes = requiredTypes.filter(
         (documentType) => !registration.attachments.some((item) => item.documentType === documentType),
       )

@@ -76,6 +76,10 @@ function buildTemplateData(registration: HkNewCustomerRegistration) {
     docCi: mark(Boolean(registration.documentsChecklist.ci)),
     docNar1: mark(Boolean(registration.documentsChecklist.nar1)),
     docBankProof: mark(Boolean(registration.documentsChecklist.bankProof)),
+    docCrCompanyParticulars: mark(Boolean(registration.documentsChecklist.crCompanyParticulars)),
+    docMacauCommercialRegistration: mark(
+      Boolean(registration.documentsChecklist.macauCommercialRegistration),
+    ),
     authorizedSignature: registration.authorizedSignature || "",
     declarationDate: formatIncDate(registration.declarationDate),
     signerNameTitle: registration.signerNameTitle || "",

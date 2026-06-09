@@ -11,7 +11,12 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import { DOCUMENT_TYPES } from "@/types/hk-new-customer"
+import {
+  DOCUMENT_TYPES,
+  getAttachmentTypeLabel,
+  getRegionVerificationDocument,
+  getRequiredAttachmentKeys,
+} from "@/types/hk-new-customer"
 import { LegalNameInput } from "@/components/legal-name-input"
 import { DocumentFileInput } from "@/components/document-file-input"
 import { collectLegalNameIssues } from "@/lib/hk-new-customer-name-validation"
@@ -54,6 +59,8 @@ function checklistFromAttachments(files: AttachmentFiles): DocumentChecklist {
     ci: Boolean(files.ci),
     nar1: Boolean(files.nar1),
     bankProof: Boolean(files.bank_proof),
+    crCompanyParticulars: Boolean(files.cr_company_particulars),
+    macauCommercialRegistration: Boolean(files.macau_commercial_registration),
   }
 }
 
@@ -150,6 +157,29 @@ export default function NewCustomerSettingPage() {
       setSalesRepName(String(user.user_metadata.full_name))
     }
   }, [user])
+
+  useEffect(() => {
+    setAttachmentFiles((prev) => {
+      const next = { ...prev }
+      if (registeredAddressDetail.region !== "hong_kong") {
+        delete next.cr_company_particulars
+      }
+      if (registeredAddressDetail.region !== "macau") {
+        delete next.macau_commercial_registration
+      }
+      return next
+    })
+  }, [registeredAddressDetail.region])
+
+  const regionVerificationDocument = useMemo(
+    () => getRegionVerificationDocument(registeredAddressDetail.region),
+    [registeredAddressDetail.region],
+  )
+
+  const requiredAttachmentKeys = useMemo(
+    () => getRequiredAttachmentKeys(registeredAddressDetail.region),
+    [registeredAddressDetail.region],
+  )
 
   const updateContact = (index: number, field: keyof ContactEntry, value: string) => {
     setContacts((prev) => {
@@ -254,11 +284,11 @@ export default function NewCustomerSettingPage() {
     }
 
     if (status === "submitted") {
-      const missingDocuments = DOCUMENT_TYPES.filter((doc) => !attachmentFiles[doc.key])
-      if (missingDocuments.length > 0) {
+      const missingKeys = requiredAttachmentKeys.filter((key) => !attachmentFiles[key])
+      if (missingKeys.length > 0) {
         setError(
-          `Please upload all required documents before submitting. / 提交前請上載所有必須文件：${missingDocuments
-            .map((doc) => `${doc.labelEn} / ${doc.labelZh}`)
+          `Please upload all required documents before submitting. / 提交前請上載所有必須文件：${missingKeys
+            .map((key) => getAttachmentTypeLabel(key))
             .join("; ")}`,
         )
         return
@@ -359,7 +389,8 @@ export default function NewCustomerSettingPage() {
           <CardTitle>Protocol Reference / 指引參考</CardTitle>
           <CardDescription>
             Hong Kong New Customer Account Setup &amp; Credit Management Protocol v3. Required documents:
-            BR, CI, NAR1, Bank Proof.
+            BR, CI, NAR1, Bank Proof, plus region-specific registry verification (HK: Companies Registry
+            Company Particulars / 公司註冊處公司資料; Macau: Commercial Registration Certificate / 商業登記證明).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
@@ -656,9 +687,6 @@ export default function NewCustomerSettingPage() {
                             {doc.labelEn} <span className="text-red-600">*</span>
                           </div>
                           <div className="text-sm text-muted-foreground">{doc.labelZh}</div>
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            Upload / 上載 {doc.key === "br" ? "BR" : doc.key === "ci" ? "CI" : doc.key === "nar1" ? "NAR1" : "Bank Proof"}
-                          </div>
                         </div>
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -683,6 +711,42 @@ export default function NewCustomerSettingPage() {
                     </div>
                   )
                 })}
+                {regionVerificationDocument && (
+                  <div className="space-y-3 rounded-lg border-2 border-[#02315a]/30 bg-blue-50/40 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <div className="font-medium text-[#02315a]">
+                          {regionVerificationDocument.labelEn} <span className="text-red-600">*</span>
+                        </div>
+                        <div className="text-sm text-muted-foreground">{regionVerificationDocument.labelZh}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          {regionVerificationDocument.hintEn} / {regionVerificationDocument.hintZh}
+                        </div>
+                      </div>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          attachmentFiles[regionVerificationDocument.key]
+                            ? "bg-green-100 text-green-800"
+                            : "bg-amber-100 text-amber-900"
+                        }`}
+                      >
+                        {attachmentFiles[regionVerificationDocument.key]
+                          ? "Uploaded / 已上載"
+                          : "Required / 必須上載"}
+                      </span>
+                    </div>
+                    <DocumentFileInput
+                      className="w-full max-w-md"
+                      value={attachmentFiles[regionVerificationDocument.key] || null}
+                      onChange={(nextFile) =>
+                        setAttachmentFiles((prev) => ({
+                          ...prev,
+                          [regionVerificationDocument.key]: nextFile,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
                 <div className="space-y-3 rounded-lg border border-dashed p-4">
                   <div>
                     <div className="font-medium">Other Supporting Document / 其他附件</div>
@@ -896,7 +960,7 @@ export default function NewCustomerSettingPage() {
                       {selectedRecord.attachments.map((attachment) => (
                         <li key={attachment.id}>
                           <a href={attachment.fileUrl} target="_blank" rel="noopener noreferrer" className="text-[#02315a] underline">
-                            {attachment.documentType.toUpperCase()} - {attachment.fileName}
+                            {getAttachmentTypeLabel(attachment.documentType)} - {attachment.fileName}
                           </a>
                         </li>
                       ))}

@@ -12,6 +12,7 @@ import {
   getApproverRole,
 } from "@/lib/hk-new-customer-approval"
 import type { HkNewCustomerRegistration } from "@/types/hk-new-customer"
+import { getAttachmentTypeLabel } from "@/types/hk-new-customer"
 
 export default function NewCustomerApprovalsPage() {
   const { user } = useAuth()
@@ -225,7 +226,7 @@ export default function NewCustomerApprovalsPage() {
                         {selectedRecord.attachments.map((attachment) => (
                           <li key={attachment.id}>
                             <a href={attachment.fileUrl} target="_blank" rel="noopener noreferrer" className="text-[#02315a] underline">
-                              {attachment.documentType.toUpperCase()} - {attachment.fileName}
+                              {getAttachmentTypeLabel(attachment.documentType)} - {attachment.fileName}
                             </a>
                           </li>
                         ))}
