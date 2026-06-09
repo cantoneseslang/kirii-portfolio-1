@@ -33,13 +33,13 @@ export function PhoneWithCountryCodeInput({
       <Label htmlFor={`${id}-phone`}>{label}</Label>
       <div className="flex gap-2">
         <Select value={countryCode || "+852"} onValueChange={onCountryCodeChange}>
-          <SelectTrigger id={`${id}-country-code`} className="w-[150px] shrink-0">
-            <SelectValue placeholder="Code" />
+          <SelectTrigger id={`${id}-country-code`} className="w-[5.5rem] shrink-0">
+            <SelectValue placeholder="+852" />
           </SelectTrigger>
           <SelectContent>
             {PHONE_COUNTRY_CODES.map((entry) => (
               <SelectItem key={entry.code} value={entry.code}>
-                {entry.code} {entry.labelEn}
+                {entry.code}
               </SelectItem>
             ))}
           </SelectContent>
