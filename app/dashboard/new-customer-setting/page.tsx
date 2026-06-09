@@ -632,8 +632,13 @@ export default function NewCustomerSettingPage() {
                   <Input id="bankName" value={bankName} onChange={(e) => setBankName(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="accountName">Account Name / 戶口名稱 (must match company name)</Label>
-                  <Input id="accountName" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
+                  <Label htmlFor="accountName">Account Name / 戶口名稱</Label>
+                  <Input
+                    id="accountName"
+                    value={accountName}
+                    onChange={(e) => setAccountName(e.target.value)}
+                    placeholder="Must match company name / 須與公司名稱一致"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="accountNumber">Account Number</Label>
