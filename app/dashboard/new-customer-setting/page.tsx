@@ -48,8 +48,13 @@ function emptyContacts(): ContactEntry[] {
   return [{ ...EMPTY_CONTACT }, { ...EMPTY_CONTACT }, { ...EMPTY_CONTACT }]
 }
 
-function emptyChecklist(): DocumentChecklist {
-  return { br: false, ci: false, nar1: false, bankProof: false }
+function checklistFromAttachments(files: AttachmentFiles): DocumentChecklist {
+  return {
+    br: Boolean(files.br),
+    ci: Boolean(files.ci),
+    nar1: Boolean(files.nar1),
+    bankProof: Boolean(files.bank_proof),
+  }
 }
 
 function formatDate(value?: string) {
@@ -122,7 +127,6 @@ export default function NewCustomerSettingPage() {
   const [estimatedMonthlyPurchase, setEstimatedMonthlyPurchase] = useState("")
   const [paymentTerms, setPaymentTerms] = useState<string>("advance")
   const [paymentTermsOther, setPaymentTermsOther] = useState("")
-  const [documentsChecklist, setDocumentsChecklist] = useState<DocumentChecklist>(emptyChecklist)
   const [attachmentFiles, setAttachmentFiles] = useState<AttachmentFiles>({})
   const [authorizedSignature, setAuthorizedSignature] = useState("")
   const [declarationDate, setDeclarationDate] = useState("")
@@ -215,7 +219,7 @@ export default function NewCustomerSettingPage() {
     formData.append("estimatedMonthlyPurchase", estimatedMonthlyPurchase)
     formData.append("paymentTerms", paymentTerms)
     formData.append("paymentTermsOther", paymentTermsOther)
-    formData.append("documentsChecklistJson", JSON.stringify(documentsChecklist))
+    formData.append("documentsChecklistJson", JSON.stringify(checklistFromAttachments(attachmentFiles)))
     formData.append("authorizedSignature", authorizedSignature)
     formData.append("declarationDate", declarationDate)
     formData.append("signerNameTitle", signerNameTitle)
@@ -247,6 +251,18 @@ export default function NewCustomerSettingPage() {
           .join(", ")}`,
       )
       return
+    }
+
+    if (status === "submitted") {
+      const missingDocuments = DOCUMENT_TYPES.filter((doc) => !attachmentFiles[doc.key])
+      if (missingDocuments.length > 0) {
+        setError(
+          `Please upload all required documents before submitting. / 提交前請上載所有必須文件：${missingDocuments
+            .map((doc) => `${doc.labelEn} / ${doc.labelZh}`)
+            .join("; ")}`,
+        )
+        return
+      }
     }
 
     setSubmitting(true)
@@ -624,42 +640,56 @@ export default function NewCustomerSettingPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Part 5: Required Documents / 必須附帶文件</CardTitle>
+                <CardDescription>
+                  Upload each document to its designated slot below. PDF, JPG, or PNG recommended. /
+                  請將每份文件上載至對應欄位（建議 PDF、JPG 或 PNG）。
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {DOCUMENT_TYPES.map((doc) => (
-                  <div key={doc.key} className="grid gap-3 rounded-lg border p-4 md:grid-cols-[1fr_280px] md:items-center">
-                    <div>
-                      <label className="flex items-start gap-2 text-sm">
-                        <Checkbox
-                          checked={documentsChecklist[doc.key as keyof DocumentChecklist]}
-                          onCheckedChange={(checked) =>
-                            setDocumentsChecklist((prev) => ({
-                              ...prev,
-                              [doc.key]: Boolean(checked),
-                            }))
-                          }
-                        />
-                        <span>
-                          {doc.labelEn}
-                          <br />
-                          <span className="text-muted-foreground">{doc.labelZh}</span>
+                {DOCUMENT_TYPES.map((doc) => {
+                  const file = attachmentFiles[doc.key] || null
+                  return (
+                    <div key={doc.key} className="space-y-3 rounded-lg border border-[#02315a]/20 bg-slate-50/50 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <div className="font-medium text-[#02315a]">
+                            {doc.labelEn} <span className="text-red-600">*</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">{doc.labelZh}</div>
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            Upload / 上載 {doc.key === "br" ? "BR" : doc.key === "ci" ? "CI" : doc.key === "nar1" ? "NAR1" : "Bank Proof"}
+                          </div>
+                        </div>
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            file
+                              ? "bg-green-100 text-green-800"
+                              : "bg-amber-100 text-amber-900"
+                          }`}
+                        >
+                          {file ? "Uploaded / 已上載" : "Required / 必須上載"}
                         </span>
-                      </label>
+                      </div>
+                      <DocumentFileInput
+                        className="w-full max-w-md"
+                        value={file}
+                        onChange={(nextFile) =>
+                          setAttachmentFiles((prev) => ({
+                            ...prev,
+                            [doc.key]: nextFile,
+                          }))
+                        }
+                      />
                     </div>
-                    <DocumentFileInput
-                      value={attachmentFiles[doc.key] || null}
-                      onChange={(file) =>
-                        setAttachmentFiles((prev) => ({
-                          ...prev,
-                          [doc.key]: file,
-                        }))
-                      }
-                    />
+                  )
+                })}
+                <div className="space-y-3 rounded-lg border border-dashed p-4">
+                  <div>
+                    <div className="font-medium">Other Supporting Document / 其他附件</div>
+                    <div className="text-sm text-muted-foreground">Optional / 可選</div>
                   </div>
-                ))}
-                <div className="grid gap-3 rounded-lg border p-4 md:grid-cols-[1fr_280px] md:items-center">
-                  <Label>Other Supporting Document / 其他附件</Label>
                   <DocumentFileInput
+                    className="w-full max-w-md"
                     value={attachmentFiles.other || null}
                     onChange={(file) =>
                       setAttachmentFiles((prev) => ({

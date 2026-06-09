@@ -235,6 +235,29 @@ export async function POST(request: Request) {
       })
     }
 
+    registration.documentsChecklist = {
+      br: registration.attachments.some((item) => item.documentType === "br"),
+      ci: registration.attachments.some((item) => item.documentType === "ci"),
+      nar1: registration.attachments.some((item) => item.documentType === "nar1"),
+      bankProof: registration.attachments.some((item) => item.documentType === "bank_proof"),
+    }
+
+    if (status === "submitted") {
+      const requiredTypes = ["br", "ci", "nar1", "bank_proof"] as const
+      const missingTypes = requiredTypes.filter(
+        (documentType) => !registration.attachments.some((item) => item.documentType === documentType),
+      )
+      if (missingTypes.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Missing required attachments: ${missingTypes.join(", ")}`,
+          },
+          { status: 400 },
+        )
+      }
+    }
+
     if (status === "submitted") {
       registration.submittedAt = now
       registration.approvalStatus = "pending_sales_manager"
