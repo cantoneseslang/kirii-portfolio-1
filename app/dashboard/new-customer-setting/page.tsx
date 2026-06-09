@@ -157,6 +157,7 @@ export default function NewCustomerSettingPage() {
   const [selectedRecord, setSelectedRecord] = useState<HkNewCustomerRegistration | null>(null)
   const [completedFormUrl, setCompletedFormUrl] = useState<string | null>(null)
   const [completedFormFileName, setCompletedFormFileName] = useState<string | null>(null)
+  const [showNameValidation, setShowNameValidation] = useState(false)
 
   useEffect(() => {
     if (user?.user_metadata?.full_name) {
@@ -287,6 +288,7 @@ export default function NewCustomerSettingPage() {
     setError(null)
 
     if (nameValidationIssues.length > 0) {
+      setShowNameValidation(true)
       setError(
         `Please correct invalid name fields before saving. / 請先修正不符合規則的姓名欄位：${nameValidationIssues
           .map((issue) => issue.label)
@@ -294,6 +296,8 @@ export default function NewCustomerSettingPage() {
       )
       return
     }
+
+    setShowNameValidation(false)
 
     if (status === "submitted") {
       const missingKeys = requiredAttachmentKeys.filter((key) => !attachmentFiles[key])
@@ -543,7 +547,7 @@ export default function NewCustomerSettingPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {nameValidationIssues.length > 0 && (
+                {showNameValidation && nameValidationIssues.length > 0 && (
                   <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
                     <div className="font-medium">
                       Name validation required / 姓名檢查未通過
@@ -564,6 +568,7 @@ export default function NewCustomerSettingPage() {
                     <ContactNameFields
                       idPrefix={`contact-${index}`}
                       value={contact}
+                      showErrors={showNameValidation}
                       onChange={(value) =>
                         setContacts((prev) => {
                           const next = [...prev]
@@ -599,6 +604,7 @@ export default function NewCustomerSettingPage() {
                   <ContactNameFields
                     idPrefix="ap-contact"
                     value={apContactNameDetail}
+                    showErrors={showNameValidation}
                     onChange={setApContactNameDetail}
                   />
                   <div className="space-y-2">

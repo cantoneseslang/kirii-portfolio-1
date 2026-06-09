@@ -1,16 +1,18 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '@/utils/supabase'
 
 function isOrdersTableMissingError(fetchError: {
   code?: string;
   message?: string;
   status?: number;
+  statusCode?: number;
 }): boolean {
   const msg = fetchError.message ?? "";
   const code = fetchError.code ?? "";
-  if (fetchError.status === 404) return true;
+  const status = fetchError.status ?? fetchError.statusCode;
+  if (status === 404) return true;
   return (
     code === "PGRST116" ||
     code === "PGRST205" ||
@@ -47,9 +49,15 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const ordersTableMissingRef = useRef(false)
 
   // 注文データを読み込む関数
   const loadOrders = useCallback(async () => {
+    if (ordersTableMissingRef.current) {
+      setOrders([])
+      return
+    }
+
     setLoading(true)
     setError(null)
     
@@ -70,9 +78,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       if (fetchError) {
         // Table missing / not exposed: PostgREST often returns PGRST205 or a 404-style message.
         if (isOrdersTableMissingError(fetchError)) {
-          if (process.env.NODE_ENV === "development") {
-            console.warn("[orders] Table unavailable; continuing with empty orders.");
-          }
+          ordersTableMissingRef.current = true
           setOrders([]);
           return;
         }
@@ -81,6 +87,11 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
 
       setOrders(data || [])
     } catch (err: any) {
+      if (isOrdersTableMissingError(err)) {
+        ordersTableMissingRef.current = true
+        setOrders([])
+        return
+      }
       console.error('Supabase error loading orders:', err)
       setError(err.message || 'Failed to load orders')
       // エラーが発生してもアプリケーションを停止させない

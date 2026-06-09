@@ -14,6 +14,7 @@ type ContactNameFieldsProps = {
   idPrefix: string
   value: ContactNameFields
   onChange: (value: ContactNameFields) => void
+  showErrors?: boolean
 }
 
 function NameField({
@@ -22,14 +23,16 @@ function NameField({
   value,
   onChange,
   validation,
+  showErrors,
 }: {
   id: string
   label: string
   value: string
   onChange: (value: string) => void
   validation: ReturnType<typeof validateLegalEnglishNamePart>
+  showErrors: boolean
 }) {
-  const showError = Boolean(validation && !validation.valid)
+  const showError = showErrors && Boolean(validation && !validation.valid)
 
   return (
     <div className="space-y-2">
@@ -46,7 +49,12 @@ function NameField({
   )
 }
 
-export function ContactNameFields({ idPrefix, value, onChange }: ContactNameFieldsProps) {
+export function ContactNameFields({
+  idPrefix,
+  value,
+  onChange,
+  showErrors = false,
+}: ContactNameFieldsProps) {
   const firstValidation = validateLegalEnglishNamePart(value.nameEnFirst, "Given name", "英文名", {
     required: true,
   })
@@ -58,7 +66,7 @@ export function ContactNameFields({ idPrefix, value, onChange }: ContactNameFiel
     required: true,
   })
   const chineseValidation = validateLegalChineseName(value.nameZh)
-  const showChineseError = Boolean(chineseValidation && !chineseValidation.valid)
+  const showChineseError = showErrors && Boolean(chineseValidation && !chineseValidation.valid)
 
   return (
     <div className="md:col-span-2 space-y-4">
@@ -75,6 +83,7 @@ export function ContactNameFields({ idPrefix, value, onChange }: ContactNameFiel
           value={value.nameEnFirst}
           onChange={(nameEnFirst) => onChange({ ...value, nameEnFirst })}
           validation={firstValidation}
+          showErrors={showErrors}
         />
         <NameField
           id={`${idPrefix}-en-middle`}
@@ -82,6 +91,7 @@ export function ContactNameFields({ idPrefix, value, onChange }: ContactNameFiel
           value={value.nameEnMiddle}
           onChange={(nameEnMiddle) => onChange({ ...value, nameEnMiddle })}
           validation={middleValidation}
+          showErrors={showErrors}
         />
         <NameField
           id={`${idPrefix}-en-last`}
@@ -89,6 +99,7 @@ export function ContactNameFields({ idPrefix, value, onChange }: ContactNameFiel
           value={value.nameEnLast}
           onChange={(nameEnLast) => onChange({ ...value, nameEnLast })}
           validation={lastValidation}
+          showErrors={showErrors}
         />
         <div className="space-y-2">
           <Label htmlFor={`${idPrefix}-zh`}>Name (Chinese) / 中文姓名 *</Label>
