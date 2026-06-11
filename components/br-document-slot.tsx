@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { DocumentFileInput } from "@/components/document-file-input"
 import type { BrDocumentValidity } from "@/types/hk-new-customer"
-import { validateBrDocument } from "@/lib/hk-new-customer-document-validity"
+import { extractBrCoreNumber, validateBrDocument } from "@/lib/hk-new-customer-document-validity"
 
 type BrDocumentSlotProps = {
   labelEn: string
@@ -16,6 +16,7 @@ type BrDocumentSlotProps = {
   validity: BrDocumentValidity
   onFileChange: (file: File | null) => void
   onValidityChange: (value: BrDocumentValidity) => void
+  onFormBrNumberSuggest?: (coreBrNumber: string) => void
   showValidation?: boolean
 }
 
@@ -27,6 +28,7 @@ export function BrDocumentSlot({
   validity,
   onFileChange,
   onValidityChange,
+  onFormBrNumberSuggest,
   showValidation = false,
 }: BrDocumentSlotProps) {
   const [ocrLoading, setOcrLoading] = useState(false)
@@ -56,12 +58,17 @@ export function BrDocumentSlot({
       }
 
       const extracted = result.data || {}
+      const coreBrNumber = extractBrCoreNumber(
+        extracted.certificateBrNumber || validity.certificateBrNumber || formBrNumber,
+      )
       onValidityChange({
         commencementDate: extracted.commencementDate || validity.commencementDate,
         expiryDate: extracted.expiryDate || validity.expiryDate,
-        certificateBrNumber:
-          extracted.certificateBrNumber || validity.certificateBrNumber || formBrNumber,
+        certificateBrNumber: coreBrNumber || validity.certificateBrNumber || formBrNumber,
       })
+      if (coreBrNumber) {
+        onFormBrNumberSuggest?.(coreBrNumber)
+      }
       setOcrMessage("Scanned from certificate / 已從證件自動讀取（可手動修正）")
     } catch (scanError) {
       const message =
@@ -166,14 +173,18 @@ export function BrDocumentSlot({
           <Input
             id="br-certificate-number"
             value={validity.certificateBrNumber}
-            placeholder={formBrNumber || "Enter BR number shown on certificate / 請填寫證件上的 BR 號碼"}
+            placeholder={formBrNumber || "8-digit BR number e.g. 10955344 / 8位商業登記號碼"}
             onChange={(event) =>
-              onValidityChange({ ...validity, certificateBrNumber: event.target.value })
+              onValidityChange({
+                ...validity,
+                certificateBrNumber: extractBrCoreNumber(event.target.value),
+              })
             }
           />
           <p className="text-xs text-muted-foreground">
-            Must match the BR number entered in Part 1 / 須與表格 Part 1 的 BR 號碼一致。Today must fall
-            between commencement and expiry / 今天須在生效日期與屆滿日期之間。
+            Main 8-digit BR number only (suffix not required) / 只需8位主號碼，無需 -000-03-26-0
+            等後綴。Must match Part 1 when entered / 如 Part 1 已填寫須一致。Today must fall between
+            commencement and expiry / 今天須在生效日期與屆滿日期之間。
           </p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import type { BrDocumentValidity } from "@/types/hk-new-customer"
+import { extractBrCoreNumber } from "@/lib/hk-new-customer-document-validity"
 
 export type BrOcrExtractResult = Partial<BrDocumentValidity> & {
   companyNameEn?: string
@@ -25,7 +25,7 @@ Field mapping on the certificate:
 
 Rules:
 - Convert DD/MM/YYYY or DD-MM-YYYY to YYYY-MM-DD.
-- Use digits only for certificateBrNumber (keep branch suffix if shown, e.g. 12345678-000-01-23-0).
+- certificateBrNumber: return ONLY the main 8-digit BR number (e.g. 10955344). Do NOT include branch suffix such as -000-03-26-0.
 - If a field is unreadable, use null.
 - Read all pages if needed; prefer the main certificate page with commencement/expiry dates.
 `.trim()
@@ -62,7 +62,7 @@ export function normalizeBrOcrResult(raw: unknown): BrOcrExtractResult {
     expiryDate: parseFlexibleDateToIso(record.expiryDate) || undefined,
     certificateBrNumber:
       typeof record.certificateBrNumber === "string"
-        ? record.certificateBrNumber.trim()
+        ? extractBrCoreNumber(record.certificateBrNumber.trim()) || undefined
         : undefined,
     companyNameEn:
       typeof record.companyNameEn === "string" ? record.companyNameEn.trim() : undefined,

@@ -88,14 +88,18 @@ export function normalizeBrNumber(value: string): string {
   return value.replace(/\D/g, "")
 }
 
+/** Main BR number only (first 8 digits). Branch suffix e.g. -000-03-26-0 is ignored. */
+export function extractBrCoreNumber(value: string): string {
+  const digits = normalizeBrNumber(value)
+  if (!digits) return ""
+  return digits.slice(0, 8)
+}
+
 export function brNumbersMatch(formBrNumber: string, certificateBrNumber: string): boolean {
-  const formDigits = normalizeBrNumber(formBrNumber)
-  const certDigits = normalizeBrNumber(certificateBrNumber)
-  if (!formDigits || !certDigits) return false
-  if (formDigits === certDigits) return true
-  const formCore = formDigits.slice(0, 8)
-  const certCore = certDigits.slice(0, 8)
-  return formCore.length >= 8 && formCore === certCore
+  const formCore = extractBrCoreNumber(formBrNumber)
+  const certCore = extractBrCoreNumber(certificateBrNumber)
+  if (!formCore || !certCore) return false
+  return formCore === certCore
 }
 
 export function validateBrDocument(
@@ -155,7 +159,7 @@ export function validateBrDocument(
     }
   }
 
-  if (!brNumbersMatch(formBrNumber, certificateBrNumber)) {
+  if (formBrNumber.trim() && !brNumbersMatch(formBrNumber, certificateBrNumber)) {
     return {
       valid: false,
       messageEn: "BR number on the certificate does not match the form BR number.",

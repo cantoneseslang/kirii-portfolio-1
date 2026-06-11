@@ -40,7 +40,7 @@ import { PhoneWithCountryCodeInput } from "@/components/phone-with-country-code-
 import { MandatoryDocumentSlot } from "@/components/mandatory-document-slot"
 import { BrDocumentSlot } from "@/components/br-document-slot"
 import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
-import { validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
+import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
 import type {
   BrDocumentValidity,
   ContactEntry,
@@ -565,7 +565,17 @@ export default function NewCustomerSettingPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="brNumber">Business Registration (BR) No. *</Label>
-                  <Input id="brNumber" value={brNumber} onChange={(e) => setBrNumber(e.target.value)} required />
+                  <Input
+                    id="brNumber"
+                    value={brNumber}
+                    placeholder="10955344 (8 digits, suffix not required)"
+                    onChange={(e) => setBrNumber(extractBrCoreNumber(e.target.value))}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Main 8-digit number only / 只需8位主號碼。Auto-filled from BR scan when empty /
+                    掃描證件後可自動填入。
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="incorporationDate">Date of Incorporation</Label>
@@ -778,6 +788,9 @@ export default function NewCustomerSettingPage() {
                         br: value,
                       }))
                     }
+                    onFormBrNumberSuggest={(coreBrNumber) => {
+                      setBrNumber((current) => (current.trim() ? current : coreBrNumber))
+                    }}
                   />
                 )}
 
