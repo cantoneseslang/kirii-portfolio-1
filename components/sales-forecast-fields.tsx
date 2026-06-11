@@ -96,12 +96,17 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
               {region.labelEn} / {region.labelZh}
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[520px] text-sm">
+              <table className="w-full table-fixed text-sm">
+                <colgroup>
+                  <col className="min-w-0" />
+                  <col className="w-[5.5rem] sm:w-[6.5rem]" />
+                  <col className="w-[6.5rem] sm:w-[7.5rem]" />
+                </colgroup>
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
-                    <th className="pb-2 pr-3 font-medium">Product / 產品</th>
-                    <th className="pb-2 pr-3 font-medium w-28">Share % / 比例</th>
-                    <th className="pb-2 font-medium w-40">Monthly (HKD) / 每月預計</th>
+                    <th className="pb-2 pr-2 font-medium">Product / 產品</th>
+                    <th className="pb-2 pr-2 font-medium">Share % / 比例</th>
+                    <th className="pb-2 font-medium">Monthly (HKD) / 每月預計</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -115,8 +120,8 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
 
                     return (
                     <tr key={category.value} className="border-b border-slate-100">
-                      <td className="py-2 pr-3 align-top">
-                        <div>{category.labelEn} / {category.labelZh}</div>
+                      <td className="min-w-0 py-2 pr-2 align-top">
+                        <div className="break-words">{category.labelEn} / {category.labelZh}</div>
                         {isOther && (
                           <div className="mt-2 space-y-1">
                             <Input
@@ -133,7 +138,7 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
                           </div>
                         )}
                       </td>
-                      <td className="py-2 pr-3">
+                      <td className="min-w-0 py-2 pr-2 align-top">
                         <Input
                           type="number"
                           min="0"
@@ -142,12 +147,13 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
                           inputMode="decimal"
                           value={line.sharePercent}
                           placeholder="0"
+                          className="w-full min-w-0 px-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           onChange={(event) =>
                             updateCategory(region.value, category.value, "sharePercent", event.target.value)
                           }
                         />
                       </td>
-                      <td className="py-2">
+                      <td className="min-w-0 py-2 align-top">
                         <Input
                           type="number"
                           min="0"
@@ -155,6 +161,7 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
                           inputMode="numeric"
                           value={line.monthlyAmount}
                           placeholder="0"
+                          className="w-full min-w-0 px-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           onChange={(event) =>
                             updateCategory(region.value, category.value, "monthlyAmount", event.target.value)
                           }
@@ -164,8 +171,8 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
                     )
                   })}
                   <tr className="font-medium">
-                    <td className="pt-2 pr-3">Subtotal / 小計</td>
-                    <td className="pt-2 pr-3">
+                    <td className="min-w-0 pt-2 pr-2">Subtotal / 小計</td>
+                    <td className="min-w-0 pt-2 pr-2">
                       {regionShare.toFixed(1)}%
                       {regionShare > 0 && Math.abs(regionShare - 100) > 0.05 && (
                         <span className="ml-1 text-xs font-normal text-amber-700">
@@ -173,7 +180,7 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
                         </span>
                       )}
                     </td>
-                    <td className="pt-2">HKD {formatHkdAmount(regionMonthly)}</td>
+                    <td className="min-w-0 pt-2 break-words">HKD {formatHkdAmount(regionMonthly)}</td>
                   </tr>
                 </tbody>
               </table>
