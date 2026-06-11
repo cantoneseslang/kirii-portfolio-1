@@ -1,10 +1,7 @@
 import { extractBrCoreNumber } from "@/lib/hk-new-customer-document-validity"
 import type { BrDocumentValidity } from "@/types/hk-new-customer"
 
-export type BrOcrExtractResult = Partial<BrDocumentValidity> & {
-  companyNameEn?: string
-  companyNameZh?: string
-}
+export type BrOcrExtractResult = Partial<BrDocumentValidity>
 
 const BR_OCR_PROMPT = `
 You are OCR for a Hong Kong Business Registration (BR) certificate.
@@ -15,14 +12,16 @@ Extract these fields and return STRICT JSON only (no markdown):
   "commencementDate": "YYYY-MM-DD or null",
   "expiryDate": "YYYY-MM-DD or null",
   "certificateBrNumber": "string or null",
-  "companyNameEn": "string or null",
-  "companyNameZh": "string or null"
+  "certificateCompanyNameEn": "string or null",
+  "certificateCompanyNameZh": "string or null"
 }
 
 Field mapping on the certificate:
 - Date of Commencement / 生效日期 -> commencementDate
 - Date of Expiry / 屆滿日期 -> expiryDate
-- Business Registration Number / 商業登記號碼 / Registration Number -> certificateBrNumber
+- Business Registration Number / 商業登記號碼 -> certificateBrNumber (8 digits only)
+- Name of Business/Corporation / 業務或法團所用名稱 / 業務/法團所用名稱 -> certificateCompanyNameEn
+- Chinese business name if shown separately -> certificateCompanyNameZh
 
 Rules:
 - Convert DD/MM/YYYY or DD-MM-YYYY to YYYY-MM-DD.
@@ -65,10 +64,18 @@ export function normalizeBrOcrResult(raw: unknown): BrOcrExtractResult {
       typeof record.certificateBrNumber === "string"
         ? extractBrCoreNumber(record.certificateBrNumber.trim()) || undefined
         : undefined,
-    companyNameEn:
-      typeof record.companyNameEn === "string" ? record.companyNameEn.trim() : undefined,
-    companyNameZh:
-      typeof record.companyNameZh === "string" ? record.companyNameZh.trim() : undefined,
+    certificateCompanyNameEn:
+      typeof record.certificateCompanyNameEn === "string"
+        ? record.certificateCompanyNameEn.trim()
+        : typeof record.companyNameEn === "string"
+          ? record.companyNameEn.trim()
+          : undefined,
+    certificateCompanyNameZh:
+      typeof record.certificateCompanyNameZh === "string"
+        ? record.certificateCompanyNameZh.trim()
+        : typeof record.companyNameZh === "string"
+          ? record.companyNameZh.trim()
+          : undefined,
   }
 }
 

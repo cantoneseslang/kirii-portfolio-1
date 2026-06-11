@@ -72,6 +72,8 @@ export type BrDocumentValidity = {
   commencementDate: string
   expiryDate: string
   certificateBrNumber: string
+  certificateCompanyNameEn: string
+  certificateCompanyNameZh?: string
 }
 
 export type CiDocumentValidity = {

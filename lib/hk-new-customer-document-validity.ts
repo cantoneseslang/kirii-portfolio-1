@@ -115,6 +115,8 @@ export function brNumbersMatch(formBrNumber: string, certificateBrNumber: string
 export function validateBrDocument(
   br: BrDocumentValidity | undefined,
   formBrNumber: string,
+  formCompanyNameEn = "",
+  formCompanyNameZh = "",
   referenceDate = new Date(),
 ): ValidationResult {
   if (!br?.commencementDate?.trim() || !br?.expiryDate?.trim()) {
@@ -174,6 +176,34 @@ export function validateBrDocument(
       valid: false,
       messageEn: "BR number on the certificate does not match the form BR number.",
       messageZh: "證件商業登記號碼與表格上的 BR 號碼不一致。",
+    }
+  }
+
+  const certificateCompanyNameEn = br.certificateCompanyNameEn?.trim() || ""
+  const certificateCompanyNameZh = br.certificateCompanyNameZh?.trim() || ""
+  const formHasCompanyName = Boolean(formCompanyNameEn.trim() || formCompanyNameZh.trim())
+
+  if (!certificateCompanyNameEn && !certificateCompanyNameZh) {
+    return {
+      valid: false,
+      messageEn: "Enter the business/corporation name shown on the BR certificate.",
+      messageZh: "請填寫商業登記證上的業務／法團所用名稱。",
+    }
+  }
+
+  if (
+    formHasCompanyName &&
+    !brCertificateNameMatchesForm(
+      formCompanyNameEn,
+      formCompanyNameZh,
+      certificateCompanyNameEn,
+      certificateCompanyNameZh,
+    )
+  ) {
+    return {
+      valid: false,
+      messageEn: "Company name on the BR does not match Part 1 (English or Chinese).",
+      messageZh: "商業登記證公司名稱與 Part 1 英文或中文公司名稱不一致。",
     }
   }
 
@@ -286,7 +316,14 @@ export function validateCiDocument(
 }
 
 function normalizeCompanyNameForMatch(value: string): string {
-  return value.toUpperCase().replace(/[^A-Z0-9]/g, "")
+  return value
+    .replace(/[\uFF01-\uFF5E]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+}
+
+function normalizeChineseCompanyNameForMatch(value: string): string {
+  return value.replace(/[\s()（）\-·]/g, "")
 }
 
 export function companyNamesMatch(formName: string, certificateName: string): boolean {
@@ -294,6 +331,32 @@ export function companyNamesMatch(formName: string, certificateName: string): bo
   const certNorm = normalizeCompanyNameForMatch(certificateName)
   if (!formNorm || !certNorm) return false
   return formNorm === certNorm || formNorm.includes(certNorm) || certNorm.includes(formNorm)
+}
+
+function companyNamePairMatches(nameA: string, nameB: string): boolean {
+  if (!nameA.trim() || !nameB.trim()) return false
+  if (companyNamesMatch(nameA, nameB)) return true
+  const zhA = normalizeChineseCompanyNameForMatch(nameA)
+  const zhB = normalizeChineseCompanyNameForMatch(nameB)
+  if (!zhA || !zhB) return false
+  return zhA === zhB || zhA.includes(zhB) || zhB.includes(zhA)
+}
+
+export function brCertificateNameMatchesForm(
+  formCompanyNameEn: string,
+  formCompanyNameZh: string,
+  certificateCompanyNameEn: string,
+  certificateCompanyNameZh: string,
+): boolean {
+  const formNames = [formCompanyNameEn, formCompanyNameZh].map((v) => v.trim()).filter(Boolean)
+  const certNames = [certificateCompanyNameEn, certificateCompanyNameZh]
+    .map((v) => (v || "").trim())
+    .filter(Boolean)
+  if (formNames.length === 0 || certNames.length === 0) return false
+
+  return formNames.some((formName) =>
+    certNames.some((certName) => companyNamePairMatches(formName, certName)),
+  )
 }
 
 export function getNar1DocumentValidity(
@@ -421,6 +484,7 @@ export function validateMandatoryDocumentsForSubmit(params: {
   validityDates: DocumentValidityDates
   formBrNumber: string
   formCompanyNameEn?: string
+  formCompanyNameZh?: string
   referenceDate?: Date
 }): { ok: boolean; issues: DocumentValidityIssue[] } {
   const mandatoryKeys = getMandatoryAttachmentKeys(params.region)
@@ -439,7 +503,13 @@ export function validateMandatoryDocumentsForSubmit(params: {
     }
 
     if (documentType === "br") {
-      const result = validateBrDocument(params.validityDates.br, params.formBrNumber, params.referenceDate)
+      const result = validateBrDocument(
+        params.validityDates.br,
+        params.formBrNumber,
+        params.formCompanyNameEn || "",
+        params.formCompanyNameZh || "",
+        params.referenceDate,
+      )
       if (!result.valid) {
         issues.push({
           documentType,

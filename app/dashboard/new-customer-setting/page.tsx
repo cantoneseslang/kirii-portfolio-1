@@ -61,6 +61,8 @@ const EMPTY_BR_VALIDITY: BrDocumentValidity = {
   commencementDate: "",
   expiryDate: "",
   certificateBrNumber: "",
+  certificateCompanyNameEn: "",
+  certificateCompanyNameZh: "",
 }
 
 const EMPTY_CI_VALIDITY: CiDocumentValidity = {
@@ -370,6 +372,7 @@ export default function NewCustomerSettingPage() {
         validityDates: documentValidityDates,
         formBrNumber: brNumber,
         formCompanyNameEn: companyNameEn,
+        formCompanyNameZh: companyNameZh,
       })
 
       if (!documentValidation.ok) {
@@ -797,6 +800,8 @@ export default function NewCustomerSettingPage() {
                     labelEn={brDocument.labelEn}
                     labelZh={brDocument.labelZh}
                     formBrNumber={brNumber}
+                    formCompanyNameEn={companyNameEn}
+                    formCompanyNameZh={companyNameZh}
                     file={attachmentFiles.br || null}
                     validity={documentValidityDates.br || EMPTY_BR_VALIDITY}
                     showValidation={showDocumentValidation}
@@ -814,6 +819,9 @@ export default function NewCustomerSettingPage() {
                     }
                     onFormBrNumberSuggest={(coreBrNumber) => {
                       setBrNumber((current) => (current.trim() ? current : coreBrNumber))
+                    }}
+                    onFormCompanyNameEnSuggest={(name) => {
+                      setCompanyNameEn((current) => (current.trim() ? current : name))
                     }}
                   />
                 )}

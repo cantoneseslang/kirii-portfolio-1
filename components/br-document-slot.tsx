@@ -12,11 +12,14 @@ type BrDocumentSlotProps = {
   labelEn: string
   labelZh: string
   formBrNumber: string
+  formCompanyNameEn: string
+  formCompanyNameZh: string
   file: File | null
   validity: BrDocumentValidity
   onFileChange: (file: File | null) => void
   onValidityChange: (value: BrDocumentValidity) => void
   onFormBrNumberSuggest?: (coreBrNumber: string) => void
+  onFormCompanyNameEnSuggest?: (companyNameEn: string) => void
   showValidation?: boolean
 }
 
@@ -24,22 +27,31 @@ export function BrDocumentSlot({
   labelEn,
   labelZh,
   formBrNumber,
+  formCompanyNameEn,
+  formCompanyNameZh,
   file,
   validity,
   onFileChange,
   onValidityChange,
   onFormBrNumberSuggest,
+  onFormCompanyNameEnSuggest,
   showValidation = false,
 }: BrDocumentSlotProps) {
   const [ocrLoading, setOcrLoading] = useState(false)
   const [ocrMessage, setOcrMessage] = useState<string | null>(null)
   const [ocrError, setOcrError] = useState<string | null>(null)
 
-  const validation = validateBrDocument(validity, formBrNumber)
+  const validation = validateBrDocument(
+    validity,
+    formBrNumber,
+    formCompanyNameEn,
+    formCompanyNameZh,
+  )
   const hasAllFields =
     Boolean(validity.commencementDate) &&
     Boolean(validity.expiryDate) &&
-    Boolean(validity.certificateBrNumber.trim())
+    Boolean(validity.certificateBrNumber.trim()) &&
+    Boolean(validity.certificateCompanyNameEn.trim())
 
   const runOcr = async (targetFile: File) => {
     setOcrLoading(true)
@@ -65,9 +77,16 @@ export function BrDocumentSlot({
         commencementDate: extracted.commencementDate || validity.commencementDate,
         expiryDate: extracted.expiryDate || validity.expiryDate,
         certificateBrNumber: coreBrNumber || validity.certificateBrNumber || formBrNumber,
+        certificateCompanyNameEn:
+          extracted.certificateCompanyNameEn || validity.certificateCompanyNameEn,
+        certificateCompanyNameZh:
+          extracted.certificateCompanyNameZh || validity.certificateCompanyNameZh,
       })
       if (coreBrNumber) {
         onFormBrNumberSuggest?.(coreBrNumber)
+      }
+      if (extracted.certificateCompanyNameEn) {
+        onFormCompanyNameEnSuggest?.(extracted.certificateCompanyNameEn)
       }
       setOcrMessage("Scanned from certificate / 已從證件自動讀取（可手動修正）")
     } catch (scanError) {
@@ -134,14 +153,38 @@ export function BrDocumentSlot({
       {ocrLoading && (
         <p className="text-xs text-muted-foreground">Reading certificate with OCR... / 正在讀取證件...</p>
       )}
-      {ocrMessage && (
-        <p className="text-xs text-green-700">{ocrMessage}</p>
-      )}
-      {ocrError && (
-        <p className="text-xs text-red-700">{ocrError}</p>
-      )}
+      {ocrMessage && <p className="text-xs text-green-700">{ocrMessage}</p>}
+      {ocrError && <p className="text-xs text-red-700">{ocrError}</p>}
 
       <div className="grid gap-3 md:grid-cols-2 max-w-2xl">
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="br-certificate-company-en">
+            Name on Certificate (English) / 業務或法團所用名稱 <span className="text-red-600">*</span>
+          </Label>
+          <Input
+            id="br-certificate-company-en"
+            value={validity.certificateCompanyNameEn}
+            placeholder="LIFESUPPORT (HK) LIMITED"
+            onChange={(event) =>
+              onValidityChange({ ...validity, certificateCompanyNameEn: event.target.value })
+            }
+          />
+          <p className="text-xs text-muted-foreground">
+            Must match Part 1 English or Chinese company name / 須與 Part 1 英文或中文公司名稱其中一項一致
+          </p>
+        </div>
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="br-certificate-company-zh">
+            Name on Certificate (Chinese) / 中文名稱（如有）
+          </Label>
+          <Input
+            id="br-certificate-company-zh"
+            value={validity.certificateCompanyNameZh || ""}
+            onChange={(event) =>
+              onValidityChange({ ...validity, certificateCompanyNameZh: event.target.value })
+            }
+          />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="br-commencement">
             Date of Commencement / 生效日期 <span className="text-red-600">*</span>
@@ -182,9 +225,8 @@ export function BrDocumentSlot({
             }
           />
           <p className="text-xs text-muted-foreground">
-            Main 8-digit BR number only (suffix not required) / 只需8位主號碼，無需 -000-03-26-0
-            等後綴。Must match Part 1 when entered / 如 Part 1 已填寫須一致。Today must fall between
-            commencement and expiry / 今天須在生效日期與屆滿日期之間。
+            Main 8-digit BR number only / 只需8位主號碼。Today must fall between commencement and expiry /
+            今天須在生效日期與屆滿日期之間。
           </p>
         </div>
       </div>

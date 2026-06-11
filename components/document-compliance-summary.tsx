@@ -25,6 +25,7 @@ export function DocumentComplianceSummary({
     validityDates: registration.documentValidityDates || {},
     formBrNumber: registration.brNumber,
     formCompanyNameEn: registration.companyNameEn,
+    formCompanyNameZh: registration.companyNameZh || "",
   })
 
   const mandatoryKeys = getMandatoryAttachmentKeys(region)
@@ -40,7 +41,14 @@ export function DocumentComplianceSummary({
 
           if (documentType === "br") {
             const br = registration.documentValidityDates?.br
-            const brResult = br ? validateBrDocument(br, registration.brNumber) : null
+            const brResult = br
+              ? validateBrDocument(
+                  br,
+                  registration.brNumber,
+                  registration.companyNameEn,
+                  registration.companyNameZh || "",
+                )
+              : null
             const ok = uploaded && Boolean(brResult?.valid)
 
             return (
@@ -63,6 +71,10 @@ export function DocumentComplianceSummary({
                     <div className="text-xs text-muted-foreground">
                       Certificate BR / 證件 BR: {br.certificateBrNumber} · Form BR / 表格 BR:{" "}
                       {registration.brNumber}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Certificate Name / 證件公司名: {br.certificateCompanyNameEn || "—"}
+                      {br.certificateCompanyNameZh ? ` · ${br.certificateCompanyNameZh}` : ""}
                     </div>
                   </>
                 )}

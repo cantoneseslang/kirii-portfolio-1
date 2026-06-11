@@ -31,7 +31,12 @@ export async function POST(request: Request) {
     const resolvedMime = file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : mimeType
     const data = await extractBrCertificateWithGemini(bytes, resolvedMime)
 
-    if (!data.commencementDate && !data.expiryDate && !data.certificateBrNumber) {
+    if (
+      !data.commencementDate &&
+      !data.expiryDate &&
+      !data.certificateBrNumber &&
+      !data.certificateCompanyNameEn
+    ) {
       return NextResponse.json(
         {
           success: false,
