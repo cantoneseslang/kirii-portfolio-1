@@ -645,14 +645,16 @@ export default function NewCustomerSettingPage() {
           <h1 className="text-2xl font-bold text-[#02315a]">NewCustomer Setting</h1>
           <p className="text-sm text-muted-foreground">New Customer Registration / 新客戶登記</p>
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/dashboard">Back to Dashboard</Link>
-        </Button>
-        {user?.email && getApproverRole(user.email) && (
+        <div className="flex flex-wrap items-center gap-2">
+          {user?.email && getApproverRole(user.email) && (
+            <Button variant="outline" asChild>
+              <Link href="/dashboard/new-customer-setting/approvals">Approvals / 審批</Link>
+            </Button>
+          )}
           <Button variant="outline" asChild>
-            <Link href="/dashboard/new-customer-setting/approvals">Approvals / 審批</Link>
+            <Link href="/dashboard">Back to Dashboard</Link>
           </Button>
-        )}
+        </div>
       </div>
 
       <Card>
