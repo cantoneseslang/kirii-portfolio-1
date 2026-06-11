@@ -57,7 +57,7 @@ Please also provide in your reply / 請於回覆中一併提供：
 · Delivery address (if different) / 送貨地址（如與註冊地址不同）
 · Contact person(s) – full legal name in English & Chinese, title, email & phone
   聯絡人 – 英文及中文法定全名、職位、電郵及電話
-· Accounts payable (A/P) contact name & email / 應付賬款聯絡人姓名及電郵
+· Accounts payable (A/P) contact name, email & phone / 應付賬款聯絡人姓名、電郵及電話
 
 Once we receive the required documents and information, we will proceed with your new customer registration and contact you accordingly.
 
@@ -111,7 +111,7 @@ Please also provide in your reply / 請於回覆中一併提供：
 · Delivery address (if different) / 送貨地址（如與註冊地址不同）
 · Contact person(s) – full legal name in English & Chinese, title, email & phone
   聯絡人 – 英文及中文法定全名、職位、電郵及電話
-· Accounts payable (A/P) contact name & email / 應付賬款聯絡人姓名及電郵
+· Accounts payable (A/P) contact name, email & phone / 應付賬款聯絡人姓名、電郵及電話
 
 Once we receive the required documents and information, we will proceed with your new customer registration and contact you accordingly.
 

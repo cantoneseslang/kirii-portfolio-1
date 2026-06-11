@@ -14,6 +14,7 @@ import {
 import type { HkNewCustomerRegistration } from "@/types/hk-new-customer"
 import { getAttachmentTypeLabel } from "@/types/hk-new-customer"
 import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
+import { formatContactPhone } from "@/lib/phone-country-codes"
 
 export default function NewCustomerApprovalsPage() {
   const { user } = useAuth()
@@ -222,6 +223,14 @@ export default function NewCustomerApprovalsPage() {
                     <div><span className="font-medium">Submitter:</span> {selectedRecord.submitterEmail || "-"}</div>
                     <div><span className="font-medium">Status:</span> {getApprovalStatusLabel(selectedRecord.approvalStatus)}</div>
                     <div><span className="font-medium">A/P Contact:</span> {selectedRecord.apContactName || "-"}</div>
+                    <div><span className="font-medium">A/P Email:</span> {selectedRecord.apEmail || "-"}</div>
+                    <div>
+                      <span className="font-medium">A/P Phone:</span>{" "}
+                      {formatContactPhone({
+                        phoneCountryCode: selectedRecord.apPhoneCountryCode,
+                        phone: selectedRecord.apPhone,
+                      }) || "-"}
+                    </div>
                   </div>
 
                   {selectedRecord.approvalHistory && selectedRecord.approvalHistory.length > 0 && (

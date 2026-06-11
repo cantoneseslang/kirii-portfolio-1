@@ -198,6 +198,8 @@ export async function POST(request: Request) {
       contacts,
       apContactName: String(formData.get("apContactName") || "").trim() || undefined,
       apEmail: String(formData.get("apEmail") || "").trim() || undefined,
+      apPhoneCountryCode: String(formData.get("apPhoneCountryCode") || "").trim() || undefined,
+      apPhone: String(formData.get("apPhone") || "").trim() || undefined,
       invoiceDelivery: parseInvoiceDelivery(formData.get("invoiceDeliveryJson")),
       bankName: String(formData.get("bankName") || "").trim() || undefined,
       accountName: String(formData.get("accountName") || "").trim() || undefined,

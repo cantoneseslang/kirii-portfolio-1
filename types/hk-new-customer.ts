@@ -145,6 +145,8 @@ export type HkNewCustomerRegistration = {
   contacts: ContactEntry[]
   apContactName?: string
   apEmail?: string
+  apPhoneCountryCode?: string
+  apPhone?: string
   invoiceDelivery: ("email" | "post")[]
 
   bankName?: string

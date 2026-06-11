@@ -37,6 +37,7 @@ import {
 } from "@/lib/hk-new-customer-address"
 import { HkAddressFields } from "@/components/hk-address-fields"
 import { PhoneWithCountryCodeInput } from "@/components/phone-with-country-code-input"
+import { formatContactPhone } from "@/lib/phone-country-codes"
 import { MandatoryDocumentSlot } from "@/components/mandatory-document-slot"
 import { BrDocumentSlot } from "@/components/br-document-slot"
 import { CiDocumentSlot } from "@/components/ci-document-slot"
@@ -171,6 +172,8 @@ export default function NewCustomerSettingPage() {
   const [contacts, setContacts] = useState<ContactEntry[]>(emptyContacts)
   const [apContactNameDetail, setApContactNameDetail] = useState(emptyContactName)
   const [apEmail, setApEmail] = useState("")
+  const [apPhoneCountryCode, setApPhoneCountryCode] = useState("+852")
+  const [apPhone, setApPhone] = useState("")
   const [invoiceEmail, setInvoiceEmail] = useState(true)
   const [invoicePost, setInvoicePost] = useState(false)
   const [bankName, setBankName] = useState("")
@@ -345,6 +348,8 @@ export default function NewCustomerSettingPage() {
     formData.append("apContactName", formatContactNameFull(apContactNameDetail))
     formData.append("apContactNameJson", JSON.stringify(apContactNameDetail))
     formData.append("apEmail", apEmail)
+    formData.append("apPhoneCountryCode", apPhoneCountryCode)
+    formData.append("apPhone", apPhone)
     formData.append("invoiceDeliveryJson", JSON.stringify(invoiceDelivery))
     formData.append("bankName", bankName)
     formData.append("accountName", accountName)
@@ -934,6 +939,15 @@ export default function NewCustomerSettingPage() {
                     <Label htmlFor="apEmail">A/P Email</Label>
                     <Input id="apEmail" type="email" value={apEmail} onChange={(e) => setApEmail(e.target.value)} />
                   </div>
+                  <div className="space-y-2">
+                    <PhoneWithCountryCodeInput
+                      id="ap-contact"
+                      countryCode={apPhoneCountryCode}
+                      phone={apPhone}
+                      onCountryCodeChange={setApPhoneCountryCode}
+                      onPhoneChange={setApPhone}
+                    />
+                  </div>
                   <div className="md:col-span-2 space-y-2">
                     <Label>Invoice Delivery / 賬單發送方式</Label>
                     <div className="flex flex-wrap gap-6">
@@ -1191,6 +1205,13 @@ export default function NewCustomerSettingPage() {
                   <div><span className="font-medium">Delivery Address / 送貨地址:</span> <AddressSummary detail={selectedRecord.deliveryAddressDetail} legacyText={selectedRecord.deliveryAddress} /></div>
                   <div><span className="font-medium">A/P Contact:</span> {selectedRecord.apContactName || "-"}</div>
                   <div><span className="font-medium">A/P Email:</span> {selectedRecord.apEmail || "-"}</div>
+                  <div>
+                    <span className="font-medium">A/P Phone:</span>{" "}
+                    {formatContactPhone({
+                      phoneCountryCode: selectedRecord.apPhoneCountryCode,
+                      phone: selectedRecord.apPhone,
+                    }) || "-"}
+                  </div>
                   <div><span className="font-medium">Sales Rep:</span> {selectedRecord.salesRepName || "-"}</div>
                   <div><span className="font-medium">Payment Terms:</span> {selectedRecord.paymentTerms || "-"}</div>
                 </div>

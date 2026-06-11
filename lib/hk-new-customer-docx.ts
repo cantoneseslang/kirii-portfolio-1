@@ -58,6 +58,10 @@ function buildTemplateData(registration: HkNewCustomerRegistration) {
     contact3Phone: formatContactPhone(c3) || c3?.phone || "",
     apContactName: registration.apContactName || "",
     apEmail: registration.apEmail || "",
+    apPhone: formatContactPhone({
+      phoneCountryCode: registration.apPhoneCountryCode,
+      phone: registration.apPhone,
+    }) || registration.apPhone || "",
     invoiceEmail: mark(invoiceEmail),
     invoicePost: mark(invoicePost),
     bankName: registration.bankName || "",
