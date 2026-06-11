@@ -24,7 +24,6 @@ import PQFormCard from "@/components/pq-form-card";
 import CertificateCard from "@/components/certificate-card";
 import CollectPaymentCardWrapper from "@/components/collect-payment-card-wrapper";
 import SalespersonCalendarCard from "@/components/salesperson-calendar-card";
-import NotebookLMCard from "@/components/notebooklm-card";
 import SteelPriceChartCard from "@/components/steel-price-chart-card";
 import AluminumPriceChartCard from "@/components/aluminum-price-chart-card";
 import FormMasterCard from "@/components/form-master-card";
@@ -245,10 +244,7 @@ export default function DashboardPage() {
               <CertificateCard />
             </div>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
-              <NotebookLMCard />
               <CollectPaymentCardWrapper />
-            </div>
-            <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
               <NewCustomerSettingCard />
             </div>
           </div>
