@@ -202,3 +202,91 @@
     transform: scale3d(1, 1, 1);
   }
 }
+
+/* NEW badge — QBHOUSE arrival-kiosk-glow-btn / glow-chip と同系統 */
+@property --new-feature-trail-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes new-feature-trail-run {
+  to {
+    --new-feature-trail-angle: 360deg;
+  }
+}
+
+.new-feature-glow-badge {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  min-height: 1.35rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.45rem;
+  color: #fff;
+  vertical-align: middle;
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, #f0c060 42%, #1a4a72) 0%,
+    color-mix(in srgb, #e8b840 28%, #02315a) 48%,
+    #012040 100%
+  );
+  box-shadow:
+    0 0 10px rgba(255, 200, 110, 0.55),
+    0 0 3px rgba(255, 220, 150, 0.45),
+    inset 0 0 0 2px rgba(255, 220, 150, 0.38),
+    inset 0 0 12px rgba(255, 200, 120, 0.16),
+    inset 0 -2px 0 0 rgba(255, 220, 150, 0.32);
+}
+
+.new-feature-glow-badge::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: 0;
+  border-radius: inherit;
+  padding: 2px;
+  --new-feature-trail-angle: 0deg;
+  background: conic-gradient(
+    from var(--new-feature-trail-angle),
+    transparent 0deg 318deg,
+    rgba(255, 220, 150, 0.08) 318deg 328deg,
+    rgba(255, 236, 190, 0.45) 332deg 342deg,
+    rgba(255, 255, 255, 1) 346deg,
+    rgba(255, 248, 220, 0.92) 350deg,
+    rgba(255, 220, 150, 0.35) 356deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: new-feature-trail-run 4.8s linear infinite;
+  pointer-events: none;
+}
+
+.new-feature-glow-badge__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.12em 0.55em;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
