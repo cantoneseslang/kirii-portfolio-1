@@ -14,8 +14,8 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   DOCUMENT_TYPES,
   getAttachmentTypeLabel,
+  getMandatoryAttachmentKeys,
   getRegionVerificationDocument,
-  getRequiredAttachmentKeys,
 } from "@/types/hk-new-customer"
 import { ContactNameFields } from "@/components/contact-name-fields"
 import { LegalNameInput } from "@/components/legal-name-input"
@@ -37,15 +37,27 @@ import {
 } from "@/lib/hk-new-customer-address"
 import { HkAddressFields } from "@/components/hk-address-fields"
 import { PhoneWithCountryCodeInput } from "@/components/phone-with-country-code-input"
+import { MandatoryDocumentSlot } from "@/components/mandatory-document-slot"
+import { BrDocumentSlot } from "@/components/br-document-slot"
+import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
+import { validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
 import type {
+  BrDocumentValidity,
   ContactEntry,
   DocumentChecklist,
+  DocumentValidityDates,
   HkNewCustomerIndexItem,
   HkNewCustomerRegistration,
   StructuredAddress,
 } from "@/types/hk-new-customer"
 
 type AttachmentFiles = Record<string, File | null>
+
+const EMPTY_BR_VALIDITY: BrDocumentValidity = {
+  commencementDate: "",
+  expiryDate: "",
+  certificateBrNumber: "",
+}
 
 const EMPTY_CONTACT: ContactEntry = {
   ...emptyContactName(),
@@ -141,6 +153,8 @@ export default function NewCustomerSettingPage() {
   const [paymentTerms, setPaymentTerms] = useState<string>("advance")
   const [paymentTermsOther, setPaymentTermsOther] = useState("")
   const [attachmentFiles, setAttachmentFiles] = useState<AttachmentFiles>({})
+  const [documentValidityDates, setDocumentValidityDates] = useState<DocumentValidityDates>({})
+  const [showDocumentValidation, setShowDocumentValidation] = useState(false)
   const [authorizedSignature, setAuthorizedSignature] = useState("")
   const [declarationDate, setDeclarationDate] = useState("")
   const [signerNameTitle, setSignerNameTitle] = useState("")
@@ -183,13 +197,13 @@ export default function NewCustomerSettingPage() {
     [registeredAddressDetail.region],
   )
 
-  const requiredAttachmentKeys = useMemo(
-    () => getRequiredAttachmentKeys(registeredAddressDetail.region),
+  const mandatoryAttachmentKeys = useMemo(
+    () => getMandatoryAttachmentKeys(registeredAddressDetail.region),
     [registeredAddressDetail.region],
   )
 
-  const requiredDocumentSlots = useMemo(() => {
-    const slots = DOCUMENT_TYPES.map((doc) => ({
+  const mandatoryDocumentSlots = useMemo(() => {
+    const slots = DOCUMENT_TYPES.filter((doc) => doc.key !== "bank_proof" && doc.key !== "br").map((doc) => ({
       key: doc.key,
       labelEn: doc.labelEn,
       labelZh: doc.labelZh,
@@ -203,6 +217,13 @@ export default function NewCustomerSettingPage() {
     }
     return slots
   }, [regionVerificationDocument])
+
+  const brDocument = useMemo(() => DOCUMENT_TYPES.find((doc) => doc.key === "br"), [])
+
+  const bankProofDocument = useMemo(
+    () => DOCUMENT_TYPES.find((doc) => doc.key === "bank_proof"),
+    [],
+  )
 
   const updateContact = (index: number, field: keyof ContactEntry, value: string) => {
     setContacts((prev) => {
@@ -279,6 +300,7 @@ export default function NewCustomerSettingPage() {
     formData.append("paymentTerms", paymentTerms)
     formData.append("paymentTermsOther", paymentTermsOther)
     formData.append("documentsChecklistJson", JSON.stringify(checklistFromAttachments(attachmentFiles)))
+    formData.append("documentValidityDatesJson", JSON.stringify(documentValidityDates))
     formData.append("authorizedSignature", authorizedSignature)
     formData.append("declarationDate", declarationDate)
     formData.append("signerNameTitle", signerNameTitle)
@@ -316,16 +338,28 @@ export default function NewCustomerSettingPage() {
     setShowNameValidation(false)
 
     if (status === "submitted") {
-      const missingKeys = requiredAttachmentKeys.filter((key) => !attachmentFiles[key])
-      if (missingKeys.length > 0) {
+      const uploadedTypes = Object.entries(attachmentFiles)
+        .filter(([, file]) => Boolean(file))
+        .map(([key]) => key)
+      const documentValidation = validateMandatoryDocumentsForSubmit({
+        region: registeredAddressDetail.region,
+        uploadedDocumentTypes: uploadedTypes,
+        validityDates: documentValidityDates,
+        formBrNumber: brNumber,
+      })
+
+      if (!documentValidation.ok) {
+        setShowDocumentValidation(true)
         setError(
-          `Please upload all required documents before submitting. / 提交前請上載所有必須文件：${missingKeys
-            .map((key) => getAttachmentTypeLabel(key))
+          `Please complete all mandatory documents with valid dates. / 請上載所有必須文件並填寫有效日期：${documentValidation.issues
+            .map((issue) => `${issue.label} (${issue.messageEn})`)
             .join("; ")}`,
         )
         return
       }
     }
+
+    setShowDocumentValidation(false)
 
     setSubmitting(true)
 
@@ -719,45 +753,86 @@ export default function NewCustomerSettingPage() {
               <CardHeader>
                 <CardTitle>Part 5: Required Documents / 必須附帶文件</CardTitle>
                 <CardDescription>
-                  Upload each document to its designated slot below. PDF, JPG, or PNG recommended. /
-                  請將每份文件上載至對應欄位（建議 PDF、JPG 或 PNG）。
+                  Upload each mandatory document and enter its date or validity. Bank proof is optional. /
+                  請上載必須文件並填寫日期或有效期限。銀行戶口證明為可選。
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {requiredDocumentSlots.map((doc) => {
-                  const file = attachmentFiles[doc.key] || null
-                  return (
-                    <div key={doc.key} className="space-y-3 rounded-lg border border-[#02315a]/20 bg-slate-50/50 p-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="font-medium text-[#02315a]">
-                            {doc.labelEn} <span className="text-red-600">*</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground">{doc.labelZh}</div>
-                        </div>
-                        <span
-                          className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            file
-                              ? "bg-green-100 text-green-800"
-                              : "bg-amber-100 text-amber-900"
-                          }`}
-                        >
-                          {file ? "Uploaded / 已上載" : "Required / 必須上載"}
-                        </span>
+                {brDocument && (
+                  <BrDocumentSlot
+                    labelEn={brDocument.labelEn}
+                    labelZh={brDocument.labelZh}
+                    formBrNumber={brNumber}
+                    file={attachmentFiles.br || null}
+                    validity={documentValidityDates.br || EMPTY_BR_VALIDITY}
+                    showValidation={showDocumentValidation}
+                    onFileChange={(nextFile) =>
+                      setAttachmentFiles((prev) => ({
+                        ...prev,
+                        br: nextFile,
+                      }))
+                    }
+                    onValidityChange={(value) =>
+                      setDocumentValidityDates((prev) => ({
+                        ...prev,
+                        br: value,
+                      }))
+                    }
+                  />
+                )}
+
+                {mandatoryDocumentSlots.map((doc) => (
+                  <MandatoryDocumentSlot
+                    key={doc.key}
+                    docKey={doc.key}
+                    labelEn={doc.labelEn}
+                    labelZh={doc.labelZh}
+                    file={attachmentFiles[doc.key] || null}
+                    validityDate={
+                      typeof documentValidityDates[doc.key as keyof DocumentValidityDates] === "string"
+                        ? (documentValidityDates[doc.key as keyof DocumentValidityDates] as string)
+                        : ""
+                    }
+                    showValidation={showDocumentValidation}
+                    onFileChange={(nextFile) =>
+                      setAttachmentFiles((prev) => ({
+                        ...prev,
+                        [doc.key]: nextFile,
+                      }))
+                    }
+                    onValidityDateChange={(value) =>
+                      setDocumentValidityDates((prev) => ({
+                        ...prev,
+                        [doc.key]: value,
+                      }))
+                    }
+                  />
+                ))}
+
+                {bankProofDocument && (
+                  <div className="space-y-3 rounded-lg border border-dashed p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-medium">{bankProofDocument.labelEn}</div>
+                        <div className="text-sm text-muted-foreground">{bankProofDocument.labelZh}</div>
+                        <div className="text-xs text-muted-foreground mt-1">Optional / 可選</div>
                       </div>
-                      <DocumentFileInput
-                        className="w-full max-w-md"
-                        value={file}
-                        onChange={(nextFile) =>
-                          setAttachmentFiles((prev) => ({
-                            ...prev,
-                            [doc.key]: nextFile,
-                          }))
-                        }
-                      />
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                        {attachmentFiles.bank_proof ? "Uploaded / 已上載" : "Optional / 可選"}
+                      </span>
                     </div>
-                  )
-                })}
+                    <DocumentFileInput
+                      className="w-full max-w-md"
+                      value={attachmentFiles.bank_proof || null}
+                      onChange={(file) =>
+                        setAttachmentFiles((prev) => ({
+                          ...prev,
+                          bank_proof: file,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
                 <div className="space-y-3 rounded-lg border border-dashed p-4">
                   <div>
                     <div className="font-medium">Other Supporting Document / 其他附件</div>
@@ -978,6 +1053,8 @@ export default function NewCustomerSettingPage() {
                     </ul>
                   </div>
                 )}
+
+                <DocumentComplianceSummary registration={selectedRecord} />
 
                 {selectedRecord.completedFormUrl && (
                   <div>

@@ -13,6 +13,7 @@ import {
 } from "@/lib/hk-new-customer-approval"
 import type { HkNewCustomerRegistration } from "@/types/hk-new-customer"
 import { getAttachmentTypeLabel } from "@/types/hk-new-customer"
+import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
 
 export default function NewCustomerApprovalsPage() {
   const { user } = useAuth()
@@ -72,15 +73,17 @@ export default function NewCustomerApprovalsPage() {
     void loadPending()
   }, [loadPending])
 
+  const singlePendingId = pendingItems.length === 1 ? pendingItems[0]?.id : null
+
   useEffect(() => {
     if (selectedId) {
       void loadRecord(selectedId)
       return
     }
-    if (pendingItems.length === 1) {
-      void loadRecord(pendingItems[0].id)
+    if (singlePendingId) {
+      void loadRecord(singlePendingId)
     }
-  }, [selectedId, pendingItems, loadRecord])
+  }, [selectedId, singlePendingId, loadRecord])
 
   const handleDecision = async (action: "approve" | "reject") => {
     if (!user?.email || !selectedRecord) return
@@ -249,6 +252,8 @@ export default function NewCustomerApprovalsPage() {
                       </ul>
                     </div>
                   )}
+
+                  <DocumentComplianceSummary registration={selectedRecord} />
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium" htmlFor="approval-comment">

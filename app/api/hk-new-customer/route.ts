@@ -5,7 +5,7 @@ import type {
   DocumentChecklist,
   HkNewCustomerRegistration,
 } from "@/types/hk-new-customer"
-import { getRequiredAttachmentKeys } from "@/types/hk-new-customer"
+import { validateMandatoryDocumentsForSubmit, parseDocumentValidityDates } from "@/lib/hk-new-customer-document-validity"
 import { normalizeContactEntry } from "@/lib/phone-country-codes"
 import { collectLegalNameIssues } from "@/lib/hk-new-customer-name-validation"
 import { collectContactNameIssues } from "@/lib/hk-new-customer-contact-name"
@@ -50,6 +50,10 @@ function parseChecklist(value: FormDataEntryValue | null): DocumentChecklist {
     crCompanyParticulars: Boolean(parsed.crCompanyParticulars),
     macauCommercialRegistration: Boolean(parsed.macauCommercialRegistration),
   }
+}
+
+function parseDocumentValidityDatesJson(value: FormDataEntryValue | null) {
+  return parseJsonField<Record<string, unknown>>(value, {})
 }
 
 function parseInvoiceDelivery(value: FormDataEntryValue | null): ("email" | "post")[] {
@@ -205,6 +209,10 @@ export async function POST(request: Request) {
       paymentTerms: (String(formData.get("paymentTerms") || "") || undefined) as HkNewCustomerRegistration["paymentTerms"],
       paymentTermsOther: String(formData.get("paymentTermsOther") || "").trim() || undefined,
       documentsChecklist: parseChecklist(formData.get("documentsChecklistJson")),
+      documentValidityDates: {
+        ...(existing?.documentValidityDates || {}),
+        ...parseDocumentValidityDates(parseDocumentValidityDatesJson(formData.get("documentValidityDatesJson"))),
+      },
       attachments: existing?.attachments || [],
       authorizedSignature: String(formData.get("authorizedSignature") || "").trim() || undefined,
       declarationDate: String(formData.get("declarationDate") || "").trim() || undefined,
@@ -271,15 +279,20 @@ export async function POST(request: Request) {
 
     if (status === "submitted") {
       const region = registration.registeredAddressDetail?.region || "hong_kong"
-      const requiredTypes = getRequiredAttachmentKeys(region)
-      const missingTypes = requiredTypes.filter(
-        (documentType) => !registration.attachments.some((item) => item.documentType === documentType),
-      )
-      if (missingTypes.length > 0) {
+      const uploadedTypes = registration.attachments.map((item) => item.documentType)
+      const documentValidation = validateMandatoryDocumentsForSubmit({
+        region,
+        uploadedDocumentTypes: uploadedTypes,
+        validityDates: registration.documentValidityDates || {},
+        formBrNumber: registration.brNumber,
+      })
+      if (!documentValidation.ok) {
         return NextResponse.json(
           {
             success: false,
-            message: `Missing required attachments: ${missingTypes.join(", ")}`,
+            message: `Document validation failed: ${documentValidation.issues
+              .map((issue) => `${issue.documentType}: ${issue.messageEn}`)
+              .join("; ")}`,
           },
           { status: 400 },
         )

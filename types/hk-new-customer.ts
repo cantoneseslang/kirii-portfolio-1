@@ -68,6 +68,20 @@ export type ApprovalHistoryEntry = {
   timestamp: string
 }
 
+export type BrDocumentValidity = {
+  commencementDate: string
+  expiryDate: string
+  certificateBrNumber: string
+}
+
+export type DocumentValidityDates = {
+  br?: BrDocumentValidity
+  ci?: string
+  nar1?: string
+  cr_company_particulars?: string
+  macau_commercial_registration?: string
+}
+
 export type HkNewCustomerRegistration = {
   id: string
   createdAt: string
@@ -106,6 +120,7 @@ export type HkNewCustomerRegistration = {
 
   documentsChecklist: DocumentChecklist
   attachments: AttachmentRecord[]
+  documentValidityDates?: DocumentValidityDates
 
   authorizedSignature?: string
   declarationDate?: string
@@ -166,12 +181,19 @@ export function getRegionVerificationDocument(region: AddressRegion) {
   return null
 }
 
-export function getRequiredAttachmentKeys(region: AddressRegion): string[] {
-  const keys = DOCUMENT_TYPES.map((doc) => doc.key)
+export function getMandatoryAttachmentKeys(region: AddressRegion): string[] {
+  const keys = DOCUMENT_TYPES.filter((doc) => doc.key !== "bank_proof").map((doc) => doc.key)
   const verification = getRegionVerificationDocument(region)
   if (verification) keys.push(verification.key)
   return keys
 }
+
+/** @deprecated Use getMandatoryAttachmentKeys. Bank proof is optional and excluded. */
+export function getRequiredAttachmentKeys(region: AddressRegion): string[] {
+  return getMandatoryAttachmentKeys(region)
+}
+
+export const OPTIONAL_ATTACHMENT_KEYS = ["bank_proof", "other"] as const
 
 export function getAttachmentTypeLabel(documentType: string): string {
   const base = DOCUMENT_TYPES.find((doc) => doc.key === documentType)
