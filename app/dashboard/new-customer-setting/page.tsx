@@ -546,27 +546,16 @@ export default function NewCustomerSettingPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
-          <ol className="list-decimal space-y-3 pl-5 text-foreground">
+          <ol className="list-decimal space-y-2 pl-5 text-foreground">
+            <li>Business Registration (BR) * / 有效商業登記證副本</li>
+            <li>Certificate of Incorporation (CI) * / 公司註冊證明書副本</li>
+            <li>Annual Return (NAR1) * / 最新周年申報表副本</li>
             <li>
-              <span className="font-medium">Business Registration (BR) *</span>
-              <div>有效商業登記證副本</div>
-            </li>
-            <li>
-              <span className="font-medium">Certificate of Incorporation (CI) *</span>
-              <div>公司註冊證明書副本</div>
-            </li>
-            <li>
-              <span className="font-medium">Annual Return (NAR1) *</span>
-              <div>最新周年申報表副本</div>
-            </li>
-            <li>
-              <span className="font-medium">Companies Registry Company Particulars *</span>
-              <div>公司註冊處公司資料</div>
-              <div className="mt-3 space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-muted-foreground">
+              Companies Registry Company Particulars * / 公司註冊處公司資料
+              <div className="mt-2 space-y-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-muted-foreground">
                 <p>
-                  Hong Kong New Customer Account Setup &amp; Credit Management Protocol v3. Required documents:
-                  BR, CI, NAR1, Bank Proof, plus region-specific registry verification (HK: Companies Registry
-                  Company Particulars / 公司註冊處公司資料; Macau: Commercial Registration Certificate / 商業登記證明).
+                  Please obtain the relevant documents from the government departments below (fees may apply). /
+                  請向以下政府部門取得有關資料（可能需付費）。
                 </p>
                 <div>
                   <span className="font-medium text-foreground">Hong Kong / 香港：</span> Verify via{" "}
@@ -614,14 +603,8 @@ export default function NewCustomerSettingPage() {
                 </div>
               </div>
             </li>
-            <li>
-              <span className="font-medium">Bank Proof</span>
-              <div>銀行戶口證明</div>
-            </li>
-            <li>
-              <span className="font-medium">Other Supporting Document / 其他附件</span>
-              <div>身分證等</div>
-            </li>
+            <li>Bank Proof / 銀行戶口證明</li>
+            <li>Other Supporting Document / 其他附件 / 身分證等</li>
           </ol>
 
           <CustomerDocumentRequestEmail
