@@ -36,19 +36,20 @@ const HK_LOCALITY_HINTS: Array<{
   area: HkAddressArea
   district: string
 }> = [
-  { pattern: /\bPAN\s*CHUNG\b|畔涌/u, area: "new_territories", district: "sai_kung" },
-  { pattern: /\bTSEUNG\s*KWAN\s*O\b|將軍澳/u, area: "new_territories", district: "sai_kung" },
-  { pattern: /\bCLEAR\s*WATER\s*BAY\b|清水灣/u, area: "new_territories", district: "sai_kung" },
-  { pattern: /\bSHATIN\b|\bSHA\s*TIN\b|沙田/u, area: "new_territories", district: "sha_tin" },
-  { pattern: /\bTAI\s*PO\b|大埔/u, area: "new_territories", district: "tai_po" },
-  { pattern: /\bTUEN\s*MUN\b|屯門/u, area: "new_territories", district: "tuen_mun" },
-  { pattern: /\bYUEN\s*LONG\b|元朗/u, area: "new_territories", district: "yuen_long" },
-  { pattern: /\bTSUEN\s*WAN\b|荃灣/u, area: "new_territories", district: "tsuen_wan" },
-  { pattern: /\bKWUN\s*TONG\b|觀塘/u, area: "kowloon", district: "kwun_tong" },
-  { pattern: /\bMONG\s*KOK\b|旺角/u, area: "kowloon", district: "yau_tsim_mong" },
-  { pattern: /\bTSIM\s*SHA\s*TSUI\b|尖沙咀/u, area: "kowloon", district: "yau_tsim_mong" },
-  { pattern: /\bCENTRAL\b|中環/u, area: "hong_kong_island", district: "central_and_western" },
-  { pattern: /\bWAN\s*CHAI\b|灣仔/u, area: "hong_kong_island", district: "wan_chai" },
+  { pattern: /\bPAN\s*CHUNG\b|畔涌/iu, area: "new_territories", district: "sai_kung" },
+  { pattern: /\bSAI\s*KUNG\b|西貢/iu, area: "new_territories", district: "sai_kung" },
+  { pattern: /\bTSEUNG\s*KWAN\s*O\b|將軍澳/iu, area: "new_territories", district: "sai_kung" },
+  { pattern: /\bCLEAR\s*WATER\s*BAY\b|清水灣/iu, area: "new_territories", district: "sai_kung" },
+  { pattern: /\bSHATIN\b|\bSHA\s*TIN\b|沙田/iu, area: "new_territories", district: "sha_tin" },
+  { pattern: /\bTAI\s*PO\b|大埔/iu, area: "new_territories", district: "tai_po" },
+  { pattern: /\bTUEN\s*MUN\b|屯門/iu, area: "new_territories", district: "tuen_mun" },
+  { pattern: /\bYUEN\s*LONG\b|元朗/iu, area: "new_territories", district: "yuen_long" },
+  { pattern: /\bTSUEN\s*WAN\b|荃灣/iu, area: "new_territories", district: "tsuen_wan" },
+  { pattern: /\bKWUN\s*TONG\b|觀塘/iu, area: "kowloon", district: "kwun_tong" },
+  { pattern: /\bMONG\s*KOK\b|旺角/iu, area: "kowloon", district: "yau_tsim_mong" },
+  { pattern: /\bTSIM\s*SHA\s*TSUI\b|尖沙咀/iu, area: "kowloon", district: "yau_tsim_mong" },
+  { pattern: /\bCENTRAL\b|中環/iu, area: "hong_kong_island", district: "central_and_western" },
+  { pattern: /\bWAN\s*CHAI\b|灣仔/iu, area: "hong_kong_island", district: "wan_chai" },
 ]
 
 function combinedAddressText(parts: Nar1AddressParts): string {
@@ -63,11 +64,7 @@ function inferHkArea(text: string): HkAddressArea | undefined {
   if (upper.includes("NEW TERRITOR") || upper.includes("新界") || /\bNT\b/.test(upper)) {
     return "new_territories"
   }
-  if (
-    upper.includes("HONG KONG ISLAND") ||
-    upper.includes("港島") ||
-    (upper.includes("HONG KONG") && !upper.includes("KOWLOON"))
-  ) {
+  if (upper.includes("HONG KONG ISLAND") || upper.includes("港島")) {
     return "hong_kong_island"
   }
   return undefined
@@ -120,15 +117,29 @@ function normalizeOcrArea(value: unknown): HkAddressArea | undefined {
 function normalizeOcrDistrictKey(value: unknown): string {
   if (typeof value !== "string") return ""
   const trimmed = value.trim()
+  if (!trimmed) return ""
   if (HK_DISTRICTS.some((entry) => entry.value === trimmed)) return trimmed
   const match = matchHkDistrictInText(trimmed)
   return match?.district || ""
 }
 
-function resolveHkAreaAndDistrict(parts: Nar1AddressParts): { area?: HkAddressArea; district: string } {
-  const searchText = combinedAddressText(parts)
-  let area = normalizeOcrArea(parts.area)
-  let district = normalizeOcrDistrictKey(parts.districtKey)
+function isKnownHkDistrictKey(value: string): boolean {
+  return HK_DISTRICTS.some((entry) => entry.value === value)
+}
+
+export function resolveHkAreaAndDistrictFromText(
+  searchText: string,
+  seed?: {
+    area?: HkAddressArea
+    district?: string
+    districtKey?: string
+  },
+): { area?: HkAddressArea; district: string } {
+  let area = seed?.area
+  let district =
+    normalizeOcrDistrictKey(seed?.districtKey) ||
+    (seed?.district && isKnownHkDistrictKey(seed.district) ? seed.district : "") ||
+    normalizeOcrDistrictKey(seed?.district)
 
   if (district && !area) {
     area = HK_DISTRICTS.find((entry) => entry.value === district)?.area
@@ -150,15 +161,59 @@ function resolveHkAreaAndDistrict(parts: Nar1AddressParts): { area?: HkAddressAr
     district = matchHkDistrictInText(searchText, area)?.district || ""
   }
 
-  if (!area || !district) {
+  if (!district) {
     const hint = matchLocalityHint(searchText)
     if (hint) {
       area = area || hint.area
-      district = district || hint.district
+      district = hint.district
+    }
+  } else if (!area) {
+    const hint = matchLocalityHint(searchText)
+    if (hint) {
+      area = hint.area
     }
   }
 
+  if (district && isKnownHkDistrictKey(district)) {
+    area = HK_DISTRICTS.find((entry) => entry.value === district)?.area || area
+  }
+
   return { area, district }
+}
+
+function structuredAddressSearchText(address: StructuredAddress): string {
+  const districtText =
+    address.district && !isKnownHkDistrictKey(address.district) ? address.district : ""
+  return [address.addressEn, address.addressZh, districtText].filter(Boolean).join(" ")
+}
+
+export function enrichStructuredAddressFromText(address: StructuredAddress): StructuredAddress {
+  if (address.region !== "hong_kong") return address
+
+  const searchText = structuredAddressSearchText(address)
+  if (!searchText.trim()) return address
+
+  const { area, district } = resolveHkAreaAndDistrictFromText(searchText, {
+    area: address.area,
+    district: address.district,
+  })
+
+  if (!area && !district) return address
+
+  return {
+    ...address,
+    area: address.area || area,
+    district: address.district || district,
+  }
+}
+
+function resolveHkAreaAndDistrict(parts: Nar1AddressParts): { area?: HkAddressArea; district: string } {
+  const searchText = combinedAddressText(parts)
+  return resolveHkAreaAndDistrictFromText(searchText, {
+    area: normalizeOcrArea(parts.area),
+    district: parts.district,
+    districtKey: parts.districtKey,
+  })
 }
 
 function formatAddressEn(parts: Nar1AddressParts): string {
@@ -189,30 +244,32 @@ export function nar1AddressPartsToStructured(parts: Nar1AddressParts): Structure
 
   const { area, district } = region === "hong_kong" ? resolveHkAreaAndDistrict(parts) : { area: undefined, district: "" }
 
-  return {
+  return enrichStructuredAddressFromText({
     ...emptyStructuredAddress(),
     region,
     area,
     district,
     addressEn: formatAddressEn(parts),
     addressZh: "",
-  }
+  })
 }
 
 export function mergeRegisteredAddressAutofill(
   current: StructuredAddress,
   fromDoc: StructuredAddress,
 ): StructuredAddress {
-  if (isStructuredAddressEmpty(current)) return fromDoc
+  const merged = isStructuredAddressEmpty(current)
+    ? fromDoc
+    : {
+        ...current,
+        region: current.region || fromDoc.region,
+        area: current.area || fromDoc.area,
+        district: current.district || fromDoc.district,
+        addressEn: current.addressEn.trim() || fromDoc.addressEn,
+        addressZh: current.addressZh.trim() || fromDoc.addressZh,
+      }
 
-  return {
-    ...current,
-    region: current.region || fromDoc.region,
-    area: current.area || fromDoc.area,
-    district: current.district || fromDoc.district,
-    addressEn: current.addressEn.trim() || fromDoc.addressEn,
-    addressZh: current.addressZh.trim() || fromDoc.addressZh,
-  }
+  return enrichStructuredAddressFromText(merged)
 }
 
 const NO_MIDDLE_NAME_PLACEHOLDER = "NA"
