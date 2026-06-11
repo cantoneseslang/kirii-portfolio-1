@@ -8,11 +8,13 @@ type LegalNameInputProps = {
   label: string
   value: string
   onChange: (value: string) => void
+  readOnly?: boolean
+  helperText?: string
 }
 
-export function LegalNameInput({ id, label, value, onChange }: LegalNameInputProps) {
+export function LegalNameInput({ id, label, value, onChange, readOnly = false, helperText }: LegalNameInputProps) {
   const validation = validateLegalContactName(value)
-  const showError = Boolean(validation && !validation.valid)
+  const showError = Boolean(validation && !validation.valid && !readOnly)
 
   return (
     <div className="space-y-2">
@@ -20,10 +22,12 @@ export function LegalNameInput({ id, label, value, onChange }: LegalNameInputPro
       <Input
         id={id}
         value={value}
+        readOnly={readOnly}
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={showError}
-        className={cn(showError && "border-red-500 focus-visible:ring-red-500")}
+        className={cn(showError && "border-red-500 focus-visible:ring-red-500", readOnly && "bg-slate-50")}
       />
+      {helperText && <p className="text-xs text-muted-foreground">{helperText}</p>}
       {showError && validation && <LegalNameErrorMessage validation={validation} />}
     </div>
   )

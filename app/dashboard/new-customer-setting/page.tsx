@@ -10,6 +10,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
   DOCUMENT_TYPES,
@@ -57,6 +64,15 @@ import {
   mergeRegisteredAddressAutofill,
   pickRegisteredAddressFromNar1,
 } from "@/lib/hk-new-customer-document-autofill"
+import {
+  formatStaffNameAndTitle,
+  getTodayIsoDateInHongKong,
+  isSalesDepartment,
+  resolveStaffDisplayName,
+  type SalesRepOption,
+} from "@/lib/hk-new-customer-staff"
+import { getProfile } from "@/utils/profile"
+import type { Profile } from "@/types/profile"
 import type {
   BrDocumentValidity,
   CiDocumentValidity,
@@ -212,12 +228,70 @@ export default function NewCustomerSettingPage() {
   const [completedFormUrl, setCompletedFormUrl] = useState<string | null>(null)
   const [completedFormFileName, setCompletedFormFileName] = useState<string | null>(null)
   const [showNameValidation, setShowNameValidation] = useState(false)
+  const [userProfile, setUserProfile] = useState<Profile | null>(null)
+  const [profileLoaded, setProfileLoaded] = useState(false)
+  const [salesRepOptions, setSalesRepOptions] = useState<SalesRepOption[]>([])
+  const [declarationAutofillReady, setDeclarationAutofillReady] = useState(false)
+
+  const isSalesUser = useMemo(
+    () => isSalesDepartment(userProfile?.department),
+    [userProfile?.department],
+  )
+
+  const staffDisplayName = useMemo(
+    () => resolveStaffDisplayName(userProfile, user?.user_metadata?.full_name as string | undefined),
+    [userProfile, user?.user_metadata?.full_name],
+  )
 
   useEffect(() => {
-    if (user?.user_metadata?.full_name) {
-      setSalesRepName(String(user.user_metadata.full_name))
+    if (!user?.id) {
+      setProfileLoaded(true)
+      return
     }
-  }, [user])
+    void getProfile(user.id).then((profile) => {
+      setUserProfile(profile)
+      setProfileLoaded(true)
+    })
+  }, [user?.id])
+
+  useEffect(() => {
+    void fetch("/api/hk-new-customer/sales-reps")
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.success && Array.isArray(result.data)) {
+          setSalesRepOptions(result.data)
+        }
+      })
+      .catch(() => {
+        setSalesRepOptions([])
+      })
+  }, [])
+
+  useEffect(() => {
+    if (declarationAutofillReady || !profileLoaded) return
+
+    const today = getTodayIsoDateInHongKong()
+    setDeclarationDate((current) => current || today)
+
+    if (isSalesUser && staffDisplayName) {
+      setAuthorizedSignature((current) => current || staffDisplayName)
+      setSignerNameTitle(
+        (current) => current || formatStaffNameAndTitle(staffDisplayName, userProfile?.position),
+      )
+      setSalesRepName((current) => current || staffDisplayName)
+      if (userProfile?.department) {
+        setSalesDepartment(userProfile.department)
+      }
+    }
+
+    setDeclarationAutofillReady(true)
+  }, [
+    declarationAutofillReady,
+    profileLoaded,
+    isSalesUser,
+    staffDisplayName,
+    userProfile,
+  ])
 
   useEffect(() => {
     setAttachmentFiles((prev) => {
@@ -348,7 +422,10 @@ export default function NewCustomerSettingPage() {
     formData.append("id", registrationId)
     formData.append("status", status)
     formData.append("createdBy", user?.id || "")
-    formData.append("createdByName", user?.user_metadata?.full_name || user?.email || "")
+    formData.append(
+      "createdByName",
+      staffDisplayName || user?.user_metadata?.full_name || user?.email || "",
+    )
     formData.append("submitterEmail", user?.email || "")
     formData.append("companyNameEn", companyNameEn)
     formData.append("companyNameZh", companyNameZh)
@@ -466,6 +543,22 @@ export default function NewCustomerSettingPage() {
           `Please complete all address fields before submitting. / 請完成所有地址欄位後再提交：${addressValidationIssues
             .map((issue) => issue.messageEn)
             .join("; ")}`,
+        )
+        return
+      }
+
+      if (!authorizedSignature.trim() || !declarationDate.trim() || !signerNameTitle.trim()) {
+        setError(
+          "Please complete Part 6 declaration fields. / 請完成 Part 6 聲明及簽署欄位。",
+        )
+        return
+      }
+
+      if (!salesRepName.trim()) {
+        setError(
+          isSalesUser
+            ? "Sales representative name is missing. / 缺少 Sales 負責同事姓名。"
+            : "Please select the responsible Sales representative. / 請選擇負責 Sales 同事。",
         )
         return
       }
@@ -1114,6 +1207,11 @@ export default function NewCustomerSettingPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Part 6: Declaration &amp; Signature / 聲明及簽署</CardTitle>
+                <CardDescription>
+                  Sales users: name and date are auto-filled from your login profile. Other departments:
+                  enter manually and select the responsible Sales representative below. /
+                  Sales 同事會自動帶入登入姓名及日期；其他部門請手動填寫，並於下方選擇負責 Sales 同事。
+                </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 <div className="md:col-span-2 text-sm text-muted-foreground">
@@ -1126,11 +1224,27 @@ export default function NewCustomerSettingPage() {
                     label="Authorized Signature (typed name) / 獲授權人簽署"
                     value={authorizedSignature}
                     onChange={setAuthorizedSignature}
+                    readOnly={isSalesUser}
+                    helperText={
+                      isSalesUser
+                        ? "Auto-filled from your login profile / 已按登入資料自動填入"
+                        : "Enter full legal name manually / 請手動輸入全名"
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="declarationDate">Date</Label>
-                  <Input id="declarationDate" type="date" value={declarationDate} onChange={(e) => setDeclarationDate(e.target.value)} />
+                  <Label htmlFor="declarationDate">Date / 日期</Label>
+                  <Input
+                    id="declarationDate"
+                    type="date"
+                    value={declarationDate}
+                    readOnly={isSalesUser}
+                    className={isSalesUser ? "bg-slate-50" : undefined}
+                    onChange={(e) => setDeclarationDate(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Auto-filled with today&apos;s date when the form is prepared / 自動帶入填表當日日期
+                  </p>
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <LegalNameInput
@@ -1138,8 +1252,34 @@ export default function NewCustomerSettingPage() {
                     label="Name & Title / 姓名及職位"
                     value={signerNameTitle}
                     onChange={setSignerNameTitle}
+                    readOnly={isSalesUser}
+                    helperText={
+                      isSalesUser
+                        ? "Auto-filled from your login profile / 已按登入資料自動填入"
+                        : "Enter full legal name and title manually / 請手動輸入全名及職位"
+                    }
                   />
                 </div>
+                {!isSalesUser && (
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="salesRepSelect">Sales Representative / 負責 Sales 同事</Label>
+                    <Select value={salesRepName} onValueChange={setSalesRepName}>
+                      <SelectTrigger id="salesRepSelect">
+                        <SelectValue placeholder="Select sales representative / 選擇 Sales 同事" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {salesRepOptions.map((rep) => (
+                          <SelectItem key={rep.id} value={rep.full_name}>
+                            {formatStaffNameAndTitle(rep.full_name, rep.position)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Select the responsible Sales colleague (full name) / 請選擇負責 Sales 同事（全名）
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -1154,8 +1294,17 @@ export default function NewCustomerSettingPage() {
                   <Input id="salesDepartment" value={salesDepartment} onChange={(e) => setSalesDepartment(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="salesRepName">Sales Representative</Label>
-                  <Input id="salesRepName" value={salesRepName} onChange={(e) => setSalesRepName(e.target.value)} />
+                  <Label htmlFor="salesRepName">Sales Representative / 負責 Sales 同事</Label>
+                  {isSalesUser ? (
+                    <>
+                      <Input id="salesRepName" value={salesRepName} readOnly className="bg-slate-50" />
+                      <p className="text-xs text-muted-foreground">
+                        Auto-filled from your login profile / 已按登入資料自動填入
+                      </p>
+                    </>
+                  ) : (
+                    <Input id="salesRepName" value={salesRepName} readOnly className="bg-slate-50" />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="verificationCheckedDate">Checked Date</Label>
