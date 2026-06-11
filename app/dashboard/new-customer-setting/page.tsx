@@ -67,7 +67,8 @@ import {
 import {
   formatStaffNameAndTitle,
   getTodayIsoDateInHongKong,
-  isSalesDepartment,
+  isSalesStaffMember,
+  resolveSalesRepPosition,
   resolveStaffDisplayName,
   type SalesRepOption,
 } from "@/lib/hk-new-customer-staff"
@@ -233,14 +234,14 @@ export default function NewCustomerSettingPage() {
   const [salesRepOptions, setSalesRepOptions] = useState<SalesRepOption[]>([])
   const [declarationAutofillReady, setDeclarationAutofillReady] = useState(false)
 
-  const isSalesUser = useMemo(
-    () => isSalesDepartment(userProfile?.department),
-    [userProfile?.department],
-  )
-
   const staffDisplayName = useMemo(
     () => resolveStaffDisplayName(userProfile, user?.user_metadata?.full_name as string | undefined),
     [userProfile, user?.user_metadata?.full_name],
+  )
+
+  const isSalesUser = useMemo(
+    () => isSalesStaffMember(user?.email, staffDisplayName),
+    [user?.email, staffDisplayName],
   )
 
   useEffect(() => {
@@ -276,12 +277,15 @@ export default function NewCustomerSettingPage() {
     if (isSalesUser && staffDisplayName) {
       setAuthorizedSignature((current) => current || staffDisplayName)
       setSignerNameTitle(
-        (current) => current || formatStaffNameAndTitle(staffDisplayName, userProfile?.position),
+        (current) =>
+          current ||
+          formatStaffNameAndTitle(
+            staffDisplayName,
+            userProfile?.position || resolveSalesRepPosition(staffDisplayName),
+          ),
       )
       setSalesRepName((current) => current || staffDisplayName)
-      if (userProfile?.department) {
-        setSalesDepartment(userProfile.department)
-      }
+      setSalesDepartment("Sales")
     }
 
     setDeclarationAutofillReady(true)
