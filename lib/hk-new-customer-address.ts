@@ -156,6 +156,79 @@ export function formatStructuredAddress(address?: StructuredAddress): string {
   return prefix
 }
 
+export function isKnownHkDistrictKey(value: string): boolean {
+  return HK_DISTRICTS.some((entry) => entry.value === value)
+}
+
+export function isKnownMacauDistrictKey(value: string): boolean {
+  return MACAU_DISTRICTS.some((entry) => entry.value === value)
+}
+
+export type StructuredAddressValidationIssue = {
+  messageEn: string
+  messageZh: string
+}
+
+export function validateStructuredAddressForSubmit(
+  address: StructuredAddress,
+  labelEn: string,
+  labelZh: string,
+): { ok: boolean; issues: StructuredAddressValidationIssue[] } {
+  const issues: StructuredAddressValidationIssue[] = []
+  const prefixEn = `${labelEn}:`
+  const prefixZh = `${labelZh}：`
+
+  if (address.region === "hong_kong") {
+    if (!address.area) {
+      issues.push({
+        messageEn: `${prefixEn} select Area / 區域`,
+        messageZh: `${prefixZh}請選擇區域`,
+      })
+    }
+    if (!address.district || !isKnownHkDistrictKey(address.district)) {
+      issues.push({
+        messageEn: `${prefixEn} select District / 分區`,
+        messageZh: `${prefixZh}請選擇分區`,
+      })
+    } else if (address.area) {
+      const districtEntry = HK_DISTRICTS.find((entry) => entry.value === address.district)
+      if (districtEntry && districtEntry.area !== address.area) {
+        issues.push({
+          messageEn: `${prefixEn} District must match selected Area / 分區須與所選區域一致`,
+          messageZh: `${prefixZh}分區須與所選區域一致`,
+        })
+      }
+    }
+  }
+
+  if (address.region === "macau") {
+    if (!address.district || !isKnownMacauDistrictKey(address.district)) {
+      issues.push({
+        messageEn: `${prefixEn} select District / 分區`,
+        messageZh: `${prefixZh}請選擇分區`,
+      })
+    }
+  }
+
+  if (address.region === "china") {
+    if (!address.district.trim()) {
+      issues.push({
+        messageEn: `${prefixEn} enter Province / City / District / 省市区`,
+        messageZh: `${prefixZh}請填寫省市区`,
+      })
+    }
+  }
+
+  if (!address.addressEn.trim()) {
+    issues.push({
+      messageEn: `${prefixEn} enter Address (English) / 地址（英文）`,
+      messageZh: `${prefixZh}請填寫地址（英文）`,
+    })
+  }
+
+  return { ok: issues.length === 0, issues }
+}
+
 export function resolveStructuredAddress(
   detail?: StructuredAddress,
   legacyText?: string,

@@ -55,7 +55,7 @@ Registered office address mapping:
 - 區／市／省／州／郵遞區號等 / District etc. -> district
 - 國家／地區 / Country/Region -> country
 - Infer HK area from address: 港島 -> hong_kong_island, 九龍 -> kowloon, 新界 -> new_territories -> area
-- Infer 18 HK district from village/street/district text (e.g. Pan Chung 畔涌, Sai Kung 西貢 -> sai_kung) -> districtKey
+- districtKey: only when the form explicitly shows an official 18 HK district name in 區／市 (e.g. 西貢區 / Sai Kung). Do NOT infer district from village, street, or building names.
 
 Director address mapping (Correspondence Address / 通訊地址 only):
 - Same field names as registeredOffice for each director row

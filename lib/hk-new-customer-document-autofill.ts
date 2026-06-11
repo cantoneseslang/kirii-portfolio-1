@@ -31,31 +31,8 @@ export function isContactNameEmpty(contact: Pick<ContactEntry, "nameEnFirst" | "
   )
 }
 
-const HK_LOCALITY_HINTS: Array<{
-  pattern: RegExp
-  area: HkAddressArea
-  district: string
-}> = [
-  { pattern: /\bPAN\s*CHUNG\b|畔涌/iu, area: "new_territories", district: "sai_kung" },
-  { pattern: /\bSAI\s*KUNG\b|西貢/iu, area: "new_territories", district: "sai_kung" },
-  { pattern: /\bTSEUNG\s*KWAN\s*O\b|將軍澳/iu, area: "new_territories", district: "sai_kung" },
-  { pattern: /\bCLEAR\s*WATER\s*BAY\b|清水灣/iu, area: "new_territories", district: "sai_kung" },
-  { pattern: /\bSHATIN\b|\bSHA\s*TIN\b|沙田/iu, area: "new_territories", district: "sha_tin" },
-  { pattern: /\bTAI\s*PO\b|大埔/iu, area: "new_territories", district: "tai_po" },
-  { pattern: /\bTUEN\s*MUN\b|屯門/iu, area: "new_territories", district: "tuen_mun" },
-  { pattern: /\bYUEN\s*LONG\b|元朗/iu, area: "new_territories", district: "yuen_long" },
-  { pattern: /\bTSUEN\s*WAN\b|荃灣/iu, area: "new_territories", district: "tsuen_wan" },
-  { pattern: /\bKWUN\s*TONG\b|觀塘/iu, area: "kowloon", district: "kwun_tong" },
-  { pattern: /\bMONG\s*KOK\b|旺角/iu, area: "kowloon", district: "yau_tsim_mong" },
-  { pattern: /\bTSIM\s*SHA\s*TSUI\b|尖沙咀/iu, area: "kowloon", district: "yau_tsim_mong" },
-  { pattern: /\bCENTRAL\b|中環/iu, area: "hong_kong_island", district: "central_and_western" },
-  { pattern: /\bWAN\s*CHAI\b|灣仔/iu, area: "hong_kong_island", district: "wan_chai" },
-]
-
 function combinedAddressText(parts: Nar1AddressParts): string {
-  return [parts.flatFloorBlock, parts.building, parts.street, parts.district, parts.country]
-    .filter(Boolean)
-    .join(" ")
+  return [parts.flatFloorBlock, parts.building, parts.street].filter(Boolean).join(" ")
 }
 
 function inferHkArea(text: string): HkAddressArea | undefined {
@@ -70,48 +47,12 @@ function inferHkArea(text: string): HkAddressArea | undefined {
   return undefined
 }
 
-function matchHkDistrictInText(
-  text: string,
-  area?: HkAddressArea,
-): { district: string; area: HkAddressArea } | null {
-  const upper = text.toUpperCase()
-  const candidates = [...HK_DISTRICTS].sort((a, b) => b.labelEn.length - a.labelEn.length)
-
-  for (const entry of candidates) {
-    if (area && entry.area !== area) continue
-    const labelUpper = entry.labelEn.toUpperCase()
-    const zhCore = entry.labelZh.replace(/區$/u, "")
-    if (
-      upper.includes(labelUpper) ||
-      (zhCore && text.includes(zhCore)) ||
-      text.includes(entry.labelZh)
-    ) {
-      return { district: entry.value, area: entry.area }
-    }
-  }
-
-  return null
-}
-
-function matchLocalityHint(text: string): { area: HkAddressArea; district: string } | null {
-  for (const hint of HK_LOCALITY_HINTS) {
-    if (hint.pattern.test(text)) {
-      return { area: hint.area, district: hint.district }
-    }
-  }
-  return null
-}
-
 function normalizeOcrArea(value: unknown): HkAddressArea | undefined {
   if (value === "hong_kong_island" || value === "kowloon" || value === "new_territories") {
     return value
   }
   if (typeof value !== "string") return undefined
-  const upper = value.trim().toUpperCase()
-  if (upper.includes("KOWLOON") || upper.includes("九龍")) return "kowloon"
-  if (upper.includes("NEW TERRITOR") || upper.includes("新界")) return "new_territories"
-  if (upper.includes("HONG KONG ISLAND") || upper.includes("港島")) return "hong_kong_island"
-  return undefined
+  return inferHkArea(value)
 }
 
 function normalizeOcrDistrictKey(value: unknown): string {
@@ -119,84 +60,64 @@ function normalizeOcrDistrictKey(value: unknown): string {
   const trimmed = value.trim()
   if (!trimmed) return ""
   if (HK_DISTRICTS.some((entry) => entry.value === trimmed)) return trimmed
-  const match = matchHkDistrictInText(trimmed)
-  return match?.district || ""
+
+  const upper = trimmed.toUpperCase()
+  for (const entry of HK_DISTRICTS) {
+    const labelUpper = entry.labelEn.toUpperCase()
+    const zhCore = entry.labelZh.replace(/區$/u, "")
+    if (
+      upper === labelUpper ||
+      trimmed === entry.labelZh ||
+      (zhCore && trimmed.includes(zhCore))
+    ) {
+      return entry.value
+    }
+  }
+
+  return ""
 }
 
-function isKnownHkDistrictKey(value: string): boolean {
-  return HK_DISTRICTS.some((entry) => entry.value === value)
-}
+function resolveHkAreaAndDistrict(parts: Nar1AddressParts): { area?: HkAddressArea; district: string } {
+  const district =
+    normalizeOcrDistrictKey(parts.districtKey) || normalizeOcrDistrictKey(parts.district)
 
-export function resolveHkAreaAndDistrictFromText(
-  searchText: string,
-  seed?: {
-    area?: HkAddressArea
-    district?: string
-    districtKey?: string
-  },
-): { area?: HkAddressArea; district: string } {
-  let area = seed?.area
-  let district =
-    normalizeOcrDistrictKey(seed?.districtKey) ||
-    (seed?.district && isKnownHkDistrictKey(seed.district) ? seed.district : "") ||
-    normalizeOcrDistrictKey(seed?.district)
+  let area = normalizeOcrArea(parts.area)
 
   if (district && !area) {
     area = HK_DISTRICTS.find((entry) => entry.value === district)?.area
   }
 
-  if (!district) {
-    const districtMatch = matchHkDistrictInText(searchText, area)
-    if (districtMatch) {
-      district = districtMatch.district
-      area = area || districtMatch.area
-    }
-  }
-
+  const areaHintText = [parts.district, parts.country, combinedAddressText(parts)].filter(Boolean).join(" ")
   if (!area) {
-    area = inferHkArea(searchText)
+    area = inferHkArea(areaHintText)
   }
 
-  if (!district && area) {
-    district = matchHkDistrictInText(searchText, area)?.district || ""
-  }
-
-  if (!district) {
-    const hint = matchLocalityHint(searchText)
-    if (hint) {
-      area = area || hint.area
-      district = hint.district
-    }
-  } else if (!area) {
-    const hint = matchLocalityHint(searchText)
-    if (hint) {
-      area = hint.area
-    }
-  }
-
-  if (district && isKnownHkDistrictKey(district)) {
+  if (district && HK_DISTRICTS.some((entry) => entry.value === district)) {
     area = HK_DISTRICTS.find((entry) => entry.value === district)?.area || area
   }
 
   return { area, district }
 }
 
-function structuredAddressSearchText(address: StructuredAddress): string {
-  const districtText =
-    address.district && !isKnownHkDistrictKey(address.district) ? address.district : ""
-  return [address.addressEn, address.addressZh, districtText].filter(Boolean).join(" ")
+function formatAddressEn(parts: Nar1AddressParts): string {
+  return [parts.flatFloorBlock, parts.building, parts.street].filter(Boolean).join(", ")
 }
 
 export function enrichStructuredAddressFromText(address: StructuredAddress): StructuredAddress {
   if (address.region !== "hong_kong") return address
 
-  const searchText = structuredAddressSearchText(address)
-  if (!searchText.trim()) return address
+  let area = address.area
+  const district = address.district && HK_DISTRICTS.some((entry) => entry.value === address.district)
+    ? address.district
+    : ""
 
-  const { area, district } = resolveHkAreaAndDistrictFromText(searchText, {
-    area: address.area,
-    district: address.district,
-  })
+  if (district && !area) {
+    area = HK_DISTRICTS.find((entry) => entry.value === district)?.area
+  }
+
+  if (!area) {
+    area = inferHkArea([address.addressEn, address.addressZh].filter(Boolean).join(" "))
+  }
 
   if (!area && !district) return address
 
@@ -205,19 +126,6 @@ export function enrichStructuredAddressFromText(address: StructuredAddress): Str
     area: address.area || area,
     district: address.district || district,
   }
-}
-
-function resolveHkAreaAndDistrict(parts: Nar1AddressParts): { area?: HkAddressArea; district: string } {
-  const searchText = combinedAddressText(parts)
-  return resolveHkAreaAndDistrictFromText(searchText, {
-    area: normalizeOcrArea(parts.area),
-    district: parts.district,
-    districtKey: parts.districtKey,
-  })
-}
-
-function formatAddressEn(parts: Nar1AddressParts): string {
-  return [parts.flatFloorBlock, parts.building, parts.street].filter(Boolean).join(", ")
 }
 
 export function nar1AddressPartsToStructured(parts: Nar1AddressParts): StructuredAddress {

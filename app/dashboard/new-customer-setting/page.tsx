@@ -34,6 +34,7 @@ import {
   getDistrictLabel,
   getRegionLabel,
   resolveStructuredAddress,
+  validateStructuredAddressForSubmit,
 } from "@/lib/hk-new-customer-address"
 import { HkAddressFields } from "@/components/hk-address-fields"
 import { PhoneWithCountryCodeInput } from "@/components/phone-with-country-code-input"
@@ -442,6 +443,29 @@ export default function NewCustomerSettingPage() {
           `Please describe purchase items for "Other" where share or amount is entered. / 請為「其他」品項填寫購買說明：${salesForecastValidation.issues
             .map((issue) => `${issue.labelEn} / ${issue.labelZh}`)
             .join(", ")}`,
+        )
+        return
+      }
+
+      const registeredAddressValidation = validateStructuredAddressForSubmit(
+        registeredAddressDetail,
+        "Registered Address",
+        "註冊地址",
+      )
+      const deliveryAddressValidation = validateStructuredAddressForSubmit(
+        deliveryAddressDetail,
+        "Delivery Address",
+        "送貨地址",
+      )
+      const addressValidationIssues = [
+        ...registeredAddressValidation.issues,
+        ...deliveryAddressValidation.issues,
+      ]
+      if (addressValidationIssues.length > 0) {
+        setError(
+          `Please complete all address fields before submitting. / 請完成所有地址欄位後再提交：${addressValidationIssues
+            .map((issue) => issue.messageEn)
+            .join("; ")}`,
         )
         return
       }
@@ -857,8 +881,10 @@ export default function NewCustomerSettingPage() {
               <CardHeader>
                 <CardTitle>Part 2: Company Information / 公司基本資料</CardTitle>
                 <CardDescription>
-                  Auto-filled from scanned documents when empty. Enter delivery address manually. /
-                  空白欄位會由掃描文件自動填入。送貨地址請手動填寫。
+                  Auto-filled from scanned documents when empty. Area may be inferred; District must be
+                  selected manually if not shown on the document. All address fields are required before
+                  submit. Delivery address must be entered manually. /
+                  空白欄位會由掃描文件自動填入。分區如未能從文件判斷，請手動選擇。提交前須完成所有地址欄位。送貨地址請手動填寫。
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
