@@ -18,6 +18,12 @@ type CustomerDocumentRequestEmailProps = {
 
 type EmailTemplateKey = `${CustomerRequestEmailCustomerType}_${AddressRegion}`
 
+const EMAIL_TAB_LIST_CLASS =
+  "grid h-auto w-full grid-cols-1 gap-2 rounded-md bg-muted p-1.5 sm:max-w-lg sm:grid-cols-2"
+
+const EMAIL_TAB_TRIGGER_CLASS =
+  "h-auto min-h-11 whitespace-normal px-3 py-2.5 text-center text-xs leading-snug sm:text-sm"
+
 function EmailTemplatePanel({
   emailText,
   onCopy,
@@ -68,9 +74,13 @@ function RegionEmailTabs({
 
   return (
     <Tabs defaultValue="hong_kong">
-      <TabsList className="grid h-auto w-full max-w-md grid-cols-2">
-        <TabsTrigger value="hong_kong">Hong Kong / 香港</TabsTrigger>
-        <TabsTrigger value="macau">Macau / 澳門</TabsTrigger>
+      <TabsList className={EMAIL_TAB_LIST_CLASS}>
+        <TabsTrigger value="hong_kong" className={EMAIL_TAB_TRIGGER_CLASS}>
+          Hong Kong / 香港
+        </TabsTrigger>
+        <TabsTrigger value="macau" className={EMAIL_TAB_TRIGGER_CLASS}>
+          Macau / 澳門
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="hong_kong" className="mt-3">
         <EmailTemplatePanel
@@ -119,9 +129,13 @@ export function CustomerDocumentRequestEmail({
       </div>
 
       <Tabs defaultValue="new">
-        <TabsList className="grid h-auto w-full max-w-lg grid-cols-2">
-          <TabsTrigger value="new">New Customer / 新客戶</TabsTrigger>
-          <TabsTrigger value="existing">Existing Customer / 現有客戶</TabsTrigger>
+        <TabsList className={EMAIL_TAB_LIST_CLASS}>
+          <TabsTrigger value="new" className={EMAIL_TAB_TRIGGER_CLASS}>
+            New Customer / 新客戶
+          </TabsTrigger>
+          <TabsTrigger value="existing" className={EMAIL_TAB_TRIGGER_CLASS}>
+            Existing Customer / 現有客戶
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="new" className="mt-3">
           <RegionEmailTabs

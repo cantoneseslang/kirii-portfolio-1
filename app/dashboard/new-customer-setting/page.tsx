@@ -769,13 +769,13 @@ export default function NewCustomerSettingPage() {
         <TabsList className="grid h-auto w-full grid-cols-1 gap-2 rounded-lg border border-gray-200 bg-gray-100 p-1.5 sm:max-w-xl sm:grid-cols-2">
           <TabsTrigger
             value="form"
-            className="rounded-md border border-transparent px-4 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-white/70 data-[state=active]:border-gray-200 data-[state=active]:bg-white data-[state=active]:text-[#02315a] data-[state=active]:shadow-sm"
+            className="h-auto min-h-11 whitespace-normal rounded-md border border-transparent px-4 py-3 text-center text-sm font-semibold leading-snug text-gray-600 transition-colors hover:bg-white/70 data-[state=active]:border-gray-200 data-[state=active]:bg-white data-[state=active]:text-[#02315a] data-[state=active]:shadow-sm"
           >
             New Registration / 新客戶登記
           </TabsTrigger>
           <TabsTrigger
             value="search"
-            className="rounded-md border border-transparent px-4 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-white/70 data-[state=active]:border-gray-200 data-[state=active]:bg-white data-[state=active]:text-[#02315a] data-[state=active]:shadow-sm"
+            className="h-auto min-h-11 whitespace-normal rounded-md border border-transparent px-4 py-3 text-center text-sm font-semibold leading-snug text-gray-600 transition-colors hover:bg-white/70 data-[state=active]:border-gray-200 data-[state=active]:bg-white data-[state=active]:text-[#02315a] data-[state=active]:shadow-sm"
           >
             Search Records / 搜尋紀錄
           </TabsTrigger>
