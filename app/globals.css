@@ -203,32 +203,28 @@
   }
 }
 
-/* NEW badge — QBHOUSE tab-selection-glow / pos-payment-selection-glow 系（明滅グロー） */
+/* NEW badge — QBHOUSE tab-selection-glow 準拠（KIRII青・小型・狭いグロー） */
 @keyframes new-feature-glow-pulse {
   0%,
   100% {
     box-shadow:
-      0 0 4px 1px rgba(100, 180, 255, 0.35),
-      0 0 10px 2px rgba(140, 200, 255, 0.22),
-      inset 0 0 0 2px rgba(140, 220, 255, 0.28),
-      inset 0 0 8px rgba(100, 180, 255, 0.1),
-      inset 0 -2px 0 0 rgba(140, 220, 255, 0.22);
+      inset 0 0 0 2px rgba(140, 220, 255, 0.34),
+      inset 0 -2px 0 0 rgba(140, 220, 255, 0.28),
+      0 0 2px 0 rgba(100, 180, 255, 0.42),
+      0 0 4px 1px rgba(140, 200, 255, 0.24);
   }
   50% {
     box-shadow:
-      0 0 8px 2px rgba(140, 200, 255, 0.7),
-      0 0 18px 5px rgba(100, 180, 255, 0.48),
-      0 0 28px 8px rgba(80, 160, 240, 0.3),
-      inset 0 0 0 2px rgba(190, 245, 255, 0.55),
-      inset 0 0 14px rgba(120, 220, 255, 0.2),
-      inset 0 -2px 0 0 rgba(170, 235, 255, 0.38);
+      inset 0 0 0 2px rgba(190, 245, 255, 0.58),
+      inset 0 -2px 0 0 rgba(170, 235, 255, 0.42),
+      0 0 3px 1px rgba(140, 200, 255, 0.72),
+      0 0 6px 2px rgba(100, 180, 255, 0.38);
   }
 }
 
 .new-feature-glow-badge {
   position: relative;
   isolation: isolate;
-  overflow: visible;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -251,7 +247,7 @@
 
 .new-feature-glow-badge__content {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
