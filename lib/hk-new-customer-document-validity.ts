@@ -278,16 +278,25 @@ export function getCiIssueDate(ci: DocumentValidityDates["ci"]): string {
 export function getCiDocumentValidity(ci: DocumentValidityDates["ci"]): CiDocumentValidity | undefined {
   if (!ci) return undefined
   if (typeof ci === "string") {
-    return ci.trim() ? { issueDate: ci.trim(), certificateNumber: "" } : undefined
+    return ci.trim()
+      ? { issueDate: ci.trim(), certificateNumber: "", certificateCompanyNameEn: "" }
+      : undefined
   }
-  if (ci.issueDate?.trim() || ci.certificateNumber?.trim()) {
-    return ci
+  if (ci.issueDate?.trim() || ci.certificateNumber?.trim() || ci.certificateCompanyNameEn?.trim()) {
+    return {
+      issueDate: ci.issueDate || "",
+      certificateNumber: ci.certificateNumber || "",
+      certificateCompanyNameEn: ci.certificateCompanyNameEn || "",
+      certificateCompanyNameZh: ci.certificateCompanyNameZh,
+    }
   }
   return undefined
 }
 
 export function validateCiDocument(
   ci: CiDocumentValidity | undefined,
+  brCertificateCompanyNameEn = "",
+  brCertificateCompanyNameZh = "",
   referenceDate = new Date(),
 ): ValidationResult {
   if (!ci?.issueDate?.trim()) {
@@ -312,10 +321,33 @@ export function validateCiDocument(
     }
   }
 
+  const ciCompanyEn = ci.certificateCompanyNameEn?.trim() || ""
+  const ciCompanyZh = ci.certificateCompanyNameZh?.trim() || ""
+  if (!ciCompanyEn && !ciCompanyZh) {
+    return {
+      valid: false,
+      messageEn: "Enter the company name from the center of the CI certificate.",
+      messageZh: "請填寫公司註冊證明書中央的公司名稱。",
+    }
+  }
+
+  const brEn = brCertificateCompanyNameEn.trim()
+  const brZh = brCertificateCompanyNameZh.trim()
+  if (
+    (brEn || brZh) &&
+    !brCertificateNameMatchesForm(ciCompanyEn, ciCompanyZh, brEn, brZh)
+  ) {
+    return {
+      valid: false,
+      messageEn: "CI company name does not match the BR certificate name (English or Chinese).",
+      messageZh: "CI 公司名稱與 BR 證件英文或中文公司名稱不一致。",
+    }
+  }
+
   return {
     valid: true,
-    messageEn: `CI No. ${certificateNumber} / 編號 ${certificateNumber}`,
-    messageZh: `CI No. ${certificateNumber} / 編號 ${certificateNumber}`,
+    messageEn: `CI No. ${certificateNumber} · ${ciCompanyEn || ciCompanyZh} / 編號 ${certificateNumber}`,
+    messageZh: `CI No. ${certificateNumber} · ${ciCompanyEn || ciCompanyZh} / 編號 ${certificateNumber}`,
   }
 }
 
@@ -483,7 +515,13 @@ export function validateMandatoryDocumentsForSubmit(params: {
 
     if (documentType === "ci") {
       const ci = getCiDocumentValidity(params.validityDates.ci)
-      const result = validateCiDocument(ci, params.referenceDate)
+      const br = params.validityDates.br
+      const result = validateCiDocument(
+        ci,
+        br?.certificateCompanyNameEn || "",
+        br?.certificateCompanyNameZh || "",
+        params.referenceDate,
+      )
       if (!result.valid) {
         issues.push({
           documentType,

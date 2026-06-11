@@ -2,10 +2,7 @@ import type { CiDocumentValidity } from "@/types/hk-new-customer"
 import { normalizeCiCertificateNumber } from "@/lib/hk-new-customer-document-validity"
 import { parseFlexibleDateToIso } from "@/lib/hk-new-customer-br-ocr"
 
-export type CiOcrExtractResult = Partial<CiDocumentValidity> & {
-  companyNameEn?: string
-  companyNameZh?: string
-}
+export type CiOcrExtractResult = Partial<CiDocumentValidity>
 
 const CI_OCR_PROMPT = `
 You are OCR for a Hong Kong Certificate of Incorporation (CI) from the Companies Registry.
@@ -15,19 +12,21 @@ Extract these fields and return STRICT JSON only (no markdown):
 {
   "certificateNumber": "string or null",
   "issueDate": "YYYY-MM-DD or null",
-  "companyNameEn": "string or null",
-  "companyNameZh": "string or null"
+  "certificateCompanyNameEn": "string or null",
+  "certificateCompanyNameZh": "string or null"
 }
 
 Field mapping on the certificate:
 - Top-left 編號 / No. -> certificateNumber (digits only, e.g. 3228132)
 - Issued at Hong Kong on [date] / 本證明書於...發出 -> issueDate
-- Company name in the certificate body (English) -> companyNameEn
-- Company name in Chinese if shown -> companyNameZh
+- Company name in the CENTER of the certificate body (large English name under the title) -> certificateCompanyNameEn
+  Example: "LIFESUPPORT (HK) LIMITED" in "I hereby certify that ... is this day incorporated"
+- Chinese company name if shown separately -> certificateCompanyNameZh
 
 Rules:
 - Convert DD/MM/YYYY, "31 January 2023", or Chinese date formats to YYYY-MM-DD.
 - certificateNumber: digits only from the No. field in the top-left corner.
+- certificateCompanyNameEn: the main incorporated company name in English from the center of the certificate.
 - If a field is unreadable, use null.
 `.trim()
 
@@ -41,10 +40,18 @@ export function normalizeCiOcrResult(raw: unknown): CiOcrExtractResult {
   return {
     certificateNumber: certificateNumber || undefined,
     issueDate: parseFlexibleDateToIso(record.issueDate) || undefined,
-    companyNameEn:
-      typeof record.companyNameEn === "string" ? record.companyNameEn.trim() : undefined,
-    companyNameZh:
-      typeof record.companyNameZh === "string" ? record.companyNameZh.trim() : undefined,
+    certificateCompanyNameEn:
+      typeof record.certificateCompanyNameEn === "string"
+        ? record.certificateCompanyNameEn.trim()
+        : typeof record.companyNameEn === "string"
+          ? record.companyNameEn.trim()
+          : undefined,
+    certificateCompanyNameZh:
+      typeof record.certificateCompanyNameZh === "string"
+        ? record.certificateCompanyNameZh.trim()
+        : typeof record.companyNameZh === "string"
+          ? record.companyNameZh.trim()
+          : undefined,
   }
 }
 

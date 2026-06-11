@@ -16,6 +16,8 @@ import {
 type CiDocumentSlotProps = {
   labelEn: string
   labelZh: string
+  brCertificateCompanyNameEn: string
+  brCertificateCompanyNameZh: string
   file: File | null
   validity: CiDocumentValidity
   onFileChange: (file: File | null) => void
@@ -26,6 +28,8 @@ type CiDocumentSlotProps = {
 export function CiDocumentSlot({
   labelEn,
   labelZh,
+  brCertificateCompanyNameEn,
+  brCertificateCompanyNameZh,
   file,
   validity,
   onFileChange,
@@ -37,9 +41,15 @@ export function CiDocumentSlot({
   const [ocrError, setOcrError] = useState<string | null>(null)
 
   const rule = MANDATORY_DOCUMENT_DATE_RULES.ci
-  const validation = validateCiDocument(validity)
+  const validation = validateCiDocument(
+    validity,
+    brCertificateCompanyNameEn,
+    brCertificateCompanyNameZh,
+  )
   const hasAllFields =
-    Boolean(validity.issueDate) && Boolean(validity.certificateNumber.trim())
+    Boolean(validity.issueDate) &&
+    Boolean(validity.certificateNumber.trim()) &&
+    Boolean(validity.certificateCompanyNameEn.trim() || validity.certificateCompanyNameZh?.trim())
 
   const runOcr = async (targetFile: File) => {
     setOcrLoading(true)
@@ -63,6 +73,10 @@ export function CiDocumentSlot({
         certificateNumber: normalizeCiCertificateNumber(
           extracted.certificateNumber || validity.certificateNumber,
         ),
+        certificateCompanyNameEn:
+          extracted.certificateCompanyNameEn || validity.certificateCompanyNameEn,
+        certificateCompanyNameZh:
+          extracted.certificateCompanyNameZh || validity.certificateCompanyNameZh,
       })
       setOcrMessage("Scanned from certificate / 已從證件自動讀取（可手動修正）")
     } catch (scanError) {
@@ -122,7 +136,7 @@ export function CiDocumentSlot({
           {ocrLoading ? "Scanning..." : "Scan Certificate / 掃描證件"}
         </Button>
         <span className="text-xs text-muted-foreground">
-          Reads No. (top-left) and issue date / 讀取左上角編號及簽發日期
+          Reads No., center company name and issue date / 讀取編號、中央公司名稱及簽發日期
         </span>
       </div>
 
@@ -133,6 +147,35 @@ export function CiDocumentSlot({
       {ocrError && <p className="text-xs text-red-700">{ocrError}</p>}
 
       <div className="grid gap-3 md:grid-cols-2 max-w-2xl">
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="ci-certificate-company-en">
+            Company Name on Certificate (English) / 公司名稱 <span className="text-red-600">*</span>
+          </Label>
+          <Input
+            id="ci-certificate-company-en"
+            value={validity.certificateCompanyNameEn}
+            placeholder="LIFESUPPORT (HK) LIMITED"
+            onChange={(event) =>
+              onValidityChange({ ...validity, certificateCompanyNameEn: event.target.value })
+            }
+          />
+          <p className="text-xs text-muted-foreground">
+            Center of CI certificate. Must match BR certificate name (English or Chinese, fuzzy) /
+            證明書中央公司名稱，須與 BR 證件英文或中文公司名稱一致（容許 HK/Hong Kong、Ltd/Co. 等差異）
+          </p>
+        </div>
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="ci-certificate-company-zh">
+            Company Name on Certificate (Chinese) / 中文名稱（如有）
+          </Label>
+          <Input
+            id="ci-certificate-company-zh"
+            value={validity.certificateCompanyNameZh || ""}
+            onChange={(event) =>
+              onValidityChange({ ...validity, certificateCompanyNameZh: event.target.value })
+            }
+          />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="ci-certificate-number">
             Certificate No. (No. / 編號) <span className="text-red-600">*</span>
@@ -148,9 +191,6 @@ export function CiDocumentSlot({
               })
             }
           />
-          <p className="text-xs text-muted-foreground">
-            Top-left 編號 No. on the CI / 公司註冊證明書左上角編號
-          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="ci-issue-date">

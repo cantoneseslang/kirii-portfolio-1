@@ -68,6 +68,8 @@ const EMPTY_BR_VALIDITY: BrDocumentValidity = {
 const EMPTY_CI_VALIDITY: CiDocumentValidity = {
   issueDate: "",
   certificateNumber: "",
+  certificateCompanyNameEn: "",
+  certificateCompanyNameZh: "",
 }
 
 const EMPTY_NAR1_VALIDITY: Nar1DocumentValidity = {
@@ -830,6 +832,12 @@ export default function NewCustomerSettingPage() {
                   <CiDocumentSlot
                     labelEn={ciDocument.labelEn}
                     labelZh={ciDocument.labelZh}
+                    brCertificateCompanyNameEn={
+                      documentValidityDates.br?.certificateCompanyNameEn || ""
+                    }
+                    brCertificateCompanyNameZh={
+                      documentValidityDates.br?.certificateCompanyNameZh || ""
+                    }
                     file={attachmentFiles.ci || null}
                     validity={
                       typeof documentValidityDates.ci === "object" && documentValidityDates.ci

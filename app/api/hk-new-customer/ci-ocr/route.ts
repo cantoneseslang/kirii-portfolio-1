@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const resolvedMime = file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : mimeType
     const data = await extractCiCertificateWithGemini(bytes, resolvedMime)
 
-    if (!data.issueDate && !data.certificateNumber) {
+    if (!data.issueDate && !data.certificateNumber && !data.certificateCompanyNameEn) {
       return NextResponse.json(
         {
           success: false,

@@ -79,6 +79,8 @@ export type BrDocumentValidity = {
 export type CiDocumentValidity = {
   issueDate: string
   certificateNumber: string
+  certificateCompanyNameEn: string
+  certificateCompanyNameZh?: string
 }
 
 export type Nar1Director = {

@@ -95,7 +95,14 @@ export function DocumentComplianceSummary({
 
           if (documentType === "ci") {
             const ci = getCiDocumentValidity(registration.documentValidityDates?.ci)
-            const ciResult = ci ? validateCiDocument(ci) : null
+            const br = registration.documentValidityDates?.br
+            const ciResult = ci
+              ? validateCiDocument(
+                  ci,
+                  br?.certificateCompanyNameEn || "",
+                  br?.certificateCompanyNameZh || "",
+                )
+              : null
             const ok = uploaded && Boolean(ciResult?.valid)
 
             return (
@@ -111,6 +118,10 @@ export function DocumentComplianceSummary({
                   <>
                     <div className="text-xs text-muted-foreground">
                       No. / 編號: {ci.certificateNumber || "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Company / 公司: {ci.certificateCompanyNameEn || "—"}
+                      {ci.certificateCompanyNameZh ? ` · ${ci.certificateCompanyNameZh}` : ""}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {formatDocumentDateLabel("ci")}: {formatDateForDisplay(ci.issueDate)}
