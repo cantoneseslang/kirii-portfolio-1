@@ -609,7 +609,7 @@ export default function NewCustomerSettingPage() {
           <form className="space-y-6" onSubmit={(event) => handleSubmit(event, "submitted")}>
             <Card>
               <CardHeader>
-                <CardTitle>Part 5: Required Documents / 必須附帶文件</CardTitle>
+                <CardTitle>Part 1: Required Documents / 必須附帶文件</CardTitle>
                 <CardDescription>
                   Upload mandatory documents first — scanning will auto-fill company details, registered address,
                   and director contacts below when those fields are still empty. Bank proof is optional. /
@@ -805,7 +805,7 @@ export default function NewCustomerSettingPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Part 1: Company Information / 公司基本資料</CardTitle>
+                <CardTitle>Part 2: Company Information / 公司基本資料</CardTitle>
                 <CardDescription>
                   Auto-filled from scanned documents when empty. Enter delivery address manually. /
                   空白欄位會由掃描文件自動填入。送貨地址請手動填寫。
@@ -857,7 +857,7 @@ export default function NewCustomerSettingPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Part 2: Contact Information / 聯絡資料</CardTitle>
+                <CardTitle>Part 3: Contact Information / 聯絡資料</CardTitle>
                 <CardDescription>
                   Primary contacts must use full legal names in English (given name, middle name, surname) and
                   Chinese. Nicknames are not allowed. Directors from NAR1 scan auto-fill the first contacts;
@@ -949,7 +949,7 @@ export default function NewCustomerSettingPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Part 3: Bank Account Details / 銀行戶口資料</CardTitle>
+                <CardTitle>Part 4: Bank Account Details / 銀行戶口資料</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
@@ -978,7 +978,7 @@ export default function NewCustomerSettingPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Part 4: Requested Terms / 擬定交易條件</CardTitle>
+                <CardTitle>Part 5: Requested Terms / 擬定交易條件</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">

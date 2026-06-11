@@ -206,8 +206,8 @@ export function validateBrDocument(
   ) {
     return {
       valid: false,
-      messageEn: "Company name on the BR does not match Part 1 (English or Chinese).",
-      messageZh: "商業登記證公司名稱與 Part 1 英文或中文公司名稱不一致。",
+      messageEn: "Company name on the BR does not match Part 2 (English or Chinese).",
+      messageZh: "商業登記證公司名稱與 Part 2 英文或中文公司名稱不一致。",
     }
   }
 
@@ -419,16 +419,16 @@ export function validateNar1Document(
   if (formBrNumber.trim() && !brNumbersMatch(formBrNumber, brNumber)) {
     return {
       valid: false,
-      messageEn: "NAR1 BR number does not match Part 1 BR number.",
-      messageZh: "周年申報表商業登記號碼與 Part 1 BR 號碼不一致。",
+      messageEn: "NAR1 BR number does not match Part 2 BR number.",
+      messageZh: "周年申報表商業登記號碼與 Part 2 BR 號碼不一致。",
     }
   }
 
   if (brCertCore && formBrNumber.trim() && !brNumbersMatch(formBrNumber, brCertCore)) {
     return {
       valid: false,
-      messageEn: "Part 1 BR number does not match the BR certificate.",
-      messageZh: "Part 1 BR 號碼與 BR 證件不一致。",
+      messageEn: "Part 2 BR number does not match the BR certificate.",
+      messageZh: "Part 2 BR 號碼與 BR 證件不一致。",
     }
   }
 

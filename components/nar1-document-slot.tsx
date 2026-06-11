@@ -204,7 +204,7 @@ export function Nar1DocumentSlot({
             }
           />
           <p className="text-xs text-muted-foreground">
-            Must match BR certificate and Part 1 (8-digit core) / 須與 BR 證件及 Part 1
+            Must match BR certificate and Part 2 (8-digit core) / 須與 BR 證件及 Part 2
             商業登記號碼一致
           </p>
         </div>
