@@ -1,4 +1,4 @@
-import type { AddressRegion, BrDocumentValidity, DocumentValidityDates } from "@/types/hk-new-customer"
+import type { AddressRegion, BrDocumentValidity, CiDocumentValidity, DocumentValidityDates } from "@/types/hk-new-customer"
 import { getAttachmentTypeLabel, getMandatoryAttachmentKeys } from "@/types/hk-new-customer"
 
 export const DOCUMENT_VALIDITY_WINDOW_DAYS = 365
@@ -93,6 +93,10 @@ export function extractBrCoreNumber(value: string): string {
   const digits = normalizeBrNumber(value)
   if (!digits) return ""
   return digits.slice(0, 8)
+}
+
+export function normalizeCiCertificateNumber(value: string): string {
+  return value.replace(/\D/g, "")
 }
 
 export function brNumbersMatch(formBrNumber: string, certificateBrNumber: string): boolean {
@@ -217,11 +221,62 @@ export function validateDocumentDate(
   }
 }
 
+export function getCiIssueDate(ci: DocumentValidityDates["ci"]): string {
+  if (!ci) return ""
+  if (typeof ci === "string") return ci.trim()
+  return ci.issueDate?.trim() || ""
+}
+
+export function getCiDocumentValidity(ci: DocumentValidityDates["ci"]): CiDocumentValidity | undefined {
+  if (!ci) return undefined
+  if (typeof ci === "string") {
+    return ci.trim() ? { issueDate: ci.trim(), certificateNumber: "" } : undefined
+  }
+  if (ci.issueDate?.trim() || ci.certificateNumber?.trim()) {
+    return ci
+  }
+  return undefined
+}
+
+export function validateCiDocument(
+  ci: CiDocumentValidity | undefined,
+  referenceDate = new Date(),
+): ValidationResult {
+  if (!ci?.issueDate?.trim()) {
+    return {
+      valid: false,
+      messageEn: "Enter the issue date from the CI certificate.",
+      messageZh: "請填寫公司註冊證明書上的簽發日期。",
+    }
+  }
+
+  const dateResult = validateDocumentDate("ci", ci.issueDate, referenceDate)
+  if (!dateResult.valid) {
+    return dateResult
+  }
+
+  const certificateNumber = ci.certificateNumber?.trim() || ""
+  if (!certificateNumber) {
+    return {
+      valid: false,
+      messageEn: "Enter the certificate No. (編號) from the top-left of the CI.",
+      messageZh: "請填寫公司註冊證明書左上角的編號。",
+    }
+  }
+
+  return {
+    valid: true,
+    messageEn: `CI No. ${certificateNumber} · Within 12 months / 編號 ${certificateNumber} · 12個月內`,
+    messageZh: `CI No. ${certificateNumber} · Within 12 months / 編號 ${certificateNumber} · 12個月內`,
+  }
+}
+
 export function validateMandatoryDocumentsForSubmit(params: {
   region: AddressRegion
   uploadedDocumentTypes: string[]
   validityDates: DocumentValidityDates
   formBrNumber: string
+  formCompanyNameEn?: string
   referenceDate?: Date
 }): { ok: boolean; issues: DocumentValidityIssue[] } {
   const mandatoryKeys = getMandatoryAttachmentKeys(params.region)
@@ -252,8 +307,25 @@ export function validateMandatoryDocumentsForSubmit(params: {
       continue
     }
 
+    if (documentType === "ci") {
+      const ci = getCiDocumentValidity(params.validityDates.ci)
+      const result = validateCiDocument(ci, params.referenceDate)
+      if (!result.valid) {
+        issues.push({
+          documentType,
+          label,
+          messageEn: result.messageEn,
+          messageZh: result.messageZh,
+        })
+      }
+      continue
+    }
+
     const dateValue =
-      params.validityDates[documentType as keyof Omit<DocumentValidityDates, "br">]?.trim() || ""
+      typeof params.validityDates[documentType as keyof Omit<DocumentValidityDates, "br" | "ci">] ===
+      "string"
+        ? (params.validityDates[documentType as keyof Omit<DocumentValidityDates, "br" | "ci">] as string).trim()
+        : ""
     if (!dateValue) {
       issues.push({
         documentType,
@@ -294,12 +366,23 @@ export function isBrDocumentValidity(value: unknown): value is BrDocumentValidit
   )
 }
 
+export function isCiDocumentValidity(value: unknown): value is CiDocumentValidity {
+  if (!value || typeof value !== "object") return false
+  const record = value as Partial<CiDocumentValidity>
+  return typeof record.issueDate === "string" && typeof record.certificateNumber === "string"
+}
+
 export function parseDocumentValidityDates(raw: Record<string, unknown>): DocumentValidityDates {
   const parsed: DocumentValidityDates = {}
   if (isBrDocumentValidity(raw.br)) {
     parsed.br = raw.br
   }
-  for (const key of ["ci", "nar1", "cr_company_particulars", "macau_commercial_registration"] as const) {
+  if (isCiDocumentValidity(raw.ci)) {
+    parsed.ci = raw.ci
+  } else if (typeof raw.ci === "string") {
+    parsed.ci = raw.ci
+  }
+  for (const key of ["nar1", "cr_company_particulars", "macau_commercial_registration"] as const) {
     if (typeof raw[key] === "string") {
       parsed[key] = raw[key]
     }

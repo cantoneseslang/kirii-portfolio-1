@@ -1,70 +1,46 @@
-import { extractBrCoreNumber } from "@/lib/hk-new-customer-document-validity"
-import type { BrDocumentValidity } from "@/types/hk-new-customer"
+import type { CiDocumentValidity } from "@/types/hk-new-customer"
+import { normalizeCiCertificateNumber } from "@/lib/hk-new-customer-document-validity"
+import { parseFlexibleDateToIso } from "@/lib/hk-new-customer-br-ocr"
 
-export type BrOcrExtractResult = Partial<BrDocumentValidity> & {
+export type CiOcrExtractResult = Partial<CiDocumentValidity> & {
   companyNameEn?: string
   companyNameZh?: string
 }
 
-const BR_OCR_PROMPT = `
-You are OCR for a Hong Kong Business Registration (BR) certificate.
+const CI_OCR_PROMPT = `
+You are OCR for a Hong Kong Certificate of Incorporation (CI) from the Companies Registry.
 The upload may be a scanned PDF or image with little or no embedded text.
 
 Extract these fields and return STRICT JSON only (no markdown):
 {
-  "commencementDate": "YYYY-MM-DD or null",
-  "expiryDate": "YYYY-MM-DD or null",
-  "certificateBrNumber": "string or null",
+  "certificateNumber": "string or null",
+  "issueDate": "YYYY-MM-DD or null",
   "companyNameEn": "string or null",
   "companyNameZh": "string or null"
 }
 
 Field mapping on the certificate:
-- Date of Commencement / 生效日期 -> commencementDate
-- Date of Expiry / 屆滿日期 -> expiryDate
-- Business Registration Number / 商業登記號碼 / Registration Number -> certificateBrNumber
+- Top-left 編號 / No. -> certificateNumber (digits only, e.g. 3228132)
+- Issued at Hong Kong on [date] / 本證明書於...發出 -> issueDate
+- Company name in the certificate body (English) -> companyNameEn
+- Company name in Chinese if shown -> companyNameZh
 
 Rules:
-- Convert DD/MM/YYYY or DD-MM-YYYY to YYYY-MM-DD.
-- certificateBrNumber: return ONLY the main 8-digit BR number (e.g. 10955344). Do NOT include branch suffix such as -000-03-26-0.
+- Convert DD/MM/YYYY, "31 January 2023", or Chinese date formats to YYYY-MM-DD.
+- certificateNumber: digits only from the No. field in the top-left corner.
 - If a field is unreadable, use null.
-- Read all pages if needed; prefer the main certificate page with commencement/expiry dates.
 `.trim()
 
-export function parseFlexibleDateToIso(value: unknown): string | null {
-  if (typeof value !== "string" || !value.trim()) return null
-  const trimmed = value.trim()
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
-
-  const dmy = trimmed.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/)
-  if (dmy) {
-    const day = Number(dmy[1])
-    const month = Number(dmy[2])
-    const year = Number(dmy[3])
-    const date = new Date(year, month - 1, day)
-    if (date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
-      return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-    }
-  }
-
-  const parsed = new Date(trimmed)
-  if (Number.isNaN(parsed.getTime())) return null
-  const year = parsed.getFullYear()
-  const month = String(parsed.getMonth() + 1).padStart(2, "0")
-  const day = String(parsed.getDate()).padStart(2, "0")
-  return `${year}-${month}-${day}`
-}
-
-export function normalizeBrOcrResult(raw: unknown): BrOcrExtractResult {
+export function normalizeCiOcrResult(raw: unknown): CiOcrExtractResult {
   if (!raw || typeof raw !== "object") return {}
   const record = raw as Record<string, unknown>
+  const certificateNumber =
+    typeof record.certificateNumber === "string"
+      ? normalizeCiCertificateNumber(record.certificateNumber.trim())
+      : ""
   return {
-    commencementDate: parseFlexibleDateToIso(record.commencementDate) || undefined,
-    expiryDate: parseFlexibleDateToIso(record.expiryDate) || undefined,
-    certificateBrNumber:
-      typeof record.certificateBrNumber === "string"
-        ? extractBrCoreNumber(record.certificateBrNumber.trim()) || undefined
-        : undefined,
+    certificateNumber: certificateNumber || undefined,
+    issueDate: parseFlexibleDateToIso(record.issueDate) || undefined,
     companyNameEn:
       typeof record.companyNameEn === "string" ? record.companyNameEn.trim() : undefined,
     companyNameZh:
@@ -72,10 +48,10 @@ export function normalizeBrOcrResult(raw: unknown): BrOcrExtractResult {
   }
 }
 
-export async function extractBrCertificateWithGemini(
+export async function extractCiCertificateWithGemini(
   fileBytes: Buffer,
   mimeType: string,
-): Promise<BrOcrExtractResult> {
+): Promise<CiOcrExtractResult> {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
   if (!apiKey) {
     throw new Error(
@@ -99,7 +75,7 @@ export async function extractBrCertificateWithGemini(
           {
             role: "user",
             parts: [
-              { text: BR_OCR_PROMPT },
+              { text: CI_OCR_PROMPT },
               {
                 inline_data: {
                   mime_type: resolvedMime,
@@ -134,5 +110,5 @@ export async function extractBrCertificateWithGemini(
   }
 
   const parsed = JSON.parse(text)
-  return normalizeBrOcrResult(parsed)
+  return normalizeCiOcrResult(parsed)
 }

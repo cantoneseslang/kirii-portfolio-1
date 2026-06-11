@@ -39,10 +39,12 @@ import { HkAddressFields } from "@/components/hk-address-fields"
 import { PhoneWithCountryCodeInput } from "@/components/phone-with-country-code-input"
 import { MandatoryDocumentSlot } from "@/components/mandatory-document-slot"
 import { BrDocumentSlot } from "@/components/br-document-slot"
+import { CiDocumentSlot } from "@/components/ci-document-slot"
 import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
 import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
 import type {
   BrDocumentValidity,
+  CiDocumentValidity,
   ContactEntry,
   DocumentChecklist,
   DocumentValidityDates,
@@ -57,6 +59,11 @@ const EMPTY_BR_VALIDITY: BrDocumentValidity = {
   commencementDate: "",
   expiryDate: "",
   certificateBrNumber: "",
+}
+
+const EMPTY_CI_VALIDITY: CiDocumentValidity = {
+  issueDate: "",
+  certificateNumber: "",
 }
 
 const EMPTY_CONTACT: ContactEntry = {
@@ -203,7 +210,9 @@ export default function NewCustomerSettingPage() {
   )
 
   const mandatoryDocumentSlots = useMemo(() => {
-    const slots = DOCUMENT_TYPES.filter((doc) => doc.key !== "bank_proof" && doc.key !== "br").map((doc) => ({
+    const slots = DOCUMENT_TYPES.filter(
+      (doc) => doc.key !== "bank_proof" && doc.key !== "br" && doc.key !== "ci",
+    ).map((doc) => ({
       key: doc.key,
       labelEn: doc.labelEn,
       labelZh: doc.labelZh,
@@ -219,6 +228,8 @@ export default function NewCustomerSettingPage() {
   }, [regionVerificationDocument])
 
   const brDocument = useMemo(() => DOCUMENT_TYPES.find((doc) => doc.key === "br"), [])
+
+  const ciDocument = useMemo(() => DOCUMENT_TYPES.find((doc) => doc.key === "ci"), [])
 
   const bankProofDocument = useMemo(
     () => DOCUMENT_TYPES.find((doc) => doc.key === "bank_proof"),
@@ -791,6 +802,38 @@ export default function NewCustomerSettingPage() {
                     onFormBrNumberSuggest={(coreBrNumber) => {
                       setBrNumber((current) => (current.trim() ? current : coreBrNumber))
                     }}
+                  />
+                )}
+
+                {ciDocument && (
+                  <CiDocumentSlot
+                    labelEn={ciDocument.labelEn}
+                    labelZh={ciDocument.labelZh}
+                    file={attachmentFiles.ci || null}
+                    validity={
+                      typeof documentValidityDates.ci === "object" && documentValidityDates.ci
+                        ? documentValidityDates.ci
+                        : {
+                            ...EMPTY_CI_VALIDITY,
+                            issueDate:
+                              typeof documentValidityDates.ci === "string"
+                                ? documentValidityDates.ci
+                                : "",
+                          }
+                    }
+                    showValidation={showDocumentValidation}
+                    onFileChange={(nextFile) =>
+                      setAttachmentFiles((prev) => ({
+                        ...prev,
+                        ci: nextFile,
+                      }))
+                    }
+                    onValidityChange={(value) =>
+                      setDocumentValidityDates((prev) => ({
+                        ...prev,
+                        ci: value,
+                      }))
+                    }
                   />
                 )}
 

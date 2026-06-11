@@ -3,7 +3,9 @@ import { getAttachmentTypeLabel, getMandatoryAttachmentKeys } from "@/types/hk-n
 import {
   formatDateForDisplay,
   formatDocumentDateLabel,
+  getCiDocumentValidity,
   validateBrDocument,
+  validateCiDocument,
   validateDocumentDate,
   validateMandatoryDocumentsForSubmit,
 } from "@/lib/hk-new-customer-document-validity"
@@ -65,6 +67,45 @@ export function DocumentComplianceSummary({
                 {brResult && !brResult.valid && (
                   <div className="text-xs text-red-700 mt-1">
                     {brResult.messageEn} / {brResult.messageZh}
+                  </div>
+                )}
+                {issue && (
+                  <div className="text-xs text-red-700 mt-1">
+                    {issue.messageEn} / {issue.messageZh}
+                  </div>
+                )}
+              </li>
+            )
+          }
+
+          if (documentType === "ci") {
+            const ci = getCiDocumentValidity(registration.documentValidityDates?.ci)
+            const ciResult = ci ? validateCiDocument(ci) : null
+            const ok = uploaded && Boolean(ciResult?.valid)
+
+            return (
+              <li
+                key={documentType}
+                className={`rounded-md border p-2 ${ok ? "border-green-200 bg-green-50" : "border-amber-200 bg-amber-50"}`}
+              >
+                <div className="font-medium">{label}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  File: {uploaded ? "Uploaded / 已上載" : "Missing / 缺少"}
+                </div>
+                {ci && (
+                  <>
+                    <div className="text-xs text-muted-foreground">
+                      No. / 編號: {ci.certificateNumber || "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatDocumentDateLabel("ci")}: {formatDateForDisplay(ci.issueDate)}
+                    </div>
+                  </>
+                )}
+                {ciResult?.valid && <div className="text-xs text-green-700 mt-1">{ciResult.messageEn}</div>}
+                {ciResult && !ciResult.valid && (
+                  <div className="text-xs text-red-700 mt-1">
+                    {ciResult.messageEn} / {ciResult.messageZh}
                   </div>
                 )}
                 {issue && (

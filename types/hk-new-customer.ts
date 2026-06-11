@@ -74,9 +74,14 @@ export type BrDocumentValidity = {
   certificateBrNumber: string
 }
 
+export type CiDocumentValidity = {
+  issueDate: string
+  certificateNumber: string
+}
+
 export type DocumentValidityDates = {
   br?: BrDocumentValidity
-  ci?: string
+  ci?: CiDocumentValidity | string
   nar1?: string
   cr_company_particulars?: string
   macau_commercial_registration?: string
