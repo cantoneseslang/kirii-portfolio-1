@@ -130,7 +130,7 @@ export function validateBrDocument(
   }
 
   const today = startOfDay(referenceDate)
-  if (daysBetween(today, commencement) < 0) {
+  if (daysBetween(today, commencement) > 0) {
     return {
       valid: false,
       messageEn: "BR certificate is not yet effective.",
