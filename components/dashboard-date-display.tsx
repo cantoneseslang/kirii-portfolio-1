@@ -5,7 +5,11 @@ import Lunar from 'lunar-javascript';
 
 const ChineseLunar = Lunar.Lunar;
 
-const DashboardDateDisplay = () => {
+type DashboardDateDisplayProps = {
+  variant?: "mobile" | "desktop"
+}
+
+const DashboardDateDisplay = ({ variant = "mobile" }: DashboardDateDisplayProps) => {
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [lunarDate, setLunarDate] = useState<any>(null);
   const [yellowDate, setYellowDate] = useState<string>("");
@@ -134,7 +138,13 @@ const DashboardDateDisplay = () => {
   }
 
   return (
-    <div className="text-right text-sm flex flex-col items-end pr-2 sm:pr-4">
+    <div
+      className={
+        variant === "desktop"
+          ? "flex flex-col items-end text-right text-sm"
+          : "flex flex-col items-end pr-2 text-right text-sm sm:pr-4"
+      }
+    >
       <div>{formatDate()}</div>
       <div className="text-xl font-bold">{formatTime()}</div>
       <div className="text-xs text-gray-500">{formatLunar()}</div>

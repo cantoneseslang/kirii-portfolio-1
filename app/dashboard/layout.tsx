@@ -40,30 +40,33 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <div className="border-b pb-2 pt-2">
-        <div className="container flex flex-row items-center justify-between gap-2">
-          {/* 767px以下: ロゴ2のみ表示 */}
-          <div className="flex md:hidden">
+        {/* Mobile: layout unchanged */}
+        <div className="container flex flex-row items-center justify-between gap-2 md:hidden">
+          <div className="flex">
             <LogoMobile />
           </div>
-          
-          {/* 768px以上: 元のロゴ+標語表示 */}
-          <div className="hidden md:flex md:flex-row md:items-center gap-4">
-            <div className="flex items-center">
+          <div className="flex flex-col items-end">
+            <DashboardDateDisplay />
+          </div>
+        </div>
+
+        {/* Desktop: logo left, calendar pinned to container right */}
+        <div className="container hidden md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-6">
+          <div className="flex min-w-0 flex-row items-center gap-4">
+            <div className="flex shrink-0 items-center">
               <Logo />
             </div>
-            {/* メインメッセージ */}
-            <div className="block">
-              <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-[#02315a] mb-0">
+            <div className="min-w-0">
+              <h2 className="mb-0 text-lg font-bold text-[#02315a] md:text-xl lg:text-2xl">
                 逆境轉型，革新求存
               </h2>
-              <p className="text-[10px] md:text-xs lg:text-sm text-gray-600 italic -mt-1">
+              <p className="-mt-1 text-[10px] text-gray-600 italic md:text-xs lg:text-sm">
                 Transform in Adversity. Innovate for Survival.
               </p>
             </div>
           </div>
-          
-          <div className="flex flex-col items-end">
-            <DashboardDateDisplay />
+          <div className="justify-self-end">
+            <DashboardDateDisplay variant="desktop" />
           </div>
         </div>
       </div>
