@@ -146,7 +146,12 @@ export function DocumentComplianceSummary({
           if (documentType === "nar1") {
             const nar1 = getNar1DocumentValidity(registration.documentValidityDates?.nar1)
             const nar1Result = nar1
-              ? validateNar1Document(nar1, registration.brNumber, registration.companyNameEn)
+              ? validateNar1Document(
+                  nar1,
+                  registration.brNumber,
+                  registration.companyNameEn,
+                  registration.documentValidityDates?.br?.certificateBrNumber || "",
+                )
               : null
             const ok = uploaded && Boolean(nar1Result?.valid)
 

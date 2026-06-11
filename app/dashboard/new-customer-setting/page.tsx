@@ -872,6 +872,7 @@ export default function NewCustomerSettingPage() {
                     labelZh={nar1Document.labelZh}
                     formBrNumber={brNumber}
                     formCompanyNameEn={companyNameEn}
+                    brCertificateBrNumber={documentValidityDates.br?.certificateBrNumber || ""}
                     file={attachmentFiles.nar1 || null}
                     validity={
                       typeof documentValidityDates.nar1 === "object" && documentValidityDates.nar1

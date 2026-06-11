@@ -382,6 +382,7 @@ export function validateNar1Document(
   nar1: Nar1DocumentValidity | undefined,
   formBrNumber: string,
   formCompanyNameEn: string,
+  brCertificateBrNumber = "",
   referenceDate = new Date(),
 ): ValidationResult {
   if (!nar1?.madeUpToDate?.trim()) {
@@ -406,11 +407,28 @@ export function validateNar1Document(
     }
   }
 
+  const brCertCore = extractBrCoreNumber(brCertificateBrNumber)
+  if (brCertCore && !brNumbersMatch(brCertCore, brNumber)) {
+    return {
+      valid: false,
+      messageEn: "NAR1 BR number does not match the BR certificate.",
+      messageZh: "周年申報表商業登記號碼與 BR 證件不一致。",
+    }
+  }
+
   if (formBrNumber.trim() && !brNumbersMatch(formBrNumber, brNumber)) {
     return {
       valid: false,
-      messageEn: "NAR1 BR number does not match the form BR number.",
-      messageZh: "周年申報表商業登記號碼與表格上的 BR 號碼不一致。",
+      messageEn: "NAR1 BR number does not match Part 1 BR number.",
+      messageZh: "周年申報表商業登記號碼與 Part 1 BR 號碼不一致。",
+    }
+  }
+
+  if (brCertCore && formBrNumber.trim() && !brNumbersMatch(formBrNumber, brCertCore)) {
+    return {
+      valid: false,
+      messageEn: "Part 1 BR number does not match the BR certificate.",
+      messageZh: "Part 1 BR 號碼與 BR 證件不一致。",
     }
   }
 
@@ -539,6 +557,7 @@ export function validateMandatoryDocumentsForSubmit(params: {
         nar1,
         params.formBrNumber,
         params.formCompanyNameEn || "",
+        params.validityDates.br?.certificateBrNumber || "",
         params.referenceDate,
       )
       if (!result.valid) {

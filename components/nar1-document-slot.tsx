@@ -28,6 +28,7 @@ type Nar1DocumentSlotProps = {
   labelZh: string
   formBrNumber: string
   formCompanyNameEn: string
+  brCertificateBrNumber: string
   file: File | null
   validity: Nar1DocumentValidity
   onFileChange: (file: File | null) => void
@@ -42,6 +43,7 @@ export function Nar1DocumentSlot({
   labelZh,
   formBrNumber,
   formCompanyNameEn,
+  brCertificateBrNumber,
   file,
   validity,
   onFileChange,
@@ -55,7 +57,12 @@ export function Nar1DocumentSlot({
   const [ocrError, setOcrError] = useState<string | null>(null)
 
   const rule = MANDATORY_DOCUMENT_DATE_RULES.nar1
-  const validation = validateNar1Document(validity, formBrNumber, formCompanyNameEn)
+  const validation = validateNar1Document(
+    validity,
+    formBrNumber,
+    formCompanyNameEn,
+    brCertificateBrNumber,
+  )
   const hasCoreFields =
     Boolean(validity.madeUpToDate) &&
     Boolean(validity.businessRegistrationNumber.trim()) &&
@@ -191,6 +198,10 @@ export function Nar1DocumentSlot({
               })
             }
           />
+          <p className="text-xs text-muted-foreground">
+            Must match BR certificate and Part 1 (8-digit core) / 須與 BR 證件及 Part 1
+            商業登記號碼一致
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="nar1-made-up-to">
