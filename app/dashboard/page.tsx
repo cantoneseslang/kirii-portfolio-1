@@ -174,7 +174,7 @@ export default function DashboardPage() {
       <div className="news-ticker mb-4 overflow-hidden border-y border-gray-200 py-2">
         <div className="news-ticker-content max-h-[3rem] md:max-h-none">
           <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">
-            13-02-2026 Added KHK Monitor 工廠現場監視 ・ 13-02-2026 Added NotebookLM 桐井資料博士 ・ 13-02-2026 Collectpayment 回收金額統計表
+            15-04-2026 追加Foodpanda 追加午餐內容 ・ 09-06-2026 NewCustomer Setting 新客戶登記 ・ 11-06-2026 Update Lunch Order System 更新午餐訂購系統
           </span>
         </div>
       </div>
