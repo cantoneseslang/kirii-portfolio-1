@@ -45,8 +45,8 @@ import { DocumentComplianceSummary } from "@/components/document-compliance-summ
 import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
 import {
   fillIfEmpty,
-  isStructuredAddressEmpty,
   mergeDirectorsIntoContacts,
+  mergeRegisteredAddressAutofill,
   pickRegisteredAddressFromNar1,
 } from "@/lib/hk-new-customer-document-autofill"
 import type {
@@ -272,9 +272,7 @@ export default function NewCustomerSettingPage() {
     setBrNumber((current) => fillIfEmpty(current, validity.businessRegistrationNumber))
     const registered = pickRegisteredAddressFromNar1(validity)
     if (registered) {
-      setRegisteredAddressDetail((current) =>
-        isStructuredAddressEmpty(current) ? registered : current,
-      )
+      setRegisteredAddressDetail((current) => mergeRegisteredAddressAutofill(current, registered))
     }
     setContacts((current) => mergeDirectorsIntoContacts(current, validity.directors, EMPTY_CONTACT))
   }, [])

@@ -89,6 +89,10 @@ export type Nar1AddressParts = {
   street: string
   district: string
   country: string
+  /** OCR hint: hong_kong_island | kowloon | new_territories */
+  area?: HkAddressArea
+  /** OCR hint: HK_DISTRICTS value e.g. sai_kung */
+  districtKey?: string
 }
 
 export type Nar1Director = Nar1AddressParts & {

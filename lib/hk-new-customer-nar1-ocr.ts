@@ -1,4 +1,4 @@
-import type { Nar1AddressParts, Nar1Director, Nar1DocumentValidity } from "@/types/hk-new-customer"
+import type { HkAddressArea, Nar1AddressParts, Nar1Director, Nar1DocumentValidity } from "@/types/hk-new-customer"
 import { extractBrCoreNumber } from "@/lib/hk-new-customer-document-validity"
 import { parseFlexibleDateToIso } from "@/lib/hk-new-customer-br-ocr"
 
@@ -20,7 +20,9 @@ Extract these fields and return STRICT JSON only (no markdown):
     "building": "string or null",
     "street": "string or null",
     "district": "string or null",
-    "country": "string or null"
+    "country": "string or null",
+    "area": "hong_kong_island | kowloon | new_territories | null",
+    "districtKey": "one of: central_and_western, wan_chai, eastern, southern, yau_tsim_mong, sham_shui_po, kowloon_city, wong_tai_sin, kwun_tong, north, tai_po, sha_tin, sai_kung, tsuen_wan, tuen_mun, yuen_long, kwai_tsing, islands | null"
   },
   "directors": [
     {
@@ -52,6 +54,8 @@ Registered office address mapping:
 - 街道／屋苑／地段／村等 / Street etc. -> street
 - 區／市／省／州／郵遞區號等 / District etc. -> district
 - 國家／地區 / Country/Region -> country
+- Infer HK area from address: 港島 -> hong_kong_island, 九龍 -> kowloon, 新界 -> new_territories -> area
+- Infer 18 HK district from village/street/district text (e.g. Pan Chung 畔涌, Sai Kung 西貢 -> sai_kung) -> districtKey
 
 Director address mapping (Correspondence Address / 通訊地址 only):
 - Same field names as registeredOffice for each director row
@@ -70,6 +74,13 @@ Rules:
 - Read all pages to find company details, registered office, and all directors.
 `.trim()
 
+function normalizeOcrArea(value: unknown): HkAddressArea | undefined {
+  if (value === "hong_kong_island" || value === "kowloon" || value === "new_territories") {
+    return value
+  }
+  return undefined
+}
+
 function normalizeAddressParts(raw: unknown): Nar1AddressParts | undefined {
   if (!raw || typeof raw !== "object") return undefined
   const record = raw as Record<string, unknown>
@@ -78,10 +89,14 @@ function normalizeAddressParts(raw: unknown): Nar1AddressParts | undefined {
   const street = typeof record.street === "string" ? record.street.trim() : ""
   const district = typeof record.district === "string" ? record.district.trim() : ""
   const country = typeof record.country === "string" ? record.country.trim() : ""
+  const area = normalizeOcrArea(record.area)
+  const districtKey = typeof record.districtKey === "string" ? record.districtKey.trim() : undefined
 
-  if (!flatFloorBlock && !building && !street && !district && !country) return undefined
+  if (!flatFloorBlock && !building && !street && !district && !country && !area && !districtKey) {
+    return undefined
+  }
 
-  return { flatFloorBlock, building, street, district, country }
+  return { flatFloorBlock, building, street, district, country, area, districtKey }
 }
 
 function normalizeDirector(raw: unknown): Nar1Director | null {
