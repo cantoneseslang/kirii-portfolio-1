@@ -142,43 +142,44 @@
   background: #a8a8a8;
 }
 
-/* ニュースティッカーのアニメーション */
-@keyframes marquee {
+/* ニュースティッカー（モバイルでも全文が横スクロールで見える） */
+@keyframes news-ticker-scroll {
   0% {
-    transform: translateX(-100%);
+    transform: translateX(0);
   }
   100% {
-    transform: translateX(100%);
+    transform: translateX(-50%);
   }
 }
 
-.news-ticker-content {
-  display: inline-flex;
-  width: 200%;
-  overflow: hidden;
+.news-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: news-ticker-scroll 45s linear infinite;
 }
 
-/* モバイルでの2行制限を確実にする */
-@media (max-width: 768px) {
-  .news-ticker-content {
-    max-height: 3rem;
-    line-height: 1.5;
-    overflow: hidden;
-  }
-  
-  .news-ticker-content span {
-    display: block;
-    max-height: 3rem;
-    overflow: hidden;
-  }
-}
-
-.animate-marquee {
-  display: inline-block;
-  animation: marquee 37.5s linear infinite; /* 75s * 0.5 = 37.5s (50% faster) */
-  width: 50%;
-  padding-left: 1rem;
+.news-ticker-item {
+  flex-shrink: 0;
+  padding-right: 3rem;
   white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .news-ticker-track {
+    animation: none;
+    width: 100%;
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
+  }
+
+  .news-ticker-item {
+    white-space: normal;
+    padding-right: 0;
+  }
+
+  .news-ticker-item[aria-hidden="true"] {
+    display: none;
+  }
 }
 
 @keyframes jello-vertical {
