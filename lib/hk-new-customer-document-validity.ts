@@ -116,6 +116,51 @@ export function brNumbersMatch(formBrNumber: string, certificateBrNumber: string
   return formCore === certCore
 }
 
+export type DocumentCrossCheck = {
+  matches: boolean
+  scannedDisplay: string
+  referenceDisplay: string
+}
+
+export function checkCiCompanyNameAgainstBr(
+  ciCompanyEn: string,
+  ciCompanyZh: string | undefined,
+  brCompanyEn: string,
+  brCompanyZh: string | undefined,
+): DocumentCrossCheck | null {
+  const ciEn = ciCompanyEn.trim()
+  const ciZh = ciCompanyZh?.trim() || ""
+  const brEn = brCompanyEn.trim()
+  const brZh = brCompanyZh?.trim() || ""
+
+  if ((!ciEn && !ciZh) || (!brEn && !brZh)) return null
+
+  const matches = brCertificateNameMatchesForm(ciEn, ciZh, brEn, brZh)
+  const scannedParts = [ciEn && `EN: ${ciEn}`, ciZh && `中文: ${ciZh}`].filter(Boolean)
+  const referenceParts = [brEn && `EN: ${brEn}`, brZh && `中文: ${brZh}`].filter(Boolean)
+
+  return {
+    matches,
+    scannedDisplay: scannedParts.join(" · ") || ciEn || ciZh,
+    referenceDisplay: referenceParts.join(" · ") || brEn || brZh,
+  }
+}
+
+export function checkNar1BrAgainstBrCertificate(
+  nar1BrNumber: string,
+  brCertificateBrNumber: string,
+): DocumentCrossCheck | null {
+  const nar1Core = extractBrCoreNumber(nar1BrNumber)
+  const brCore = extractBrCoreNumber(brCertificateBrNumber)
+  if (!nar1Core || !brCore) return null
+
+  return {
+    matches: brNumbersMatch(nar1Core, brCore),
+    scannedDisplay: nar1Core,
+    referenceDisplay: brCore,
+  }
+}
+
 export function validateBrDocument(
   br: BrDocumentValidity | undefined,
   formBrNumber: string,

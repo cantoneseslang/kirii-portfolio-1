@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { DocumentFileInput } from "@/components/document-file-input"
+import { DocumentCrossCheckBanner } from "@/components/document-cross-check-banner"
 import type { CiDocumentValidity } from "@/types/hk-new-customer"
 import {
+  checkCiCompanyNameAgainstBr,
   formatDocumentDateLabel,
   MANDATORY_DOCUMENT_DATE_RULES,
   normalizeCiCertificateNumber,
@@ -52,6 +54,22 @@ export function CiDocumentSlot({
     Boolean(validity.issueDate) &&
     Boolean(validity.certificateNumber.trim()) &&
     Boolean(validity.certificateCompanyNameEn.trim() || validity.certificateCompanyNameZh?.trim())
+
+  const ciBrNameCrossCheck = useMemo(
+    () =>
+      checkCiCompanyNameAgainstBr(
+        validity.certificateCompanyNameEn,
+        validity.certificateCompanyNameZh,
+        brCertificateCompanyNameEn,
+        brCertificateCompanyNameZh,
+      ),
+    [
+      validity.certificateCompanyNameEn,
+      validity.certificateCompanyNameZh,
+      brCertificateCompanyNameEn,
+      brCertificateCompanyNameZh,
+    ],
+  )
 
   const runOcr = async (targetFile: File) => {
     setOcrLoading(true)
@@ -169,6 +187,17 @@ export function CiDocumentSlot({
             Center of CI certificate. Must match BR certificate name (English or Chinese, fuzzy) /
             證明書中央公司名稱，須與 BR 證件英文或中文公司名稱一致（容許 HK/Hong Kong、Ltd/Co. 等差異）
           </p>
+          <DocumentCrossCheckBanner
+            check={ciBrNameCrossCheck}
+            matchTextEn="Matches BR certificate company name"
+            matchTextZh="與 BR 證件公司名稱一致"
+            mismatchTextEn="Does not match BR certificate company name"
+            mismatchTextZh="與 BR 證件公司名稱不一致"
+            scannedLabelEn="CI scan"
+            scannedLabelZh="CI 掃描"
+            referenceLabelEn="BR certificate"
+            referenceLabelZh="BR 證件"
+          />
         </div>
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="ci-certificate-company-zh">

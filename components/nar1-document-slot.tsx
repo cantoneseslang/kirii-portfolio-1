@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { DocumentFileInput } from "@/components/document-file-input"
+import { DocumentCrossCheckBanner } from "@/components/document-cross-check-banner"
 import type { Nar1Director, Nar1DocumentValidity } from "@/types/hk-new-customer"
 import {
+  checkNar1BrAgainstBrCertificate,
   extractBrCoreNumber,
   formatDocumentDateLabel,
   MANDATORY_DOCUMENT_DATE_RULES,
@@ -71,6 +73,12 @@ export function Nar1DocumentSlot({
     Boolean(validity.companyNameEn.trim()) &&
     Boolean(validity.shareCapital.trim()) &&
     validity.directors.length > 0
+
+  const nar1BrCrossCheck = useMemo(
+    () =>
+      checkNar1BrAgainstBrCertificate(validity.businessRegistrationNumber, brCertificateBrNumber),
+    [validity.businessRegistrationNumber, brCertificateBrNumber],
+  )
 
   const runOcr = async (targetFile: File) => {
     setOcrLoading(true)
@@ -207,6 +215,17 @@ export function Nar1DocumentSlot({
             Must match BR certificate and Part 2 (8-digit core) / 須與 BR 證件及 Part 2
             商業登記號碼一致
           </p>
+          <DocumentCrossCheckBanner
+            check={nar1BrCrossCheck}
+            matchTextEn="Matches BR certificate"
+            matchTextZh="與 BR 證件一致"
+            mismatchTextEn="Does not match BR certificate"
+            mismatchTextZh="與 BR 證件不一致"
+            scannedLabelEn="NAR1 scan"
+            scannedLabelZh="NAR1 掃描"
+            referenceLabelEn="BR certificate"
+            referenceLabelZh="BR 證件"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="nar1-made-up-to">
