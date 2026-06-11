@@ -83,9 +83,7 @@ export type CiDocumentValidity = {
   certificateCompanyNameZh?: string
 }
 
-export type Nar1Director = {
-  nameEn: string
-  nameZh?: string
+export type Nar1AddressParts = {
   flatFloorBlock: string
   building: string
   street: string
@@ -93,11 +91,20 @@ export type Nar1Director = {
   country: string
 }
 
+export type Nar1Director = Nar1AddressParts & {
+  nameEn: string
+  nameEnFirst?: string
+  nameEnLast?: string
+  nameZh?: string
+}
+
 export type Nar1DocumentValidity = {
   madeUpToDate: string
   businessRegistrationNumber: string
   companyNameEn: string
+  companyNameZh?: string
   shareCapital: string
+  registeredOffice?: Nar1AddressParts
   directors: Nar1Director[]
 }
 

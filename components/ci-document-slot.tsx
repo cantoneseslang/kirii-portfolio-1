@@ -22,6 +22,7 @@ type CiDocumentSlotProps = {
   validity: CiDocumentValidity
   onFileChange: (file: File | null) => void
   onValidityChange: (value: CiDocumentValidity) => void
+  onScanAutofill?: (issueDate?: string, companyNameZh?: string) => void
   showValidation?: boolean
 }
 
@@ -34,6 +35,7 @@ export function CiDocumentSlot({
   validity,
   onFileChange,
   onValidityChange,
+  onScanAutofill,
   showValidation = false,
 }: CiDocumentSlotProps) {
   const [ocrLoading, setOcrLoading] = useState(false)
@@ -78,6 +80,10 @@ export function CiDocumentSlot({
         certificateCompanyNameZh:
           extracted.certificateCompanyNameZh || validity.certificateCompanyNameZh,
       })
+      onScanAutofill?.(
+        extracted.issueDate || validity.issueDate,
+        extracted.certificateCompanyNameZh || validity.certificateCompanyNameZh,
+      )
       setOcrMessage("Scanned from certificate / 已從證件自動讀取（可手動修正）")
     } catch (scanError) {
       const message =

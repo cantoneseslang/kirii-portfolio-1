@@ -43,6 +43,12 @@ import { CiDocumentSlot } from "@/components/ci-document-slot"
 import { Nar1DocumentSlot } from "@/components/nar1-document-slot"
 import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
 import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
+import {
+  fillIfEmpty,
+  isStructuredAddressEmpty,
+  mergeDirectorsIntoContacts,
+  pickRegisteredAddressFromNar1,
+} from "@/lib/hk-new-customer-document-autofill"
 import type {
   BrDocumentValidity,
   CiDocumentValidity,
@@ -259,6 +265,28 @@ export default function NewCustomerSettingPage() {
       return next
     })
   }
+
+  const applyNar1ScanAutofill = useCallback((validity: Nar1DocumentValidity) => {
+    setCompanyNameEn((current) => fillIfEmpty(current, validity.companyNameEn))
+    setCompanyNameZh((current) => fillIfEmpty(current, validity.companyNameZh))
+    setBrNumber((current) => fillIfEmpty(current, validity.businessRegistrationNumber))
+    const registered = pickRegisteredAddressFromNar1(validity)
+    if (registered) {
+      setRegisteredAddressDetail((current) =>
+        isStructuredAddressEmpty(current) ? registered : current,
+      )
+    }
+    setContacts((current) => mergeDirectorsIntoContacts(current, validity.directors, EMPTY_CONTACT))
+  }, [])
+
+  const applyCiScanAutofill = useCallback((issueDate?: string, companyNameZh?: string) => {
+    if (issueDate) {
+      setIncorporationDate((current) => fillIfEmpty(current, issueDate))
+    }
+    if (companyNameZh) {
+      setCompanyNameZh((current) => fillIfEmpty(current, companyNameZh))
+    }
+  }, [])
 
   const invoiceDelivery = useMemo(() => {
     const values: ("email" | "post")[] = []
@@ -581,7 +609,207 @@ export default function NewCustomerSettingPage() {
           <form className="space-y-6" onSubmit={(event) => handleSubmit(event, "submitted")}>
             <Card>
               <CardHeader>
+                <CardTitle>Part 5: Required Documents / 必須附帶文件</CardTitle>
+                <CardDescription>
+                  Upload mandatory documents first — scanning will auto-fill company details, registered address,
+                  and director contacts below when those fields are still empty. Bank proof is optional. /
+                  請先上載必須文件；掃描後會自動填入下方空白的公司資料、註冊地址及董事聯絡人。銀行戶口證明為可選。
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {brDocument && (
+                  <BrDocumentSlot
+                    labelEn={brDocument.labelEn}
+                    labelZh={brDocument.labelZh}
+                    formBrNumber={brNumber}
+                    formCompanyNameEn={companyNameEn}
+                    formCompanyNameZh={companyNameZh}
+                    file={attachmentFiles.br || null}
+                    validity={documentValidityDates.br || EMPTY_BR_VALIDITY}
+                    showValidation={showDocumentValidation}
+                    onFileChange={(nextFile) =>
+                      setAttachmentFiles((prev) => ({
+                        ...prev,
+                        br: nextFile,
+                      }))
+                    }
+                    onValidityChange={(value) =>
+                      setDocumentValidityDates((prev) => ({
+                        ...prev,
+                        br: value,
+                      }))
+                    }
+                    onFormBrNumberSuggest={(coreBrNumber) => {
+                      setBrNumber((current) => fillIfEmpty(current, coreBrNumber))
+                    }}
+                    onFormCompanyNameEnSuggest={(name) => {
+                      setCompanyNameEn((current) => fillIfEmpty(current, name))
+                    }}
+                    onFormCompanyNameZhSuggest={(name) => {
+                      setCompanyNameZh((current) => fillIfEmpty(current, name))
+                    }}
+                  />
+                )}
+
+                {ciDocument && (
+                  <CiDocumentSlot
+                    labelEn={ciDocument.labelEn}
+                    labelZh={ciDocument.labelZh}
+                    brCertificateCompanyNameEn={
+                      documentValidityDates.br?.certificateCompanyNameEn || ""
+                    }
+                    brCertificateCompanyNameZh={
+                      documentValidityDates.br?.certificateCompanyNameZh || ""
+                    }
+                    file={attachmentFiles.ci || null}
+                    validity={
+                      typeof documentValidityDates.ci === "object" && documentValidityDates.ci
+                        ? documentValidityDates.ci
+                        : {
+                            ...EMPTY_CI_VALIDITY,
+                            issueDate:
+                              typeof documentValidityDates.ci === "string"
+                                ? documentValidityDates.ci
+                                : "",
+                          }
+                    }
+                    showValidation={showDocumentValidation}
+                    onFileChange={(nextFile) =>
+                      setAttachmentFiles((prev) => ({
+                        ...prev,
+                        ci: nextFile,
+                      }))
+                    }
+                    onValidityChange={(value) =>
+                      setDocumentValidityDates((prev) => ({
+                        ...prev,
+                        ci: value,
+                      }))
+                    }
+                    onScanAutofill={applyCiScanAutofill}
+                  />
+                )}
+
+                {nar1Document && (
+                  <Nar1DocumentSlot
+                    labelEn={nar1Document.labelEn}
+                    labelZh={nar1Document.labelZh}
+                    formBrNumber={brNumber}
+                    formCompanyNameEn={companyNameEn}
+                    brCertificateBrNumber={documentValidityDates.br?.certificateBrNumber || ""}
+                    file={attachmentFiles.nar1 || null}
+                    validity={
+                      typeof documentValidityDates.nar1 === "object" && documentValidityDates.nar1
+                        ? documentValidityDates.nar1
+                        : {
+                            ...EMPTY_NAR1_VALIDITY,
+                            madeUpToDate:
+                              typeof documentValidityDates.nar1 === "string"
+                                ? documentValidityDates.nar1
+                                : "",
+                          }
+                    }
+                    showValidation={showDocumentValidation}
+                    onFileChange={(nextFile) =>
+                      setAttachmentFiles((prev) => ({
+                        ...prev,
+                        nar1: nextFile,
+                      }))
+                    }
+                    onValidityChange={(value) =>
+                      setDocumentValidityDates((prev) => ({
+                        ...prev,
+                        nar1: value,
+                      }))
+                    }
+                    onFormBrNumberSuggest={(coreBrNumber) => {
+                      setBrNumber((current) => fillIfEmpty(current, coreBrNumber))
+                    }}
+                    onFormCompanyNameSuggest={(name) => {
+                      setCompanyNameEn((current) => fillIfEmpty(current, name))
+                    }}
+                    onScanAutofill={applyNar1ScanAutofill}
+                  />
+                )}
+
+                {mandatoryDocumentSlots.map((doc) => (
+                  <MandatoryDocumentSlot
+                    key={doc.key}
+                    docKey={doc.key}
+                    labelEn={doc.labelEn}
+                    labelZh={doc.labelZh}
+                    file={attachmentFiles[doc.key] || null}
+                    validityDate={
+                      typeof documentValidityDates[doc.key as keyof DocumentValidityDates] === "string"
+                        ? (documentValidityDates[doc.key as keyof DocumentValidityDates] as string)
+                        : ""
+                    }
+                    showValidation={showDocumentValidation}
+                    onFileChange={(nextFile) =>
+                      setAttachmentFiles((prev) => ({
+                        ...prev,
+                        [doc.key]: nextFile,
+                      }))
+                    }
+                    onValidityDateChange={(value) =>
+                      setDocumentValidityDates((prev) => ({
+                        ...prev,
+                        [doc.key]: value,
+                      }))
+                    }
+                  />
+                ))}
+
+                {bankProofDocument && (
+                  <div className="space-y-3 rounded-lg border border-dashed p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-medium">{bankProofDocument.labelEn}</div>
+                        <div className="text-sm text-muted-foreground">{bankProofDocument.labelZh}</div>
+                        <div className="text-xs text-muted-foreground mt-1">Optional / 可選</div>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                        {attachmentFiles.bank_proof ? "Uploaded / 已上載" : "Optional / 可選"}
+                      </span>
+                    </div>
+                    <DocumentFileInput
+                      className="w-full max-w-md"
+                      value={attachmentFiles.bank_proof || null}
+                      onChange={(file) =>
+                        setAttachmentFiles((prev) => ({
+                          ...prev,
+                          bank_proof: file,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
+                <div className="space-y-3 rounded-lg border border-dashed p-4">
+                  <div>
+                    <div className="font-medium">Other Supporting Document / 其他附件</div>
+                    <div className="text-sm text-muted-foreground">Optional / 可選</div>
+                  </div>
+                  <DocumentFileInput
+                    className="w-full max-w-md"
+                    value={attachmentFiles.other || null}
+                    onChange={(file) =>
+                      setAttachmentFiles((prev) => ({
+                        ...prev,
+                        other: file,
+                      }))
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Part 1: Company Information / 公司基本資料</CardTitle>
+                <CardDescription>
+                  Auto-filled from scanned documents when empty. Enter delivery address manually. /
+                  空白欄位會由掃描文件自動填入。送貨地址請手動填寫。
+                </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
@@ -632,7 +860,9 @@ export default function NewCustomerSettingPage() {
                 <CardTitle>Part 2: Contact Information / 聯絡資料</CardTitle>
                 <CardDescription>
                   Primary contacts must use full legal names in English (given name, middle name, surname) and
-                  Chinese. Nicknames are not allowed. / 必須分別填寫英文名字、中間名、姓氏及中文姓名全名，嚴禁使用花名。
+                  Chinese. Nicknames are not allowed. Directors from NAR1 scan auto-fill the first contacts;
+                  add or edit remaining contacts manually. /
+                  必須分別填寫英文名字、中間名、姓氏及中文姓名全名，嚴禁使用花名。周年申報表掃描後會自動填入董事至首選聯絡人，其餘請手動填寫。
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -784,196 +1014,6 @@ export default function NewCustomerSettingPage() {
                       onChange={(e) => setPaymentTermsOther(e.target.value)}
                     />
                   )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Part 5: Required Documents / 必須附帶文件</CardTitle>
-                <CardDescription>
-                  Upload each mandatory document and enter its date or validity. Bank proof is optional. /
-                  請上載必須文件並填寫日期或有效期限。銀行戶口證明為可選。
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {brDocument && (
-                  <BrDocumentSlot
-                    labelEn={brDocument.labelEn}
-                    labelZh={brDocument.labelZh}
-                    formBrNumber={brNumber}
-                    formCompanyNameEn={companyNameEn}
-                    formCompanyNameZh={companyNameZh}
-                    file={attachmentFiles.br || null}
-                    validity={documentValidityDates.br || EMPTY_BR_VALIDITY}
-                    showValidation={showDocumentValidation}
-                    onFileChange={(nextFile) =>
-                      setAttachmentFiles((prev) => ({
-                        ...prev,
-                        br: nextFile,
-                      }))
-                    }
-                    onValidityChange={(value) =>
-                      setDocumentValidityDates((prev) => ({
-                        ...prev,
-                        br: value,
-                      }))
-                    }
-                    onFormBrNumberSuggest={(coreBrNumber) => {
-                      setBrNumber((current) => (current.trim() ? current : coreBrNumber))
-                    }}
-                    onFormCompanyNameEnSuggest={(name) => {
-                      setCompanyNameEn((current) => (current.trim() ? current : name))
-                    }}
-                  />
-                )}
-
-                {ciDocument && (
-                  <CiDocumentSlot
-                    labelEn={ciDocument.labelEn}
-                    labelZh={ciDocument.labelZh}
-                    brCertificateCompanyNameEn={
-                      documentValidityDates.br?.certificateCompanyNameEn || ""
-                    }
-                    brCertificateCompanyNameZh={
-                      documentValidityDates.br?.certificateCompanyNameZh || ""
-                    }
-                    file={attachmentFiles.ci || null}
-                    validity={
-                      typeof documentValidityDates.ci === "object" && documentValidityDates.ci
-                        ? documentValidityDates.ci
-                        : {
-                            ...EMPTY_CI_VALIDITY,
-                            issueDate:
-                              typeof documentValidityDates.ci === "string"
-                                ? documentValidityDates.ci
-                                : "",
-                          }
-                    }
-                    showValidation={showDocumentValidation}
-                    onFileChange={(nextFile) =>
-                      setAttachmentFiles((prev) => ({
-                        ...prev,
-                        ci: nextFile,
-                      }))
-                    }
-                    onValidityChange={(value) =>
-                      setDocumentValidityDates((prev) => ({
-                        ...prev,
-                        ci: value,
-                      }))
-                    }
-                  />
-                )}
-
-                {nar1Document && (
-                  <Nar1DocumentSlot
-                    labelEn={nar1Document.labelEn}
-                    labelZh={nar1Document.labelZh}
-                    formBrNumber={brNumber}
-                    formCompanyNameEn={companyNameEn}
-                    brCertificateBrNumber={documentValidityDates.br?.certificateBrNumber || ""}
-                    file={attachmentFiles.nar1 || null}
-                    validity={
-                      typeof documentValidityDates.nar1 === "object" && documentValidityDates.nar1
-                        ? documentValidityDates.nar1
-                        : {
-                            ...EMPTY_NAR1_VALIDITY,
-                            madeUpToDate:
-                              typeof documentValidityDates.nar1 === "string"
-                                ? documentValidityDates.nar1
-                                : "",
-                          }
-                    }
-                    showValidation={showDocumentValidation}
-                    onFileChange={(nextFile) =>
-                      setAttachmentFiles((prev) => ({
-                        ...prev,
-                        nar1: nextFile,
-                      }))
-                    }
-                    onValidityChange={(value) =>
-                      setDocumentValidityDates((prev) => ({
-                        ...prev,
-                        nar1: value,
-                      }))
-                    }
-                    onFormBrNumberSuggest={(coreBrNumber) => {
-                      setBrNumber((current) => (current.trim() ? current : coreBrNumber))
-                    }}
-                    onFormCompanyNameSuggest={(name) => {
-                      setCompanyNameEn((current) => (current.trim() ? current : name))
-                    }}
-                  />
-                )}
-
-                {mandatoryDocumentSlots.map((doc) => (
-                  <MandatoryDocumentSlot
-                    key={doc.key}
-                    docKey={doc.key}
-                    labelEn={doc.labelEn}
-                    labelZh={doc.labelZh}
-                    file={attachmentFiles[doc.key] || null}
-                    validityDate={
-                      typeof documentValidityDates[doc.key as keyof DocumentValidityDates] === "string"
-                        ? (documentValidityDates[doc.key as keyof DocumentValidityDates] as string)
-                        : ""
-                    }
-                    showValidation={showDocumentValidation}
-                    onFileChange={(nextFile) =>
-                      setAttachmentFiles((prev) => ({
-                        ...prev,
-                        [doc.key]: nextFile,
-                      }))
-                    }
-                    onValidityDateChange={(value) =>
-                      setDocumentValidityDates((prev) => ({
-                        ...prev,
-                        [doc.key]: value,
-                      }))
-                    }
-                  />
-                ))}
-
-                {bankProofDocument && (
-                  <div className="space-y-3 rounded-lg border border-dashed p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="font-medium">{bankProofDocument.labelEn}</div>
-                        <div className="text-sm text-muted-foreground">{bankProofDocument.labelZh}</div>
-                        <div className="text-xs text-muted-foreground mt-1">Optional / 可選</div>
-                      </div>
-                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                        {attachmentFiles.bank_proof ? "Uploaded / 已上載" : "Optional / 可選"}
-                      </span>
-                    </div>
-                    <DocumentFileInput
-                      className="w-full max-w-md"
-                      value={attachmentFiles.bank_proof || null}
-                      onChange={(file) =>
-                        setAttachmentFiles((prev) => ({
-                          ...prev,
-                          bank_proof: file,
-                        }))
-                      }
-                    />
-                  </div>
-                )}
-                <div className="space-y-3 rounded-lg border border-dashed p-4">
-                  <div>
-                    <div className="font-medium">Other Supporting Document / 其他附件</div>
-                    <div className="text-sm text-muted-foreground">Optional / 可選</div>
-                  </div>
-                  <DocumentFileInput
-                    className="w-full max-w-md"
-                    value={attachmentFiles.other || null}
-                    onChange={(file) =>
-                      setAttachmentFiles((prev) => ({
-                        ...prev,
-                        other: file,
-                      }))
-                    }
-                  />
                 </div>
               </CardContent>
             </Card>

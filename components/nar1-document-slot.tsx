@@ -35,6 +35,7 @@ type Nar1DocumentSlotProps = {
   onValidityChange: (value: Nar1DocumentValidity) => void
   onFormBrNumberSuggest?: (coreBrNumber: string) => void
   onFormCompanyNameSuggest?: (companyNameEn: string) => void
+  onScanAutofill?: (validity: Nar1DocumentValidity) => void
   showValidation?: boolean
 }
 
@@ -50,6 +51,7 @@ export function Nar1DocumentSlot({
   onValidityChange,
   onFormBrNumberSuggest,
   onFormCompanyNameSuggest,
+  onScanAutofill,
   showValidation = false,
 }: Nar1DocumentSlotProps) {
   const [ocrLoading, setOcrLoading] = useState(false)
@@ -92,13 +94,16 @@ export function Nar1DocumentSlot({
         madeUpToDate: extracted.madeUpToDate || validity.madeUpToDate,
         businessRegistrationNumber: coreBrNumber || validity.businessRegistrationNumber,
         companyNameEn: extracted.companyNameEn || validity.companyNameEn,
+        companyNameZh: extracted.companyNameZh || validity.companyNameZh,
         shareCapital: extracted.shareCapital || validity.shareCapital,
+        registeredOffice: extracted.registeredOffice || validity.registeredOffice,
         directors:
           extracted.directors?.length > 0 ? extracted.directors : validity.directors,
       }
       onValidityChange(nextValidity)
       if (coreBrNumber) onFormBrNumberSuggest?.(coreBrNumber)
       if (extracted.companyNameEn) onFormCompanyNameSuggest?.(extracted.companyNameEn)
+      onScanAutofill?.(nextValidity)
       setOcrMessage("Scanned from NAR1 / 已從周年申報表自動讀取（可手動修正）")
     } catch (scanError) {
       const message =

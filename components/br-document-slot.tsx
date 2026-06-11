@@ -20,6 +20,7 @@ type BrDocumentSlotProps = {
   onValidityChange: (value: BrDocumentValidity) => void
   onFormBrNumberSuggest?: (coreBrNumber: string) => void
   onFormCompanyNameEnSuggest?: (companyNameEn: string) => void
+  onFormCompanyNameZhSuggest?: (companyNameZh: string) => void
   showValidation?: boolean
 }
 
@@ -35,6 +36,7 @@ export function BrDocumentSlot({
   onValidityChange,
   onFormBrNumberSuggest,
   onFormCompanyNameEnSuggest,
+  onFormCompanyNameZhSuggest,
   showValidation = false,
 }: BrDocumentSlotProps) {
   const [ocrLoading, setOcrLoading] = useState(false)
@@ -87,6 +89,9 @@ export function BrDocumentSlot({
       }
       if (extracted.certificateCompanyNameEn) {
         onFormCompanyNameEnSuggest?.(extracted.certificateCompanyNameEn)
+      }
+      if (extracted.certificateCompanyNameZh) {
+        onFormCompanyNameZhSuggest?.(extracted.certificateCompanyNameZh)
       }
       setOcrMessage("Scanned from certificate / 已從證件自動讀取（可手動修正）")
     } catch (scanError) {
