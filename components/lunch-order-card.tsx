@@ -1,10 +1,24 @@
 "use client"
 
-import React from 'react';
+import React from "react"
+import { getLunchOrderApiBaseUrl, resolveLunchMemberId } from "@/lib/lunch-member"
 
-const LunchOrderCard = () => {
+type LunchOrderCardProps = {
+  fullName?: string | null
+  email?: string | null
+}
+
+const LunchOrderCard = ({ fullName, email }: LunchOrderCardProps) => {
+  const params = new URLSearchParams()
+  params.set("source", "kirii-portfolio")
+  if (fullName) params.set("full_name", fullName)
+  if (email) params.set("email", email)
+  const memberId = resolveLunchMemberId(fullName)
+  if (memberId) params.set("member_id", memberId)
+  const lunchOrderUrl = `${getLunchOrderApiBaseUrl()}/?${params.toString()}`
+
   return (
-    <a href="https://v0-random-ui-example.vercel.app/" target="_blank" rel="noopener" className="block w-full">
+    <a href={lunchOrderUrl} target="_blank" rel="noopener" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
         <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Lunch Order System</h3>
         <p className="text-[#3c3852] text-sm mt-4">午餐訂購系統</p>

@@ -31,6 +31,7 @@ import FormMasterCard from "@/components/form-master-card";
 import HkdRmbRateCard from "@/components/hkd-rmb-rate-card";
 import NewCustomerSettingCard from "@/components/new-customer-setting-card";
 import NewCustomerApprovalsCard from "@/components/new-customer-approvals-card";
+import { DashboardPersonalSummary } from "@/components/dashboard-personal-summary";
 import { isBlockedAuthEmail } from "@/lib/blocked-auth-emails";
 import { getApproverRole } from "@/lib/hk-new-customer-approval";
 
@@ -174,6 +175,13 @@ export default function DashboardPage() {
         heading="Dashboard"
         text={`Welcome, ${profile?.full_name || "User"}${isBypassMode ? " (Demo Mode)" : ""}`}
       />
+
+      {!isBypassMode && (
+        <DashboardPersonalSummary
+          email={user?.email || null}
+          fullName={profile?.full_name || (user?.user_metadata?.full_name as string | undefined) || null}
+        />
+      )}
 
       <HkdRmbRateCard />
       <SteelPriceChartCard />

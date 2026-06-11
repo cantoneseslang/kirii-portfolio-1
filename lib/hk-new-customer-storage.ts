@@ -136,6 +136,23 @@ export async function listPendingApprovalsForEmail(email: string): Promise<HkNew
   return registrations.filter((item): item is HkNewCustomerRegistration => Boolean(item))
 }
 
+export async function listSubmissionsForEmail(email: string): Promise<HkNewCustomerIndexItem[]> {
+  const normalized = email.trim().toLowerCase()
+  if (!normalized) return []
+
+  const index = await getIndex()
+  return index.items
+    .filter(
+      (item) =>
+        item.submitterEmail?.trim().toLowerCase() === normalized &&
+        item.status === "submitted" &&
+        item.approvalStatus &&
+        item.approvalStatus !== "approved" &&
+        item.approvalStatus !== "rejected",
+    )
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
 export async function uploadCompletedForm(params: {
   registrationId: string
   fileName: string
