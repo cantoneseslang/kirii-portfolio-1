@@ -9,7 +9,7 @@ import { getAttachmentTypeLabel, getMandatoryAttachmentKeys } from "@/types/hk-n
 
 export const DOCUMENT_VALIDITY_WINDOW_DAYS = 365
 
-export type DocumentDateValidationMode = "issued_within_year"
+export type DocumentDateValidationMode = "issued_within_year" | "issue_date_only"
 
 export type MandatoryDocumentDateRule = {
   dateLabelEn: string
@@ -23,9 +23,9 @@ export const MANDATORY_DOCUMENT_DATE_RULES: Record<string, MandatoryDocumentDate
   ci: {
     dateLabelEn: "Issue Date",
     dateLabelZh: "簽發日期",
-    mode: "issued_within_year",
-    helperEn: "Must be dated within the last 12 months.",
-    helperZh: "須為過去12個月內簽發。",
+    mode: "issue_date_only",
+    helperEn: "Enter the issue date shown on the CI. No expiry applies.",
+    helperZh: "請填寫公司註冊證明書上的簽發日期。CI 沒有有效期限。",
   },
   nar1: {
     dateLabelEn: "Made Up To",
@@ -212,11 +212,19 @@ export function validateDocumentDate(
       messageZh: "日期不可為未來日期。",
     }
   }
-  if (ageDays > DOCUMENT_VALIDITY_WINDOW_DAYS) {
+  if (rule.mode === "issued_within_year" && ageDays > DOCUMENT_VALIDITY_WINDOW_DAYS) {
     return {
       valid: false,
       messageEn: `Document is older than ${DOCUMENT_VALIDITY_WINDOW_DAYS} days.`,
       messageZh: `文件日期超過${DOCUMENT_VALIDITY_WINDOW_DAYS}天。`,
+    }
+  }
+
+  if (rule.mode === "issue_date_only") {
+    return {
+      valid: true,
+      messageEn: "Issue date recorded / 已記錄簽發日期",
+      messageZh: "Issue date recorded / 已記錄簽發日期",
     }
   }
 
@@ -272,8 +280,8 @@ export function validateCiDocument(
 
   return {
     valid: true,
-    messageEn: `CI No. ${certificateNumber} · Within 12 months / 編號 ${certificateNumber} · 12個月內`,
-    messageZh: `CI No. ${certificateNumber} · Within 12 months / 編號 ${certificateNumber} · 12個月內`,
+    messageEn: `CI No. ${certificateNumber} / 編號 ${certificateNumber}`,
+    messageZh: `CI No. ${certificateNumber} / 編號 ${certificateNumber}`,
   }
 }
 
