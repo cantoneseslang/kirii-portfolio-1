@@ -233,16 +233,16 @@
   vertical-align: middle;
   background: linear-gradient(
     165deg,
-    color-mix(in srgb, #f0c060 42%, #1a4a72) 0%,
-    color-mix(in srgb, #e8b840 28%, #02315a) 48%,
+    color-mix(in srgb, #7eb8e8 28%, #2a5580) 0%,
+    color-mix(in srgb, #5a9fd4 18%, #02315a) 48%,
     #012040 100%
   );
   box-shadow:
-    0 0 10px rgba(255, 200, 110, 0.55),
-    0 0 3px rgba(255, 220, 150, 0.45),
-    inset 0 0 0 2px rgba(255, 220, 150, 0.38),
-    inset 0 0 12px rgba(255, 200, 120, 0.16),
-    inset 0 -2px 0 0 rgba(255, 220, 150, 0.32);
+    0 0 10px rgba(100, 180, 255, 0.45),
+    0 0 3px rgba(140, 200, 255, 0.38),
+    inset 0 0 0 2px rgba(140, 220, 255, 0.34),
+    inset 0 0 12px rgba(100, 180, 255, 0.14),
+    inset 0 -2px 0 0 rgba(140, 220, 255, 0.28);
 }
 
 .new-feature-glow-badge::before {
@@ -256,11 +256,11 @@
   background: conic-gradient(
     from var(--new-feature-trail-angle),
     transparent 0deg 318deg,
-    rgba(255, 220, 150, 0.08) 318deg 328deg,
-    rgba(255, 236, 190, 0.45) 332deg 342deg,
+    rgba(120, 220, 255, 0.08) 318deg 328deg,
+    rgba(170, 245, 255, 0.45) 332deg 342deg,
     rgba(255, 255, 255, 1) 346deg,
-    rgba(255, 248, 220, 0.92) 350deg,
-    rgba(255, 220, 150, 0.35) 356deg,
+    rgba(210, 250, 255, 0.92) 350deg,
+    rgba(120, 220, 255, 0.35) 356deg,
     transparent 360deg
   );
   -webkit-mask:
