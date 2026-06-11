@@ -1,8 +1,11 @@
 import type { AddressRegion } from "@/types/hk-new-customer"
 
+export type CustomerRequestEmailCustomerType = "new" | "existing"
+
 export type CustomerRequestEmailOptions = {
   salesRepName?: string
   salesRepEmail?: string
+  customerType?: CustomerRequestEmailCustomerType
 }
 
 function signatureBlock(options: CustomerRequestEmailOptions): string {
@@ -13,17 +16,49 @@ function signatureBlock(options: CustomerRequestEmailOptions): string {
   return lines.join("\n")
 }
 
-export function buildHongKongCustomerRequestEmail(options: CustomerRequestEmailOptions = {}): string {
-  return `Subject: Kirii New Customer Registration – Required Documents / 新客戶登記所需文件及資料
+function subjectLine(customerType: CustomerRequestEmailCustomerType): string {
+  if (customerType === "existing") {
+    return "Subject: Kirii Customer Record Update – Required Documents / 客戶資料更新所需文件"
+  }
+  return "Subject: Kirii New Customer Registration – Required Documents / 新客戶登記所需文件及資料"
+}
 
-Dear Sir/Madam / 尊貴的客戶：
+function introBlock(customerType: CustomerRequestEmailCustomerType): string {
+  if (customerType === "existing") {
+    return `Dear Sir/Madam / 尊貴的客戶：
+
+In line with management enhancement by our parent company, Kirii Manufacturing Co., Ltd. (株式会社桐井製作所), we are updating our customer records. Even if you are an existing customer, we kindly ask you to provide the documents and company information listed below (scanned PDF or clear photos) so that we can complete the registration update on our side.
+
+因敝日本公司 株式会社桐井製作所 加強公司管理之需要，現正更新客戶檔案。即使 貴我雙方已有業務往來，亦懇請 貴司配合準備以下文件及公司資料（清晰掃描副本 PDF 或照片），以便敝司辦理登記更新手續。`
+  }
+
+  return `Dear Sir/Madam / 尊貴的客戶：
 
 Thank you for your interest in trading with Kirii (Hong Kong) Limited.
 To complete new customer registration, please reply to this email with the documents and company information listed below (scanned PDF or clear photos).
 
-感謝您有意與桐井（香港）有限公司建立業務關係。為完成新客戶登記，請回覆本電郵，並提供以下文件及公司資料（清晰掃描副本 PDF 或照片）。
+感謝您有意與桐井（香港）有限公司建立業務關係。為完成新客戶登記，請回覆本電郵，並提供以下文件及公司資料（清晰掃描副本 PDF 或照片）。`
+}
 
-────────────────────────────────────────
+function closingBlock(customerType: CustomerRequestEmailCustomerType): string {
+  if (customerType === "existing") {
+    return `Once we receive the required documents and information, we will update your customer records and contact you accordingly.
+
+收到所需文件及資料後，我們將為 貴公司更新客戶檔案，並另行通知。
+
+If you have any questions, please feel free to contact us.
+如有任何查詢，歡迎隨時聯絡我們。`
+  }
+
+  return `Once we receive the required documents and information, we will proceed with your new customer registration and contact you accordingly.
+
+收到所需文件及資料後，我們將為 貴公司辦理新客戶登記，並另行通知。
+
+If you have any questions, please feel free to contact us.
+如有任何查詢，歡迎隨時聯絡我們。`
+}
+
+const HK_MANDATORY_DOCS = `────────────────────────────────────────
 【Mandatory Documents / 必須提交】
 ────────────────────────────────────────
 
@@ -35,17 +70,30 @@ To complete new customer registration, please reply to this email with the docum
    · Show certificate No. (編號) and issue date / 須顯示編號及簽發日期
 
 3. Latest Annual Return (Form NAR1) / 最新周年申報表副本
-   · Made-up-to date within the last 12 months / 備忘日期須為過去12個月內
+   · Made-up-to date within the last 12 months / 備忘日期須為過去12個月內`
 
+const MACAU_MANDATORY_DOCS = `────────────────────────────────────────
+【Mandatory Documents / 必須提交】
 ────────────────────────────────────────
+
+1. Business Registration Certificate (BR) / 有效商業登記證副本
+   · Must be valid (show commencement & expiry dates) / 須為有效版本，並顯示生效及屆滿日期
+
+2. Certificate of Incorporation (CI) / 公司註冊證明書副本
+   · Show certificate No. and issue date / 須顯示編號及簽發日期
+
+3. Latest Annual Return (Form NAR1) / 最新周年申報表副本
+   · Made-up-to date within the last 12 months / 備忘日期須為過去12個月內`
+
+const OPTIONAL_DOCS = `────────────────────────────────────────
 【Optional / 可選（建議提供）】
 ────────────────────────────────────────
 
 4. Bank Proof / 銀行戶口證明
    · e.g. bank statement header or cancelled cheque / 例如：月結單表頭或空白支票
-   · Account name must match the registered company name / 戶口名稱須與公司註冊名稱一致
+   · Account name must match the registered company name / 戶口名稱須與公司註冊名稱一致`
 
-────────────────────────────────────────
+const HK_COMPANY_INFO = `────────────────────────────────────────
 【Company & Contact Information / 公司及聯絡資料】
 Please also provide in your reply / 請於回覆中一併提供：
 ────────────────────────────────────────
@@ -57,50 +105,9 @@ Please also provide in your reply / 請於回覆中一併提供：
 · Delivery address (if different) / 送貨地址（如與註冊地址不同）
 · Contact person(s) – full legal name in English & Chinese, title, email & phone
   聯絡人 – 英文及中文法定全名、職位、電郵及電話
-· Accounts payable (A/P) contact name, email & phone / 應付賬款聯絡人姓名、電郵及電話
+· Accounts payable (A/P) contact name, email & phone / 應付賬款聯絡人姓名、電郵及電話`
 
-Once we receive the required documents and information, we will proceed with your new customer registration and contact you accordingly.
-
-收到所需文件及資料後，我們將為貴公司辦理新客戶登記，並另行通知。
-
-If you have any questions, please feel free to contact us.
-如有任何查詢，歡迎隨時聯絡我們。
-
-${signatureBlock(options)}`
-}
-
-export function buildMacauCustomerRequestEmail(options: CustomerRequestEmailOptions = {}): string {
-  return `Subject: Kirii New Customer Registration – Required Documents / 新客戶登記所需文件及資料
-
-Dear Sir/Madam / 尊貴的客戶：
-
-Thank you for your interest in trading with Kirii (Hong Kong) Limited.
-To complete new customer registration, please reply to this email with the documents and company information listed below (scanned PDF or clear photos).
-
-感謝您有意與桐井（香港）有限公司建立業務關係。為完成新客戶登記，請回覆本電郵，並提供以下文件及公司資料（清晰掃描副本 PDF 或照片）。
-
-────────────────────────────────────────
-【Mandatory Documents / 必須提交】
-────────────────────────────────────────
-
-1. Business Registration Certificate (BR) / 有效商業登記證副本
-   · Must be valid (show commencement & expiry dates) / 須為有效版本，並顯示生效及屆滿日期
-
-2. Certificate of Incorporation (CI) / 公司註冊證明書副本
-   · Show certificate No. and issue date / 須顯示編號及簽發日期
-
-3. Latest Annual Return (Form NAR1) / 最新周年申報表副本
-   · Made-up-to date within the last 12 months / 備忘日期須為過去12個月內
-
-────────────────────────────────────────
-【Optional / 可選（建議提供）】
-────────────────────────────────────────
-
-4. Bank Proof / 銀行戶口證明
-   · e.g. bank statement header or cancelled cheque / 例如：月結單表頭或空白支票
-   · Account name must match the registered company name / 戶口名稱須與公司註冊名稱一致
-
-────────────────────────────────────────
+const MACAU_COMPANY_INFO = `────────────────────────────────────────
 【Company & Contact Information / 公司及聯絡資料】
 Please also provide in your reply / 請於回覆中一併提供：
 ────────────────────────────────────────
@@ -111,16 +118,37 @@ Please also provide in your reply / 請於回覆中一併提供：
 · Delivery address (if different) / 送貨地址（如與註冊地址不同）
 · Contact person(s) – full legal name in English & Chinese, title, email & phone
   聯絡人 – 英文及中文法定全名、職位、電郵及電話
-· Accounts payable (A/P) contact name, email & phone / 應付賬款聯絡人姓名、電郵及電話
+· Accounts payable (A/P) contact name, email & phone / 應付賬款聯絡人姓名、電郵及電話`
 
-Once we receive the required documents and information, we will proceed with your new customer registration and contact you accordingly.
+function buildEmailBody(
+  region: AddressRegion,
+  options: CustomerRequestEmailOptions,
+): string {
+  const customerType = options.customerType ?? "new"
+  const mandatoryDocs = region === "macau" ? MACAU_MANDATORY_DOCS : HK_MANDATORY_DOCS
+  const companyInfo = region === "macau" ? MACAU_COMPANY_INFO : HK_COMPANY_INFO
 
-收到所需文件及資料後，我們將為貴公司辦理新客戶登記，並另行通知。
+  return `${subjectLine(customerType)}
 
-If you have any questions, please feel free to contact us.
-如有任何查詢，歡迎隨時聯絡我們。
+${introBlock(customerType)}
+
+${mandatoryDocs}
+
+${OPTIONAL_DOCS}
+
+${companyInfo}
+
+${closingBlock(customerType)}
 
 ${signatureBlock(options)}`
+}
+
+export function buildHongKongCustomerRequestEmail(options: CustomerRequestEmailOptions = {}): string {
+  return buildEmailBody("hong_kong", options)
+}
+
+export function buildMacauCustomerRequestEmail(options: CustomerRequestEmailOptions = {}): string {
+  return buildEmailBody("macau", options)
 }
 
 export function buildCustomerRequestEmail(

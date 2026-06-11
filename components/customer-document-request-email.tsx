@@ -8,12 +8,15 @@ import type { AddressRegion } from "@/types/hk-new-customer"
 import {
   buildHongKongCustomerRequestEmail,
   buildMacauCustomerRequestEmail,
+  type CustomerRequestEmailCustomerType,
 } from "@/lib/hk-new-customer-customer-request-email"
 
 type CustomerDocumentRequestEmailProps = {
   salesRepName?: string
   salesRepEmail?: string
 }
+
+type EmailTemplateKey = `${CustomerRequestEmailCustomerType}_${AddressRegion}`
 
 function EmailTemplatePanel({
   emailText,
@@ -42,25 +45,62 @@ function EmailTemplatePanel({
   )
 }
 
-export function CustomerDocumentRequestEmail({
+function RegionEmailTabs({
+  customerType,
   salesRepName,
   salesRepEmail,
-}: CustomerDocumentRequestEmailProps) {
-  const [copiedRegion, setCopiedRegion] = useState<AddressRegion | null>(null)
-
+  copiedKey,
+  onCopy,
+}: {
+  customerType: CustomerRequestEmailCustomerType
+  salesRepName?: string
+  salesRepEmail?: string
+  copiedKey: EmailTemplateKey | null
+  onCopy: (key: EmailTemplateKey, text: string) => void
+}) {
   const options = useMemo(
-    () => ({ salesRepName, salesRepEmail }),
-    [salesRepName, salesRepEmail],
+    () => ({ salesRepName, salesRepEmail, customerType }),
+    [salesRepName, salesRepEmail, customerType],
   )
 
   const hkEmail = useMemo(() => buildHongKongCustomerRequestEmail(options), [options])
   const macauEmail = useMemo(() => buildMacauCustomerRequestEmail(options), [options])
 
-  const copyEmail = async (region: AddressRegion, text: string) => {
+  return (
+    <Tabs defaultValue="hong_kong">
+      <TabsList className="grid h-auto w-full max-w-md grid-cols-2">
+        <TabsTrigger value="hong_kong">Hong Kong / 香港</TabsTrigger>
+        <TabsTrigger value="macau">Macau / 澳門</TabsTrigger>
+      </TabsList>
+      <TabsContent value="hong_kong" className="mt-3">
+        <EmailTemplatePanel
+          emailText={hkEmail}
+          copied={copiedKey === `${customerType}_hong_kong`}
+          onCopy={() => onCopy(`${customerType}_hong_kong`, hkEmail)}
+        />
+      </TabsContent>
+      <TabsContent value="macau" className="mt-3">
+        <EmailTemplatePanel
+          emailText={macauEmail}
+          copied={copiedKey === `${customerType}_macau`}
+          onCopy={() => onCopy(`${customerType}_macau`, macauEmail)}
+        />
+      </TabsContent>
+    </Tabs>
+  )
+}
+
+export function CustomerDocumentRequestEmail({
+  salesRepName,
+  salesRepEmail,
+}: CustomerDocumentRequestEmailProps) {
+  const [copiedKey, setCopiedKey] = useState<EmailTemplateKey | null>(null)
+
+  const copyEmail = async (key: EmailTemplateKey, text: string) => {
     try {
       await navigator.clipboard.writeText(text)
-      setCopiedRegion(region)
-      window.setTimeout(() => setCopiedRegion(null), 2000)
+      setCopiedKey(key)
+      window.setTimeout(() => setCopiedKey(null), 2000)
     } catch {
       window.prompt("Copy this email text / 請複製以下電郵內容：", text)
     }
@@ -73,28 +113,32 @@ export function CustomerDocumentRequestEmail({
           Customer Email Template / 客戶所需文件電郵範本
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          Send this to the customer. Once they reply with the listed documents and information, you can
-          complete the registration form. / 寄給客戶後，待對方回覆文件及公司資料，即可在本系統完成新客戶登記。
+          For new or existing customers. Once they reply with the listed documents and information, you can
+          complete the registration form in this system. / 新客戶或現有客戶均可使用。待對方回覆文件及公司資料後，即可在本系統完成登記。
         </p>
       </div>
 
-      <Tabs defaultValue="hong_kong">
-        <TabsList className="grid h-auto w-full max-w-md grid-cols-2">
-          <TabsTrigger value="hong_kong">Hong Kong / 香港</TabsTrigger>
-          <TabsTrigger value="macau">Macau / 澳門</TabsTrigger>
+      <Tabs defaultValue="new">
+        <TabsList className="grid h-auto w-full max-w-lg grid-cols-2">
+          <TabsTrigger value="new">New Customer / 新客戶</TabsTrigger>
+          <TabsTrigger value="existing">Existing Customer / 現有客戶</TabsTrigger>
         </TabsList>
-        <TabsContent value="hong_kong" className="mt-3">
-          <EmailTemplatePanel
-            emailText={hkEmail}
-            copied={copiedRegion === "hong_kong"}
-            onCopy={() => void copyEmail("hong_kong", hkEmail)}
+        <TabsContent value="new" className="mt-3">
+          <RegionEmailTabs
+            customerType="new"
+            salesRepName={salesRepName}
+            salesRepEmail={salesRepEmail}
+            copiedKey={copiedKey}
+            onCopy={copyEmail}
           />
         </TabsContent>
-        <TabsContent value="macau" className="mt-3">
-          <EmailTemplatePanel
-            emailText={macauEmail}
-            copied={copiedRegion === "macau"}
-            onCopy={() => void copyEmail("macau", macauEmail)}
+        <TabsContent value="existing" className="mt-3">
+          <RegionEmailTabs
+            customerType="existing"
+            salesRepName={salesRepName}
+            salesRepEmail={salesRepEmail}
+            copiedKey={copiedKey}
+            onCopy={copyEmail}
           />
         </TabsContent>
       </Tabs>
