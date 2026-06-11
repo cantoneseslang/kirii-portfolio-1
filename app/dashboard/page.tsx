@@ -32,6 +32,7 @@ import HkdRmbRateCard from "@/components/hkd-rmb-rate-card";
 import NewCustomerSettingCard from "@/components/new-customer-setting-card";
 import NewCustomerApprovalsCard from "@/components/new-customer-approvals-card";
 import { DashboardPersonalSummary } from "@/components/dashboard-personal-summary";
+import { DashboardNewsTicker } from "@/components/dashboard-news-ticker";
 import { isBlockedAuthEmail } from "@/lib/blocked-auth-emails";
 import { getApproverRole } from "@/lib/hk-new-customer-approval";
 
@@ -174,19 +175,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardShell>
-      <div className="news-ticker mb-4 overflow-hidden border-y border-gray-200 py-2">
-        <div className="news-ticker-track" aria-label={DASHBOARD_NEWS_TICKER}>
-          <span className="news-ticker-item text-blue-600 font-medium text-sm md:text-base">
-            {DASHBOARD_NEWS_TICKER}
-          </span>
-          <span
-            className="news-ticker-item text-blue-600 font-medium text-sm md:text-base"
-            aria-hidden="true"
-          >
-            {DASHBOARD_NEWS_TICKER}
-          </span>
-        </div>
-      </div>
+      <DashboardNewsTicker text={DASHBOARD_NEWS_TICKER} />
 
       <DashboardHeader
         heading="Dashboard"
