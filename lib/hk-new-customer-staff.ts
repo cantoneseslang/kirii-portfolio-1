@@ -13,6 +13,8 @@ export type SalesRepOption = {
   full_name: string
   email?: string
   position?: string
+  display_label: string
+  short_name: string
 }
 
 /** Fixed Sales roster for HK New Customer registration (allowlist only). */
@@ -93,6 +95,8 @@ export function getSalesRepAllowlist(): SalesRepOption[] {
       full_name: rep.full_name,
       email: rep.email,
       position: rep.position,
+      display_label: formatSalesRepLabel(rep),
+      short_name: formatSalesRepShortName(rep),
     }))
     .sort((a, b) => a.english_name.localeCompare(b.english_name, "en"))
 }

@@ -68,12 +68,12 @@ import {
   formatSalesRepLabel,
   formatSalesRepShortName,
   formatStaffNameAndTitle,
+  getSalesRepAllowlist,
   getTodayIsoDateInHongKong,
   isSalesStaffMember,
   resolveSalesRep,
   resolveSalesRepPosition,
   resolveStaffDisplayName,
-  type SalesRepOption,
 } from "@/lib/hk-new-customer-staff"
 import { getProfile } from "@/utils/profile"
 import type { Profile } from "@/types/profile"
@@ -91,6 +91,8 @@ import type {
 } from "@/types/hk-new-customer"
 
 type AttachmentFiles = Record<string, File | null>
+
+const SALES_REP_OPTIONS = getSalesRepAllowlist()
 
 const EMPTY_BR_VALIDITY: BrDocumentValidity = {
   commencementDate: "",
@@ -234,7 +236,6 @@ export default function NewCustomerSettingPage() {
   const [showNameValidation, setShowNameValidation] = useState(false)
   const [userProfile, setUserProfile] = useState<Profile | null>(null)
   const [profileLoaded, setProfileLoaded] = useState(false)
-  const [salesRepOptions, setSalesRepOptions] = useState<SalesRepOption[]>([])
   const [declarationAutofillReady, setDeclarationAutofillReady] = useState(false)
 
   const staffDisplayName = useMemo(
@@ -257,19 +258,6 @@ export default function NewCustomerSettingPage() {
       setProfileLoaded(true)
     })
   }, [user?.id])
-
-  useEffect(() => {
-    void fetch("/api/hk-new-customer/sales-reps")
-      .then((response) => response.json())
-      .then((result) => {
-        if (result.success && Array.isArray(result.data)) {
-          setSalesRepOptions(result.data)
-        }
-      })
-      .catch(() => {
-        setSalesRepOptions([])
-      })
-  }, [])
 
   useEffect(() => {
     if (declarationAutofillReady || !profileLoaded) return
@@ -1288,19 +1276,19 @@ export default function NewCustomerSettingPage() {
                     <Select
                       value={salesRepName}
                       onValueChange={(value) => {
-                        const rep = salesRepOptions.find(
-                          (option) => formatSalesRepShortName(option) === value || option.full_name === value,
+                        const rep = SALES_REP_OPTIONS.find(
+                          (option) => option.short_name === value || option.full_name === value,
                         )
-                        setSalesRepName(rep ? formatSalesRepShortName(rep) : value)
+                        setSalesRepName(rep ? rep.short_name : value)
                       }}
                     >
                       <SelectTrigger id="salesRepSelect">
                         <SelectValue placeholder="Select sales representative / 選擇 Sales 同事" />
                       </SelectTrigger>
                       <SelectContent>
-                        {salesRepOptions.map((rep) => (
-                          <SelectItem key={rep.id} value={formatSalesRepShortName(rep)}>
-                            {formatSalesRepLabel(rep)}
+                        {SALES_REP_OPTIONS.map((rep) => (
+                          <SelectItem key={rep.id} value={rep.short_name}>
+                            {rep.display_label}
                           </SelectItem>
                         ))}
                       </SelectContent>
