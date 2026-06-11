@@ -1,5 +1,7 @@
 "use client"
 
+import { Download } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DocumentFileInput } from "@/components/document-file-input"
@@ -8,6 +10,12 @@ import {
   MANDATORY_DOCUMENT_DATE_RULES,
   validateDocumentDate,
 } from "@/lib/hk-new-customer-document-validity"
+import {
+  downloadRegistryExpenseClaim,
+  formatRegistryFeeLine,
+  REGISTRY_DOCUMENT_FEES,
+  type RegistryDocumentFeeInfo,
+} from "@/lib/hk-new-customer-registry-expense-claim"
 
 type MandatoryDocumentSlotProps = {
   docKey: string
@@ -18,6 +26,11 @@ type MandatoryDocumentSlotProps = {
   onFileChange: (file: File | null) => void
   onValidityDateChange: (value: string) => void
   showValidation?: boolean
+  expenseClaimDocumentKey?: RegistryDocumentFeeInfo["documentKey"]
+  applicantName?: string
+  companyNameEn?: string
+  companyNameZh?: string
+  brNumber?: string
 }
 
 export function MandatoryDocumentSlot({
@@ -29,6 +42,11 @@ export function MandatoryDocumentSlot({
   onFileChange,
   onValidityDateChange,
   showValidation = false,
+  expenseClaimDocumentKey,
+  applicantName,
+  companyNameEn,
+  companyNameZh,
+  brNumber,
 }: MandatoryDocumentSlotProps) {
   const rule = MANDATORY_DOCUMENT_DATE_RULES[docKey]
   const dateValidation = validityDate ? validateDocumentDate(docKey, validityDate) : null
@@ -73,6 +91,34 @@ export function MandatoryDocumentSlot({
           <p className="text-xs text-muted-foreground">
             {rule.helperEn} / {rule.helperZh}
           </p>
+          {file && expenseClaimDocumentKey && (
+            <div className="space-y-2 rounded-md border border-[#02315a]/15 bg-white p-3">
+              <p className="text-xs text-muted-foreground">
+                Fee reference / 費用參考：{" "}
+                {formatRegistryFeeLine(REGISTRY_DOCUMENT_FEES[expenseClaimDocumentKey])}
+                {" · "}
+                Applicant / 申請人：{applicantName?.trim() || "-"}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() =>
+                  downloadRegistryExpenseClaim({
+                    applicantName: applicantName || "",
+                    companyNameEn,
+                    companyNameZh,
+                    brNumber,
+                    documentKey: expenseClaimDocumentKey,
+                  })
+                }
+              >
+                <Download className="h-4 w-4" />
+                Download Expense Claim Form / 下載公司報銷申請書
+              </Button>
+            </div>
+          )}
           {dateValid && (
             <p className="text-xs text-green-700">{dateValidation?.messageEn}</p>
           )}

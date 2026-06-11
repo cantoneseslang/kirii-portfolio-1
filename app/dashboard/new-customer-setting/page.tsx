@@ -71,6 +71,10 @@ import {
   resolveStaffDisplayName,
   type SalesRepOption,
 } from "@/lib/hk-new-customer-staff"
+import {
+  formatRegistryFeeLine,
+  REGISTRY_DOCUMENT_FEES,
+} from "@/lib/hk-new-customer-registry-expense-claim"
 import { getProfile } from "@/utils/profile"
 import type { Profile } from "@/types/profile"
 import type {
@@ -673,8 +677,8 @@ export default function NewCustomerSettingPage() {
               Companies Registry Company Particulars * / 公司註冊處公司資料
               <div className="mt-2 space-y-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-muted-foreground">
                 <p>
-                  Please obtain the relevant documents from the government departments below (fees may apply). /
-                  請向以下政府部門取得有關資料（可能需付費）。
+                  Please complete the paid application process and submit the incurred fees to the company for
+                  reimbursement. / 請完成付費手續，並向公司報銷所產生的費用。
                 </p>
                 <div>
                   <span className="font-medium text-foreground">Hong Kong / 香港：</span> Verify via{" "}
@@ -686,7 +690,8 @@ export default function NewCustomerSettingPage() {
                   >
                     Companies Registry e-Services Portal / 公司註冊處電子服務
                   </a>
-                  .
+                  . {formatRegistryFeeLine(REGISTRY_DOCUMENT_FEES.cr_company_particulars)}. Applicant / 申請人：
+                  {staffDisplayName || "-"}
                 </div>
                 <div>
                   <span className="font-medium text-foreground">Macau / 澳門：</span> Free basic lookup via{" "}
@@ -718,7 +723,9 @@ export default function NewCustomerSettingPage() {
                   >
                     DSAJ commercial registration services / 法務局商業登記服務
                   </a>
-                  . Issued by CRCBM / 商業及動產登記局.
+                  . Issued by CRCBM / 商業及動產登記局.{" "}
+                  {formatRegistryFeeLine(REGISTRY_DOCUMENT_FEES.macau_commercial_registration)}. Applicant / 申請人：
+                  {staffDisplayName || "-"}
                 </div>
               </div>
             </li>
@@ -914,6 +921,15 @@ export default function NewCustomerSettingPage() {
                         : ""
                     }
                     showValidation={showDocumentValidation}
+                    expenseClaimDocumentKey={
+                      doc.key === "cr_company_particulars" || doc.key === "macau_commercial_registration"
+                        ? doc.key
+                        : undefined
+                    }
+                    applicantName={staffDisplayName}
+                    companyNameEn={companyNameEn}
+                    companyNameZh={companyNameZh}
+                    brNumber={brNumber}
                     onFileChange={(nextFile) =>
                       setAttachmentFiles((prev) => ({
                         ...prev,
