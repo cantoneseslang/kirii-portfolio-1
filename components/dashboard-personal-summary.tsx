@@ -65,31 +65,38 @@ export function DashboardPersonalSummary({ email, fullName }: DashboardPersonalS
 
   if (loading) return null
 
-  const hasLunch = Boolean(summary?.lunch?.hasOrder && summary.lunch.sections.length > 0)
+  const canSeeLunchSection = Boolean(summary?.lunchMemberId)
+  const hasLunchOrder = Boolean(summary?.lunch?.hasOrder && summary.lunch.sections.length > 0)
   const hasMyApplications = (summary?.myApplications.length || 0) > 0
   const hasPendingApprovals = (summary?.pendingApprovals.length || 0) > 0
 
-  if (!hasLunch && !hasMyApplications && !hasPendingApprovals) {
+  if (!canSeeLunchSection && !hasMyApplications && !hasPendingApprovals) {
     return null
   }
 
   return (
     <div className="rounded-lg border bg-slate-50/80 p-4 md:p-5 space-y-4 mb-6">
-      {hasLunch && summary?.lunch && (
+      {canSeeLunchSection && (
         <section className="space-y-2">
-          <h2 className="text-base font-semibold text-slate-900">今日你訂咗嘅午餐係以下內容</h2>
-          {summary.lunch.sections.map((section) => (
-            <div key={section.category} className="space-y-1">
-              <p className="text-sm font-medium text-slate-800">{section.category}</p>
-              <ul className="text-sm text-slate-700 space-y-0.5 pl-1">
-                {section.items.map((item) => (
-                  <li key={`${section.category}-${item.label}`}>
-                    {item.label} {item.quantity}個
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {hasLunchOrder && summary?.lunch ? (
+            <>
+              <h2 className="text-base font-semibold text-slate-900">今日你訂咗嘅午餐係以下內容</h2>
+              {summary.lunch.sections.map((section) => (
+                <div key={section.category} className="space-y-1">
+                  <p className="text-sm font-medium text-slate-800">{section.category}</p>
+                  <ul className="text-sm text-slate-700 space-y-0.5 pl-1">
+                    {section.items.map((item) => (
+                      <li key={`${section.category}-${item.label}`}>
+                        {item.label} {item.quantity}個
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </>
+          ) : (
+            <p className="text-sm font-medium text-red-600">今日你未唉午餐記得落單呢❣️</p>
+          )}
         </section>
       )}
 

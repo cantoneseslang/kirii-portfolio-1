@@ -50,22 +50,24 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        {/* Desktop: logo left, calendar pinned to container right */}
-        <div className="container hidden md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-6">
-          <div className="flex min-w-0 flex-row items-center gap-4">
-            <div className="flex shrink-0 items-center">
-              <Logo />
-            </div>
-            <div className="min-w-0">
-              <h2 className="mb-0 text-lg font-bold text-[#02315a] md:text-xl lg:text-2xl">
-                逆境轉型，革新求存
-              </h2>
-              <p className="-mt-1 text-[10px] text-gray-600 italic md:text-xs lg:text-sm">
-                Transform in Adversity. Innovate for Survival.
-              </p>
+        {/* Desktop: logo in container flow, calendar pinned to viewport right edge */}
+        <div className="relative hidden w-full md:block">
+          <div className="container flex items-center py-1 pr-48 lg:pr-56">
+            <div className="flex min-w-0 flex-row items-center gap-4">
+              <div className="flex shrink-0 items-center">
+                <Logo />
+              </div>
+              <div className="min-w-0">
+                <h2 className="mb-0 text-lg font-bold text-[#02315a] md:text-xl lg:text-2xl">
+                  逆境轉型，革新求存
+                </h2>
+                <p className="-mt-1 text-[10px] text-gray-600 italic md:text-xs lg:text-sm">
+                  Transform in Adversity. Innovate for Survival.
+                </p>
+              </div>
             </div>
           </div>
-          <div className="justify-self-end">
+          <div className="absolute inset-y-0 right-4 z-10 flex items-center lg:right-6 xl:right-8">
             <DashboardDateDisplay variant="desktop" />
           </div>
         </div>
