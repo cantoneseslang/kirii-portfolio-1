@@ -42,6 +42,7 @@ import { BrDocumentSlot } from "@/components/br-document-slot"
 import { CiDocumentSlot } from "@/components/ci-document-slot"
 import { Nar1DocumentSlot } from "@/components/nar1-document-slot"
 import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
+import { CustomerDocumentRequestEmail } from "@/components/customer-document-request-email"
 import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
 import {
   fillIfEmpty,
@@ -559,6 +560,11 @@ export default function NewCustomerSettingPage() {
             </a>
             . Issued by CRCBM / 商業及動產登記局.
           </div>
+
+          <CustomerDocumentRequestEmail
+            salesRepName={salesRepName}
+            salesRepEmail={user?.email}
+          />
         </CardContent>
       </Card>
 
