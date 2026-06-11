@@ -1,4 +1,10 @@
-import type { AddressRegion, BrDocumentValidity, CiDocumentValidity, DocumentValidityDates } from "@/types/hk-new-customer"
+import type {
+  AddressRegion,
+  BrDocumentValidity,
+  CiDocumentValidity,
+  DocumentValidityDates,
+  Nar1DocumentValidity,
+} from "@/types/hk-new-customer"
 import { getAttachmentTypeLabel, getMandatoryAttachmentKeys } from "@/types/hk-new-customer"
 
 export const DOCUMENT_VALIDITY_WINDOW_DAYS = 365
@@ -271,6 +277,136 @@ export function validateCiDocument(
   }
 }
 
+function normalizeCompanyNameForMatch(value: string): string {
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, "")
+}
+
+export function companyNamesMatch(formName: string, certificateName: string): boolean {
+  const formNorm = normalizeCompanyNameForMatch(formName)
+  const certNorm = normalizeCompanyNameForMatch(certificateName)
+  if (!formNorm || !certNorm) return false
+  return formNorm === certNorm || formNorm.includes(certNorm) || certNorm.includes(formNorm)
+}
+
+export function getNar1DocumentValidity(
+  nar1: DocumentValidityDates["nar1"],
+): Nar1DocumentValidity | undefined {
+  if (!nar1) return undefined
+  if (typeof nar1 === "string") {
+    return nar1.trim()
+      ? {
+          madeUpToDate: nar1.trim(),
+          businessRegistrationNumber: "",
+          companyNameEn: "",
+          shareCapital: "",
+          directors: [],
+        }
+      : undefined
+  }
+  if (
+    nar1.madeUpToDate?.trim() ||
+    nar1.businessRegistrationNumber?.trim() ||
+    nar1.companyNameEn?.trim() ||
+    nar1.shareCapital?.trim() ||
+    nar1.directors?.length
+  ) {
+    return nar1
+  }
+  return undefined
+}
+
+export function validateNar1Document(
+  nar1: Nar1DocumentValidity | undefined,
+  formBrNumber: string,
+  formCompanyNameEn: string,
+  referenceDate = new Date(),
+): ValidationResult {
+  if (!nar1?.madeUpToDate?.trim()) {
+    return {
+      valid: false,
+      messageEn: "Enter the made-up-to date from the NAR1.",
+      messageZh: "請填寫周年申報表的結算日期。",
+    }
+  }
+
+  const dateResult = validateDocumentDate("nar1", nar1.madeUpToDate, referenceDate)
+  if (!dateResult.valid) {
+    return dateResult
+  }
+
+  const brNumber = extractBrCoreNumber(nar1.businessRegistrationNumber || "")
+  if (!brNumber) {
+    return {
+      valid: false,
+      messageEn: "Enter the Business Registration Number from the NAR1.",
+      messageZh: "請填寫周年申報表上的商業登記號碼。",
+    }
+  }
+
+  if (formBrNumber.trim() && !brNumbersMatch(formBrNumber, brNumber)) {
+    return {
+      valid: false,
+      messageEn: "NAR1 BR number does not match the form BR number.",
+      messageZh: "周年申報表商業登記號碼與表格上的 BR 號碼不一致。",
+    }
+  }
+
+  if (!nar1.companyNameEn?.trim()) {
+    return {
+      valid: false,
+      messageEn: "Enter the company name from the NAR1.",
+      messageZh: "請填寫周年申報表上的公司名稱。",
+    }
+  }
+
+  if (formCompanyNameEn.trim() && !companyNamesMatch(formCompanyNameEn, nar1.companyNameEn)) {
+    return {
+      valid: false,
+      messageEn: "NAR1 company name does not match the form company name.",
+      messageZh: "周年申報表公司名稱與表格上的公司名稱不一致。",
+    }
+  }
+
+  if (!nar1.shareCapital?.trim()) {
+    return {
+      valid: false,
+      messageEn: "Enter the share capital from the NAR1.",
+      messageZh: "請填寫周年申報表上的股本。",
+    }
+  }
+
+  if (!nar1.directors?.length) {
+    return {
+      valid: false,
+      messageEn: "Enter at least one director from the NAR1.",
+      messageZh: "請填寫至少一名董事資料。",
+    }
+  }
+
+  const incompleteDirector = nar1.directors.find(
+    (director) =>
+      !director.nameEn?.trim() ||
+      !director.flatFloorBlock?.trim() ||
+      !director.building?.trim() ||
+      !director.street?.trim() ||
+      !director.district?.trim() ||
+      !director.country?.trim(),
+  )
+  if (incompleteDirector) {
+    return {
+      valid: false,
+      messageEn: "Each director needs name and full correspondence address.",
+      messageZh: "每位董事須填寫姓名及完整通訊地址。",
+    }
+  }
+
+  return {
+    valid: true,
+    messageEn: `NAR1 made up to ${formatDateForDisplay(nar1.madeUpToDate)} · ${nar1.directors.length} director(s) / 結算日期 ${formatDateForDisplay(nar1.madeUpToDate)} · ${nar1.directors.length} 名董事`,
+    messageZh: `NAR1 made up to ${formatDateForDisplay(nar1.madeUpToDate)} · ${nar1.directors.length} director(s) / 結算日期 ${formatDateForDisplay(nar1.madeUpToDate)} · ${nar1.directors.length} 名董事`,
+  }
+}
+
 export function validateMandatoryDocumentsForSubmit(params: {
   region: AddressRegion
   uploadedDocumentTypes: string[]
@@ -321,10 +457,33 @@ export function validateMandatoryDocumentsForSubmit(params: {
       continue
     }
 
+    if (documentType === "nar1") {
+      const nar1 = getNar1DocumentValidity(params.validityDates.nar1)
+      const result = validateNar1Document(
+        nar1,
+        params.formBrNumber,
+        params.formCompanyNameEn || "",
+        params.referenceDate,
+      )
+      if (!result.valid) {
+        issues.push({
+          documentType,
+          label,
+          messageEn: result.messageEn,
+          messageZh: result.messageZh,
+        })
+      }
+      continue
+    }
+
     const dateValue =
-      typeof params.validityDates[documentType as keyof Omit<DocumentValidityDates, "br" | "ci">] ===
+      typeof params.validityDates[documentType as keyof Omit<DocumentValidityDates, "br" | "ci" | "nar1">] ===
       "string"
-        ? (params.validityDates[documentType as keyof Omit<DocumentValidityDates, "br" | "ci">] as string).trim()
+        ? (
+            params.validityDates[
+              documentType as keyof Omit<DocumentValidityDates, "br" | "ci" | "nar1">
+            ] as string
+          ).trim()
         : ""
     if (!dateValue) {
       issues.push({
@@ -372,6 +531,18 @@ export function isCiDocumentValidity(value: unknown): value is CiDocumentValidit
   return typeof record.issueDate === "string" && typeof record.certificateNumber === "string"
 }
 
+export function isNar1DocumentValidity(value: unknown): value is Nar1DocumentValidity {
+  if (!value || typeof value !== "object") return false
+  const record = value as Partial<Nar1DocumentValidity>
+  return (
+    typeof record.madeUpToDate === "string" &&
+    typeof record.businessRegistrationNumber === "string" &&
+    typeof record.companyNameEn === "string" &&
+    typeof record.shareCapital === "string" &&
+    Array.isArray(record.directors)
+  )
+}
+
 export function parseDocumentValidityDates(raw: Record<string, unknown>): DocumentValidityDates {
   const parsed: DocumentValidityDates = {}
   if (isBrDocumentValidity(raw.br)) {
@@ -382,7 +553,12 @@ export function parseDocumentValidityDates(raw: Record<string, unknown>): Docume
   } else if (typeof raw.ci === "string") {
     parsed.ci = raw.ci
   }
-  for (const key of ["nar1", "cr_company_particulars", "macau_commercial_registration"] as const) {
+  if (isNar1DocumentValidity(raw.nar1)) {
+    parsed.nar1 = raw.nar1
+  } else if (typeof raw.nar1 === "string") {
+    parsed.nar1 = raw.nar1
+  }
+  for (const key of ["cr_company_particulars", "macau_commercial_registration"] as const) {
     if (typeof raw[key] === "string") {
       parsed[key] = raw[key]
     }

@@ -40,11 +40,13 @@ import { PhoneWithCountryCodeInput } from "@/components/phone-with-country-code-
 import { MandatoryDocumentSlot } from "@/components/mandatory-document-slot"
 import { BrDocumentSlot } from "@/components/br-document-slot"
 import { CiDocumentSlot } from "@/components/ci-document-slot"
+import { Nar1DocumentSlot } from "@/components/nar1-document-slot"
 import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
 import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
 import type {
   BrDocumentValidity,
   CiDocumentValidity,
+  Nar1DocumentValidity,
   ContactEntry,
   DocumentChecklist,
   DocumentValidityDates,
@@ -64,6 +66,14 @@ const EMPTY_BR_VALIDITY: BrDocumentValidity = {
 const EMPTY_CI_VALIDITY: CiDocumentValidity = {
   issueDate: "",
   certificateNumber: "",
+}
+
+const EMPTY_NAR1_VALIDITY: Nar1DocumentValidity = {
+  madeUpToDate: "",
+  businessRegistrationNumber: "",
+  companyNameEn: "",
+  shareCapital: "",
+  directors: [],
 }
 
 const EMPTY_CONTACT: ContactEntry = {
@@ -211,7 +221,7 @@ export default function NewCustomerSettingPage() {
 
   const mandatoryDocumentSlots = useMemo(() => {
     const slots = DOCUMENT_TYPES.filter(
-      (doc) => doc.key !== "bank_proof" && doc.key !== "br" && doc.key !== "ci",
+      (doc) => doc.key !== "bank_proof" && doc.key !== "br" && doc.key !== "ci" && doc.key !== "nar1",
     ).map((doc) => ({
       key: doc.key,
       labelEn: doc.labelEn,
@@ -230,6 +240,8 @@ export default function NewCustomerSettingPage() {
   const brDocument = useMemo(() => DOCUMENT_TYPES.find((doc) => doc.key === "br"), [])
 
   const ciDocument = useMemo(() => DOCUMENT_TYPES.find((doc) => doc.key === "ci"), [])
+
+  const nar1Document = useMemo(() => DOCUMENT_TYPES.find((doc) => doc.key === "nar1"), [])
 
   const bankProofDocument = useMemo(
     () => DOCUMENT_TYPES.find((doc) => doc.key === "bank_proof"),
@@ -357,6 +369,7 @@ export default function NewCustomerSettingPage() {
         uploadedDocumentTypes: uploadedTypes,
         validityDates: documentValidityDates,
         formBrNumber: brNumber,
+        formCompanyNameEn: companyNameEn,
       })
 
       if (!documentValidation.ok) {
@@ -834,6 +847,46 @@ export default function NewCustomerSettingPage() {
                         ci: value,
                       }))
                     }
+                  />
+                )}
+
+                {nar1Document && (
+                  <Nar1DocumentSlot
+                    labelEn={nar1Document.labelEn}
+                    labelZh={nar1Document.labelZh}
+                    formBrNumber={brNumber}
+                    formCompanyNameEn={companyNameEn}
+                    file={attachmentFiles.nar1 || null}
+                    validity={
+                      typeof documentValidityDates.nar1 === "object" && documentValidityDates.nar1
+                        ? documentValidityDates.nar1
+                        : {
+                            ...EMPTY_NAR1_VALIDITY,
+                            madeUpToDate:
+                              typeof documentValidityDates.nar1 === "string"
+                                ? documentValidityDates.nar1
+                                : "",
+                          }
+                    }
+                    showValidation={showDocumentValidation}
+                    onFileChange={(nextFile) =>
+                      setAttachmentFiles((prev) => ({
+                        ...prev,
+                        nar1: nextFile,
+                      }))
+                    }
+                    onValidityChange={(value) =>
+                      setDocumentValidityDates((prev) => ({
+                        ...prev,
+                        nar1: value,
+                      }))
+                    }
+                    onFormBrNumberSuggest={(coreBrNumber) => {
+                      setBrNumber((current) => (current.trim() ? current : coreBrNumber))
+                    }}
+                    onFormCompanyNameSuggest={(name) => {
+                      setCompanyNameEn((current) => (current.trim() ? current : name))
+                    }}
                   />
                 )}
 

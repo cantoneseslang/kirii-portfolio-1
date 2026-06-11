@@ -285,6 +285,7 @@ export async function POST(request: Request) {
         uploadedDocumentTypes: uploadedTypes,
         validityDates: registration.documentValidityDates || {},
         formBrNumber: registration.brNumber,
+        formCompanyNameEn: registration.companyNameEn,
       })
       if (!documentValidation.ok) {
         return NextResponse.json(

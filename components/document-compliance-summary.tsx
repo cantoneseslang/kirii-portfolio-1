@@ -4,10 +4,12 @@ import {
   formatDateForDisplay,
   formatDocumentDateLabel,
   getCiDocumentValidity,
+  getNar1DocumentValidity,
   validateBrDocument,
   validateCiDocument,
   validateDocumentDate,
   validateMandatoryDocumentsForSubmit,
+  validateNar1Document,
 } from "@/lib/hk-new-customer-document-validity"
 
 export function DocumentComplianceSummary({
@@ -22,6 +24,7 @@ export function DocumentComplianceSummary({
     uploadedDocumentTypes: uploadedTypes,
     validityDates: registration.documentValidityDates || {},
     formBrNumber: registration.brNumber,
+    formCompanyNameEn: registration.companyNameEn,
   })
 
   const mandatoryKeys = getMandatoryAttachmentKeys(region)
@@ -106,6 +109,56 @@ export function DocumentComplianceSummary({
                 {ciResult && !ciResult.valid && (
                   <div className="text-xs text-red-700 mt-1">
                     {ciResult.messageEn} / {ciResult.messageZh}
+                  </div>
+                )}
+                {issue && (
+                  <div className="text-xs text-red-700 mt-1">
+                    {issue.messageEn} / {issue.messageZh}
+                  </div>
+                )}
+              </li>
+            )
+          }
+
+          if (documentType === "nar1") {
+            const nar1 = getNar1DocumentValidity(registration.documentValidityDates?.nar1)
+            const nar1Result = nar1
+              ? validateNar1Document(nar1, registration.brNumber, registration.companyNameEn)
+              : null
+            const ok = uploaded && Boolean(nar1Result?.valid)
+
+            return (
+              <li
+                key={documentType}
+                className={`rounded-md border p-2 ${ok ? "border-green-200 bg-green-50" : "border-amber-200 bg-amber-50"}`}
+              >
+                <div className="font-medium">{label}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  File: {uploaded ? "Uploaded / 已上載" : "Missing / 缺少"}
+                </div>
+                {nar1 && (
+                  <>
+                    <div className="text-xs text-muted-foreground">
+                      BR / 商業登記號碼: {nar1.businessRegistrationNumber || "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Company / 公司: {nar1.companyNameEn || "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatDocumentDateLabel("nar1")}: {formatDateForDisplay(nar1.madeUpToDate)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Share Capital / 股本: {nar1.shareCapital || "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Directors / 董事: {nar1.directors.length}
+                    </div>
+                  </>
+                )}
+                {nar1Result?.valid && <div className="text-xs text-green-700 mt-1">{nar1Result.messageEn}</div>}
+                {nar1Result && !nar1Result.valid && (
+                  <div className="text-xs text-red-700 mt-1">
+                    {nar1Result.messageEn} / {nar1Result.messageZh}
                   </div>
                 )}
                 {issue && (

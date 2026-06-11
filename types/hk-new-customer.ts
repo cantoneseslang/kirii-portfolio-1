@@ -79,10 +79,28 @@ export type CiDocumentValidity = {
   certificateNumber: string
 }
 
+export type Nar1Director = {
+  nameEn: string
+  nameZh?: string
+  flatFloorBlock: string
+  building: string
+  street: string
+  district: string
+  country: string
+}
+
+export type Nar1DocumentValidity = {
+  madeUpToDate: string
+  businessRegistrationNumber: string
+  companyNameEn: string
+  shareCapital: string
+  directors: Nar1Director[]
+}
+
 export type DocumentValidityDates = {
   br?: BrDocumentValidity
   ci?: CiDocumentValidity | string
-  nar1?: string
+  nar1?: Nar1DocumentValidity | string
   cr_company_particulars?: string
   macau_commercial_registration?: string
 }
