@@ -203,23 +203,32 @@
   }
 }
 
-/* NEW badge — QBHOUSE arrival-kiosk-glow-btn / glow-chip と同系統 */
-@property --new-feature-trail-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes new-feature-trail-run {
-  to {
-    --new-feature-trail-angle: 360deg;
+/* NEW badge — QBHOUSE tab-selection-glow / pos-payment-selection-glow 系（明滅グロー） */
+@keyframes new-feature-glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 4px 1px rgba(100, 180, 255, 0.35),
+      0 0 10px 2px rgba(140, 200, 255, 0.22),
+      inset 0 0 0 2px rgba(140, 220, 255, 0.28),
+      inset 0 0 8px rgba(100, 180, 255, 0.1),
+      inset 0 -2px 0 0 rgba(140, 220, 255, 0.22);
+  }
+  50% {
+    box-shadow:
+      0 0 8px 2px rgba(140, 200, 255, 0.7),
+      0 0 18px 5px rgba(100, 180, 255, 0.48),
+      0 0 28px 8px rgba(80, 160, 240, 0.3),
+      inset 0 0 0 2px rgba(190, 245, 255, 0.55),
+      inset 0 0 14px rgba(120, 220, 255, 0.2),
+      inset 0 -2px 0 0 rgba(170, 235, 255, 0.38);
   }
 }
 
 .new-feature-glow-badge {
   position: relative;
   isolation: isolate;
-  overflow: clip;
+  overflow: visible;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -237,42 +246,7 @@
     color-mix(in srgb, #5a9fd4 18%, #02315a) 48%,
     #012040 100%
   );
-  box-shadow:
-    0 0 10px rgba(100, 180, 255, 0.45),
-    0 0 3px rgba(140, 200, 255, 0.38),
-    inset 0 0 0 2px rgba(140, 220, 255, 0.34),
-    inset 0 0 12px rgba(100, 180, 255, 0.14),
-    inset 0 -2px 0 0 rgba(140, 220, 255, 0.28);
-}
-
-.new-feature-glow-badge::before {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  z-index: 0;
-  border-radius: inherit;
-  padding: 2px;
-  --new-feature-trail-angle: 0deg;
-  background: conic-gradient(
-    from var(--new-feature-trail-angle),
-    transparent 0deg 318deg,
-    rgba(120, 220, 255, 0.08) 318deg 328deg,
-    rgba(170, 245, 255, 0.45) 332deg 342deg,
-    rgba(255, 255, 255, 1) 346deg,
-    rgba(210, 250, 255, 0.92) 350deg,
-    rgba(120, 220, 255, 0.35) 356deg,
-    transparent 360deg
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  animation: new-feature-trail-run 4.8s linear infinite;
-  pointer-events: none;
+  animation: new-feature-glow-pulse 2.4s ease-in-out infinite;
 }
 
 .new-feature-glow-badge__content {
