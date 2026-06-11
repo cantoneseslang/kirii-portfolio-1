@@ -458,7 +458,12 @@ export default function NewCustomerSettingPage() {
     formData.append("declarationDate", declarationDate)
     formData.append("signerNameTitle", signerNameTitle)
     formData.append("salesDepartment", salesDepartment)
-    formData.append("salesRepName", salesRepName)
+    formData.append(
+      "salesRepName",
+      salesRepName.trim() ||
+        SALES_REP_OPTIONS.find((option) => option.display_label === signerNameTitle.trim())?.short_name ||
+        "",
+    )
     formData.append("verificationCheckedDate", verificationCheckedDate)
     formData.append("companyStatus", companyStatus)
     formData.append("bankProofCheck", bankProofCheck)
@@ -546,19 +551,22 @@ export default function NewCustomerSettingPage() {
         return
       }
 
+      const resolvedSalesRepName =
+        salesRepName.trim() ||
+        SALES_REP_OPTIONS.find((option) => option.display_label === signerNameTitle.trim())?.short_name ||
+        ""
+
       if (!authorizedSignature.trim() || !declarationDate.trim() || !signerNameTitle.trim()) {
         setError(
-          "Please complete Part 6 declaration fields. / 請完成 Part 6 聲明及簽署欄位。",
+          isSalesUser
+            ? "Please complete Part 6 declaration fields. / 請完成 Part 6 聲明及簽署欄位。"
+            : "Please complete Part 6 and select a Sales colleague in Name & Title. / 請完成 Part 6，並於「姓名及職位」選擇 Sales 同事。",
         )
         return
       }
 
-      if (!salesRepName.trim()) {
-        setError(
-          isSalesUser
-            ? "Sales representative name is missing. / 缺少 Sales 負責同事姓名。"
-            : "Please select the responsible Sales representative. / 請選擇負責 Sales 同事。",
-        )
+      if (!resolvedSalesRepName) {
+        setError("Please select the responsible Sales colleague in Name & Title. / 請於「姓名及職位」選擇負責 Sales 同事。")
         return
       }
     }
@@ -1219,8 +1227,8 @@ export default function NewCustomerSettingPage() {
                 <CardTitle>Part 6: Declaration &amp; Signature / 聲明及簽署</CardTitle>
                 <CardDescription>
                   Sales users: name and date are auto-filled from your login profile. Other departments:
-                  enter manually and select the responsible Sales representative below. /
-                  Sales 同事會自動帶入登入姓名及日期；其他部門請手動填寫，並於下方選擇負責 Sales 同事。
+                  select the responsible Sales colleague in Name &amp; Title. /
+                  Sales 同事會自動帶入登入姓名及日期；其他部門請於「姓名及職位」選擇負責 Sales 同事。
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
@@ -1257,47 +1265,46 @@ export default function NewCustomerSettingPage() {
                   </p>
                 </div>
                 <div className="space-y-2 md:col-span-2">
-                  <LegalNameInput
-                    id="signerNameTitle"
-                    label="Name & Title / 姓名及職位"
-                    value={signerNameTitle}
-                    onChange={setSignerNameTitle}
-                    readOnly={isSalesUser}
-                    helperText={
-                      isSalesUser
-                        ? "Auto-filled from your login profile / 已按登入資料自動填入"
-                        : "Enter full legal name and title manually / 請手動輸入全名及職位"
-                    }
-                  />
+                  {isSalesUser ? (
+                    <LegalNameInput
+                      id="signerNameTitle"
+                      label="Name & Title / 姓名及職位"
+                      value={signerNameTitle}
+                      onChange={setSignerNameTitle}
+                      readOnly
+                      helperText="Auto-filled from your login profile / 已按登入資料自動填入"
+                    />
+                  ) : (
+                    <>
+                      <Label htmlFor="signerNameTitle">Name & Title / 姓名及職位</Label>
+                      <Select
+                        value={signerNameTitle}
+                        onValueChange={(value) => {
+                          setSignerNameTitle(value)
+                          const rep = SALES_REP_OPTIONS.find((option) => option.display_label === value)
+                          if (rep) {
+                            setSalesRepName(rep.short_name)
+                            setSalesDepartment("Sales")
+                          }
+                        }}
+                      >
+                        <SelectTrigger id="signerNameTitle">
+                          <SelectValue placeholder="Select sales colleague / 選擇 Sales 同事" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SALES_REP_OPTIONS.map((rep) => (
+                            <SelectItem key={rep.id} value={rep.display_label}>
+                              {rep.display_label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Select the responsible Sales colleague / 請選擇負責 Sales 同事
+                      </p>
+                    </>
+                  )}
                 </div>
-                {!isSalesUser && (
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="salesRepSelect">Sales Representative / 負責 Sales 同事</Label>
-                    <Select
-                      value={salesRepName}
-                      onValueChange={(value) => {
-                        const rep = SALES_REP_OPTIONS.find(
-                          (option) => option.short_name === value || option.full_name === value,
-                        )
-                        setSalesRepName(rep ? rep.short_name : value)
-                      }}
-                    >
-                      <SelectTrigger id="salesRepSelect">
-                        <SelectValue placeholder="Select sales representative / 選擇 Sales 同事" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SALES_REP_OPTIONS.map((rep) => (
-                          <SelectItem key={rep.id} value={rep.short_name}>
-                            {rep.display_label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Select the responsible Sales colleague (full name) / 請選擇負責 Sales 同事（全名）
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
