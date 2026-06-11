@@ -39,7 +39,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="border-b pb-2 pt-2">
+      <div className="w-full border-b pb-2 pt-2">
         {/* Mobile: layout unchanged */}
         <div className="container flex flex-row items-center justify-between gap-2 md:hidden">
           <div className="flex">
@@ -50,24 +50,22 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        {/* Desktop: logo in container flow, calendar pinned to viewport right edge */}
-        <div className="relative hidden w-full md:block">
-          <div className="container flex items-center py-1 pr-48 lg:pr-56">
-            <div className="flex min-w-0 flex-row items-center gap-4">
-              <div className="flex shrink-0 items-center">
-                <Logo />
-              </div>
-              <div className="min-w-0">
-                <h2 className="mb-0 text-lg font-bold text-[#02315a] md:text-xl lg:text-2xl">
-                  逆境轉型，革新求存
-                </h2>
-                <p className="-mt-1 text-[10px] text-gray-600 italic md:text-xs lg:text-sm">
-                  Transform in Adversity. Innovate for Survival.
-                </p>
-              </div>
+        {/* Desktop: full viewport width — logo left, calendar at far right */}
+        <div className="hidden w-full items-center justify-between gap-6 py-1 pl-4 pr-2 md:flex lg:pl-6 lg:pr-3">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="flex shrink-0 items-center">
+              <Logo />
+            </div>
+            <div className="min-w-0">
+              <h2 className="mb-0 text-lg font-bold text-[#02315a] md:text-xl lg:text-2xl">
+                逆境轉型，革新求存
+              </h2>
+              <p className="-mt-1 text-[10px] text-gray-600 italic md:text-xs lg:text-sm">
+                Transform in Adversity. Innovate for Survival.
+              </p>
             </div>
           </div>
-          <div className="absolute inset-y-0 right-4 z-10 flex items-center lg:right-6 xl:right-8">
+          <div className="shrink-0">
             <DashboardDateDisplay variant="desktop" />
           </div>
         </div>
