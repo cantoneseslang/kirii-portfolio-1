@@ -542,56 +542,87 @@ export default function NewCustomerSettingPage() {
         <CardHeader>
           <CardTitle>Protocol Reference / 指引參考</CardTitle>
           <CardDescription>
-            Hong Kong New Customer Account Setup &amp; Credit Management Protocol v3. Required documents:
-            BR, CI, NAR1, Bank Proof, plus region-specific registry verification (HK: Companies Registry
-            Company Particulars / 公司註冊處公司資料; Macau: Commercial Registration Certificate / 商業登記證明).
+            Required Documents for Registration / 登記所需資料
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <div>
-            <span className="font-medium text-foreground">Hong Kong / 香港：</span> Verify via{" "}
-            <a
-              href="https://www.e-services.cr.gov.hk/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#02315a] underline"
-            >
-              Companies Registry e-Services Portal / 公司註冊處電子服務
-            </a>
-            .
-          </div>
-          <div>
-            <span className="font-medium text-foreground">Macau / 澳門：</span> Free basic lookup via{" "}
-            <a
-              href="https://eservice.dsaj.gov.mo/dsajservice9/commercial-platform"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#02315a] underline"
-            >
-              Commercial Registration Information Platform / 商業登記訊息平台
-            </a>
-            {" "}
-            (search by registration no. or business name / 以登記編號或商業名稱搜尋). For formal certificates
-            (查公司紙 / 商業登記證明), apply via{" "}
-            <a
-              href="https://www.ab.gov.mo/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#02315a] underline"
-            >
-              商社通
-            </a>{" "}
-            or 一戶通, or see{" "}
-            <a
-              href="https://www.gov.mo/zh-hant/services/ps-2000/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#02315a] underline"
-            >
-              DSAJ commercial registration services / 法務局商業登記服務
-            </a>
-            . Issued by CRCBM / 商業及動產登記局.
-          </div>
+        <CardContent className="space-y-4 text-sm text-muted-foreground">
+          <ol className="list-decimal space-y-3 pl-5 text-foreground">
+            <li>
+              <span className="font-medium">Business Registration (BR) *</span>
+              <div>有效商業登記證副本</div>
+            </li>
+            <li>
+              <span className="font-medium">Certificate of Incorporation (CI) *</span>
+              <div>公司註冊證明書副本</div>
+            </li>
+            <li>
+              <span className="font-medium">Annual Return (NAR1) *</span>
+              <div>最新周年申報表副本</div>
+            </li>
+            <li>
+              <span className="font-medium">Companies Registry Company Particulars *</span>
+              <div>公司註冊處公司資料</div>
+              <div className="mt-3 space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-muted-foreground">
+                <p>
+                  Hong Kong New Customer Account Setup &amp; Credit Management Protocol v3. Required documents:
+                  BR, CI, NAR1, Bank Proof, plus region-specific registry verification (HK: Companies Registry
+                  Company Particulars / 公司註冊處公司資料; Macau: Commercial Registration Certificate / 商業登記證明).
+                </p>
+                <div>
+                  <span className="font-medium text-foreground">Hong Kong / 香港：</span> Verify via{" "}
+                  <a
+                    href="https://www.e-services.cr.gov.hk/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#02315a] underline"
+                  >
+                    Companies Registry e-Services Portal / 公司註冊處電子服務
+                  </a>
+                  .
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Macau / 澳門：</span> Free basic lookup via{" "}
+                  <a
+                    href="https://eservice.dsaj.gov.mo/dsajservice9/commercial-platform"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#02315a] underline"
+                  >
+                    Commercial Registration Information Platform / 商業登記訊息平台
+                  </a>
+                  {" "}
+                  (search by registration no. or business name / 以登記編號或商業名稱搜尋). For formal certificates
+                  (查公司紙 / 商業登記證明), apply via{" "}
+                  <a
+                    href="https://www.ab.gov.mo/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#02315a] underline"
+                  >
+                    商社通
+                  </a>{" "}
+                  or 一戶通, or see{" "}
+                  <a
+                    href="https://www.gov.mo/zh-hant/services/ps-2000/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#02315a] underline"
+                  >
+                    DSAJ commercial registration services / 法務局商業登記服務
+                  </a>
+                  . Issued by CRCBM / 商業及動產登記局.
+                </div>
+              </div>
+            </li>
+            <li>
+              <span className="font-medium">Bank Proof</span>
+              <div>銀行戶口證明</div>
+            </li>
+            <li>
+              <span className="font-medium">Other Supporting Document / 其他附件</span>
+              <div>身分證等</div>
+            </li>
+          </ol>
 
           <CustomerDocumentRequestEmail
             salesRepName={salesRepName}
