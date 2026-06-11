@@ -120,10 +120,26 @@ export default function NewCustomerApprovalsPage() {
           <h1 className="text-2xl font-bold text-[#02315a]">NewCustomer Approvals</h1>
           <p className="text-sm text-muted-foreground">Approval Workflow / 新客戶登記審批</p>
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/dashboard/new-customer-setting">Back to Form / 返回表格</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/dashboard">Dashboard / 主頁</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/new-customer-setting">NewCustomer Setting / 新客戶登記</Link>
+          </Button>
+        </div>
       </div>
+
+      <Card className="border-[#02315a]/20 bg-muted/20">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">In-Portfolio Workflow / Portfolio 內審批流程</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground space-y-1">
+          <p>All approvals are handled here inside KIRII Employee Portfolio — email is notification only.</p>
+          <p>所有審批均在此 Portfolio 內完成，電郵僅作通知。</p>
+          <p>Sales Manager → Finance → General Manager</p>
+        </CardContent>
+      </Card>
 
       {!approverRole && (
         <Card>

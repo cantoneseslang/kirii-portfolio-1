@@ -9,11 +9,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useState, useEffect } from "react"
 import { getProfile } from "@/utils/profile"
 import type { Profile } from "@/types/profile"
+import { getApproverRole } from "@/lib/hk-new-customer-approval"
 
 interface NavItem {
   title: string
   href: string
   disabled?: boolean
+  approverOnly?: boolean
 }
 
 export function DashboardNav({ items }: { items: NavItem[] }) {
@@ -22,6 +24,11 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
   const { user, logout } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  const visibleItems = items.filter((item) => {
+    if (!item.approverOnly) return true
+    return Boolean(user?.email && getApproverRole(user.email))
+  })
   
   useEffect(() => {
     const loadProfile = async () => {
@@ -52,7 +59,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
 
   return (
     <nav className="grid items-start gap-2">
-      {items.map((item) => (
+      {visibleItems.map((item) => (
         <Link
           key={item.href}
           href={item.disabled ? "#" : item.href}

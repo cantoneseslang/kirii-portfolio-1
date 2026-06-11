@@ -22,19 +22,38 @@ export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
 }
 
+/** Stable production URL for KIRII Employee Portfolio (never use VERCEL_URL — preview deployments). */
+export const PORTFOLIO_PRODUCTION_URL = "https://kirii-portfolio-1.vercel.app"
+
 export function getSiteBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")
   }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    const host = process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/^https?:\/\//, "").replace(/\/$/, "")
+    return `https://${host}`
+  }
+  if (process.env.NODE_ENV === "production") {
+    return PORTFOLIO_PRODUCTION_URL
   }
   return "http://localhost:3010"
 }
 
-export function getApprovalPageUrl(registrationId?: string): string {
-  const base = `${getSiteBaseUrl()}/dashboard/new-customer-setting/approvals`
+export function getDashboardApprovalPath(registrationId?: string): string {
+  const base = "/dashboard/new-customer-setting/approvals"
   return registrationId ? `${base}?id=${encodeURIComponent(registrationId)}` : base
+}
+
+export function getApprovalPageUrl(registrationId?: string): string {
+  return `${getSiteBaseUrl()}${getDashboardApprovalPath(registrationId)}`
+}
+
+export function getPortfolioLoginUrl(): string {
+  return `${getSiteBaseUrl()}/`
+}
+
+export function getNewCustomerSettingUrl(): string {
+  return `${getSiteBaseUrl()}/dashboard/new-customer-setting`
 }
 
 export function getApproverRole(email: string): ApproverRole | null {

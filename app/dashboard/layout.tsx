@@ -28,6 +28,7 @@ const navItems = [
   {
     title: "NewCustomer Approvals",
     href: "/dashboard/new-customer-setting/approvals",
+    approverOnly: true,
   },
 ]
 

@@ -120,7 +120,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Approval recorded. Next approver has been notified.",
+      message: "Approval recorded. Next approver has been notified to review in Portfolio.",
       data: registration,
     })
   } catch (error) {

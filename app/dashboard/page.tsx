@@ -30,7 +30,9 @@ import AluminumPriceChartCard from "@/components/aluminum-price-chart-card";
 import FormMasterCard from "@/components/form-master-card";
 import HkdRmbRateCard from "@/components/hkd-rmb-rate-card";
 import NewCustomerSettingCard from "@/components/new-customer-setting-card";
+import NewCustomerApprovalsCard from "@/components/new-customer-approvals-card";
 import { isBlockedAuthEmail } from "@/lib/blocked-auth-emails";
+import { getApproverRole } from "@/lib/hk-new-customer-approval";
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -196,11 +198,23 @@ export default function DashboardPage() {
         </Alert>
       )}
 
+      {user?.email && getApproverRole(user.email) && (
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold mb-4">New Customer Approval / 新客戶登記審批</h3>
+          <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+            <NewCustomerApprovalsCard />
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-8 mt-6">
         <div>
           <h3 className="text-lg font-semibold mb-4">Department: All Employees-ERP</h3>
           <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-            <LunchOrderCard />
+            <LunchOrderCard
+              fullName={profile?.full_name || user?.user_metadata?.full_name || null}
+              email={user?.email || null}
+            />
             <LunchOrderSheetCard />
           </div>
           <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
