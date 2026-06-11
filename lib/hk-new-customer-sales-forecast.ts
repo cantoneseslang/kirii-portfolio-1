@@ -19,10 +19,11 @@ export const SALES_PRODUCT_CATEGORIES: {
   { value: "studs", labelEn: "Studs", labelZh: "Stud類" },
   { value: "gypsum_insulation", labelEn: "Gypsum Board / Insulation", labelZh: "石膏板/棉類" },
   { value: "ceiling", labelEn: "Ceiling Materials", labelZh: "天花材料" },
+  { value: "other", labelEn: "Other", labelZh: "其他" },
 ]
 
 function emptyLine() {
-  return { sharePercent: "", monthlyAmount: "" }
+  return { sharePercent: "", monthlyAmount: "", description: "" }
 }
 
 export function emptySalesForecastRegion(): SalesForecastRegion {
@@ -32,6 +33,7 @@ export function emptySalesForecastRegion(): SalesForecastRegion {
       studs: emptyLine(),
       gypsum_insulation: emptyLine(),
       ceiling: emptyLine(),
+      other: emptyLine(),
     },
   }
 }
@@ -100,6 +102,7 @@ export function normalizeSalesForecast(value: unknown): SalesForecast {
       base.regions[region.value].categories[category.value] = {
         sharePercent: String(rawLine.sharePercent ?? "").trim(),
         monthlyAmount: String(rawLine.monthlyAmount ?? "").trim(),
+        description: String(rawLine.description ?? "").trim(),
       }
     }
   }
@@ -112,4 +115,29 @@ export function formatHkdAmount(value: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })
+}
+
+export function validateSalesForecastForSubmit(forecast: SalesForecast): {
+  ok: boolean
+  issues: { region: SalesMarketRegion; labelEn: string; labelZh: string }[]
+} {
+  const issues: { region: SalesMarketRegion; labelEn: string; labelZh: string }[] = []
+
+  for (const region of SALES_MARKET_REGIONS) {
+    const regionData = forecast.regions[region.value]
+    if (!regionData.enabled) continue
+
+    const other = regionData.categories.other
+    const hasOtherData =
+      parseAmount(other.monthlyAmount) > 0 || parsePercent(other.sharePercent) > 0
+    if (hasOtherData && !String(other.description ?? "").trim()) {
+      issues.push({
+        region: region.value,
+        labelEn: region.labelEn,
+        labelZh: region.labelZh,
+      })
+    }
+  }
+
+  return { ok: issues.length === 0, issues }
 }

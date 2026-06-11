@@ -120,13 +120,15 @@ export type DocumentValidityDates = {
   macau_commercial_registration?: string
 }
 
-export type SalesProductCategory = "studs" | "gypsum_insulation" | "ceiling"
+export type SalesProductCategory = "studs" | "gypsum_insulation" | "ceiling" | "other"
 
 export type SalesMarketRegion = "hong_kong" | "macau" | "china" | "overseas"
 
 export type SalesForecastLine = {
   sharePercent: string
   monthlyAmount: string
+  /** Required when category is "other" and share/amount is entered */
+  description?: string
 }
 
 export type SalesForecastRegion = {

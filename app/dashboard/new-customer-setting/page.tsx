@@ -48,6 +48,7 @@ import { SalesForecastFields, calculateSalesForecastTotals } from "@/components/
 import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
 import {
   emptySalesForecast,
+  validateSalesForecastForSubmit,
 } from "@/lib/hk-new-customer-sales-forecast"
 import {
   fillIfEmpty,
@@ -431,6 +432,16 @@ export default function NewCustomerSettingPage() {
           `Please complete all mandatory documents with valid dates. / 請上載所有必須文件並填寫有效日期：${documentValidation.issues
             .map((issue) => `${issue.label} (${issue.messageEn})`)
             .join("; ")}`,
+        )
+        return
+      }
+
+      const salesForecastValidation = validateSalesForecastForSubmit(salesForecast)
+      if (!salesForecastValidation.ok) {
+        setError(
+          `Please describe purchase items for "Other" where share or amount is entered. / 請為「其他」品項填寫購買說明：${salesForecastValidation.issues
+            .map((issue) => `${issue.labelEn} / ${issue.labelZh}`)
+            .join(", ")}`,
         )
         return
       }

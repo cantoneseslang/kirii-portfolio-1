@@ -34,7 +34,7 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
   const updateCategory = (
     region: SalesMarketRegion,
     category: SalesProductCategory,
-    field: "sharePercent" | "monthlyAmount",
+    field: "sharePercent" | "monthlyAmount" | "description",
     nextValue: string,
   ) => {
     onChange({
@@ -105,10 +105,33 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
                   </tr>
                 </thead>
                 <tbody>
-                  {SALES_PRODUCT_CATEGORIES.map((category) => (
+                  {SALES_PRODUCT_CATEGORIES.map((category) => {
+                    const line = regionData.categories[category.value]
+                    const isOther = category.value === "other"
+                    const otherNeedsDescription =
+                      isOther &&
+                      (Boolean(line.sharePercent.trim()) || Boolean(line.monthlyAmount.trim())) &&
+                      !String(line.description ?? "").trim()
+
+                    return (
                     <tr key={category.value} className="border-b border-slate-100">
-                      <td className="py-2 pr-3">
-                        {category.labelEn} / {category.labelZh}
+                      <td className="py-2 pr-3 align-top">
+                        <div>{category.labelEn} / {category.labelZh}</div>
+                        {isOther && (
+                          <div className="mt-2 space-y-1">
+                            <Input
+                              value={line.description ?? ""}
+                              placeholder="Describe purchase items / 請說明購買品項"
+                              className={otherNeedsDescription ? "border-amber-500" : undefined}
+                              onChange={(event) =>
+                                updateCategory(region.value, category.value, "description", event.target.value)
+                              }
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Required when share or monthly amount is entered / 填寫比例或金額時須說明品項
+                            </p>
+                          </div>
+                        )}
                       </td>
                       <td className="py-2 pr-3">
                         <Input
@@ -117,7 +140,7 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
                           max="100"
                           step="0.1"
                           inputMode="decimal"
-                          value={regionData.categories[category.value].sharePercent}
+                          value={line.sharePercent}
                           placeholder="0"
                           onChange={(event) =>
                             updateCategory(region.value, category.value, "sharePercent", event.target.value)
@@ -130,7 +153,7 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
                           min="0"
                           step="1"
                           inputMode="numeric"
-                          value={regionData.categories[category.value].monthlyAmount}
+                          value={line.monthlyAmount}
                           placeholder="0"
                           onChange={(event) =>
                             updateCategory(region.value, category.value, "monthlyAmount", event.target.value)
@@ -138,7 +161,8 @@ export function SalesForecastFields({ value, onChange }: SalesForecastFieldsProp
                         />
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                   <tr className="font-medium">
                     <td className="pt-2 pr-3">Subtotal / 小計</td>
                     <td className="pt-2 pr-3">
