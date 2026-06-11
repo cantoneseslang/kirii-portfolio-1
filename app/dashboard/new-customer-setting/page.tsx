@@ -65,9 +65,12 @@ import {
   pickRegisteredAddressFromNar1,
 } from "@/lib/hk-new-customer-document-autofill"
 import {
+  formatSalesRepLabel,
+  formatSalesRepShortName,
   formatStaffNameAndTitle,
   getTodayIsoDateInHongKong,
   isSalesStaffMember,
+  resolveSalesRep,
   resolveSalesRepPosition,
   resolveStaffDisplayName,
   type SalesRepOption,
@@ -275,16 +278,19 @@ export default function NewCustomerSettingPage() {
     setDeclarationDate((current) => current || today)
 
     if (isSalesUser && staffDisplayName) {
+      const salesRep = resolveSalesRep(user?.email, staffDisplayName)
       setAuthorizedSignature((current) => current || staffDisplayName)
       setSignerNameTitle(
         (current) =>
           current ||
-          formatStaffNameAndTitle(
-            staffDisplayName,
-            userProfile?.position || resolveSalesRepPosition(staffDisplayName),
-          ),
+          (salesRep
+            ? formatSalesRepLabel(salesRep)
+            : formatStaffNameAndTitle(
+                staffDisplayName,
+                userProfile?.position || resolveSalesRepPosition(staffDisplayName),
+              )),
       )
-      setSalesRepName((current) => current || staffDisplayName)
+      setSalesRepName((current) => current || (salesRep ? formatSalesRepShortName(salesRep) : staffDisplayName))
       setSalesDepartment("Sales")
     }
 
@@ -294,6 +300,7 @@ export default function NewCustomerSettingPage() {
     profileLoaded,
     isSalesUser,
     staffDisplayName,
+    user?.email,
     userProfile,
   ])
 
@@ -1278,14 +1285,22 @@ export default function NewCustomerSettingPage() {
                 {!isSalesUser && (
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="salesRepSelect">Sales Representative / 負責 Sales 同事</Label>
-                    <Select value={salesRepName} onValueChange={setSalesRepName}>
+                    <Select
+                      value={salesRepName}
+                      onValueChange={(value) => {
+                        const rep = salesRepOptions.find(
+                          (option) => formatSalesRepShortName(option) === value || option.full_name === value,
+                        )
+                        setSalesRepName(rep ? formatSalesRepShortName(rep) : value)
+                      }}
+                    >
                       <SelectTrigger id="salesRepSelect">
                         <SelectValue placeholder="Select sales representative / 選擇 Sales 同事" />
                       </SelectTrigger>
                       <SelectContent>
                         {salesRepOptions.map((rep) => (
-                          <SelectItem key={rep.id} value={rep.full_name}>
-                            {formatStaffNameAndTitle(rep.full_name, rep.position)}
+                          <SelectItem key={rep.id} value={formatSalesRepShortName(rep)}>
+                            {formatSalesRepLabel(rep)}
                           </SelectItem>
                         ))}
                       </SelectContent>

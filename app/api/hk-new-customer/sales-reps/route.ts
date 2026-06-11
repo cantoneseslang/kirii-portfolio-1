@@ -38,6 +38,7 @@ export async function GET() {
       const profile = profileByEmail.get(normalizeStaffEmail(rep.email))
       return {
         id: profile?.id || rep.email || rep.full_name,
+        english_name: rep.english_name,
         full_name: rep.full_name,
         email: rep.email,
         position: rep.position,
