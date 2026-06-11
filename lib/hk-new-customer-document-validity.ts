@@ -6,6 +6,10 @@ import type {
   Nar1DocumentValidity,
 } from "@/types/hk-new-customer"
 import { getAttachmentTypeLabel, getMandatoryAttachmentKeys } from "@/types/hk-new-customer"
+import {
+  brCertificateNameMatchesForm,
+  companyNamesMatch,
+} from "@/lib/hk-new-customer-company-name-match"
 
 export const DOCUMENT_VALIDITY_WINDOW_DAYS = 365
 
@@ -313,50 +317,6 @@ export function validateCiDocument(
     messageEn: `CI No. ${certificateNumber} / 編號 ${certificateNumber}`,
     messageZh: `CI No. ${certificateNumber} / 編號 ${certificateNumber}`,
   }
-}
-
-function normalizeCompanyNameForMatch(value: string): string {
-  return value
-    .replace(/[\uFF01-\uFF5E]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-}
-
-function normalizeChineseCompanyNameForMatch(value: string): string {
-  return value.replace(/[\s()（）\-·]/g, "")
-}
-
-export function companyNamesMatch(formName: string, certificateName: string): boolean {
-  const formNorm = normalizeCompanyNameForMatch(formName)
-  const certNorm = normalizeCompanyNameForMatch(certificateName)
-  if (!formNorm || !certNorm) return false
-  return formNorm === certNorm || formNorm.includes(certNorm) || certNorm.includes(formNorm)
-}
-
-function companyNamePairMatches(nameA: string, nameB: string): boolean {
-  if (!nameA.trim() || !nameB.trim()) return false
-  if (companyNamesMatch(nameA, nameB)) return true
-  const zhA = normalizeChineseCompanyNameForMatch(nameA)
-  const zhB = normalizeChineseCompanyNameForMatch(nameB)
-  if (!zhA || !zhB) return false
-  return zhA === zhB || zhA.includes(zhB) || zhB.includes(zhA)
-}
-
-export function brCertificateNameMatchesForm(
-  formCompanyNameEn: string,
-  formCompanyNameZh: string,
-  certificateCompanyNameEn: string,
-  certificateCompanyNameZh: string,
-): boolean {
-  const formNames = [formCompanyNameEn, formCompanyNameZh].map((v) => v.trim()).filter(Boolean)
-  const certNames = [certificateCompanyNameEn, certificateCompanyNameZh]
-    .map((v) => (v || "").trim())
-    .filter(Boolean)
-  if (formNames.length === 0 || certNames.length === 0) return false
-
-  return formNames.some((formName) =>
-    certNames.some((certName) => companyNamePairMatches(formName, certName)),
-  )
 }
 
 export function getNar1DocumentValidity(

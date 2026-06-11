@@ -170,7 +170,8 @@ export function BrDocumentSlot({
             }
           />
           <p className="text-xs text-muted-foreground">
-            Must match Part 1 English or Chinese company name / 須與 Part 1 英文或中文公司名稱其中一項一致
+            Must match Part 1 English or Chinese (fuzzy: HK/Hong Kong, Ltd/Co.) / 須與 Part 1
+            英文或中文公司名稱一致（容許 HK/Hong Kong、Ltd/Co. 等差異）
           </p>
         </div>
         <div className="space-y-2 md:col-span-2">
