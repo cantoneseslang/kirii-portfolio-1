@@ -74,7 +74,7 @@ export function CustomerDocumentRequestEmail({
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
           Send this to the customer. Once they reply with the listed documents and information, you can
-          complete the registration form. / 寄給客戶後，待對方回覆文件及資料，即可在本系統完成登記。
+          complete the registration form. / 寄給客戶後，待對方回覆文件及公司資料，即可在本系統完成新客戶登記。
         </p>
       </div>
 

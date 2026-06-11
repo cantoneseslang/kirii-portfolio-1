@@ -14,14 +14,14 @@ function signatureBlock(options: CustomerRequestEmailOptions): string {
 }
 
 export function buildHongKongCustomerRequestEmail(options: CustomerRequestEmailOptions = {}): string {
-  return `Subject: Kirii New Customer Account Setup – Required Documents / 新客戶登記所需文件
+  return `Subject: Kirii New Customer Registration – Required Documents / 新客戶登記所需文件及資料
 
 Dear Sir/Madam / 尊貴的客戶：
 
-Thank you for your interest in opening a trading account with Kirii (Hong Kong) Limited.
-To proceed under our New Customer Account Setup & Credit Management Protocol (v3), please reply to this email with scanned PDF copies (or clear photos) of the documents listed below.
+Thank you for your interest in trading with Kirii (Hong Kong) Limited.
+To complete new customer registration, please reply to this email with the documents and company information listed below (scanned PDF or clear photos).
 
-感謝您有意與桐井（香港）有限公司建立交易賬戶。為辦理新客戶登記及信貸審批（Protocol v3），請回覆本電郵並附上以下文件之清晰掃描副本（PDF 或照片）。
+感謝您有意與桐井（香港）有限公司建立業務關係。為完成新客戶登記，請回覆本電郵，並提供以下文件及公司資料（清晰掃描副本 PDF 或照片）。
 
 ────────────────────────────────────────
 【Mandatory Documents / 必須提交】
@@ -37,16 +37,11 @@ To proceed under our New Customer Account Setup & Credit Management Protocol (v3
 3. Latest Annual Return (Form NAR1) / 最新周年申報表副本
    · Made-up-to date within the last 12 months / 備忘日期須為過去12個月內
 
-4. Companies Registry Company Particulars / 公司註冊處公司資料
-   · Issued within the last 12 months / 須為過去12個月內簽發
-   · Download from Companies Registry e-Services / 公司註冊處電子服務：
-     https://www.e-services.cr.gov.hk/
-
 ────────────────────────────────────────
 【Optional / 可選（建議提供）】
 ────────────────────────────────────────
 
-5. Bank Proof / 銀行戶口證明
+4. Bank Proof / 銀行戶口證明
    · e.g. bank statement header or cancelled cheque / 例如：月結單表頭或空白支票
    · Account name must match the registered company name / 戶口名稱須與公司註冊名稱一致
 
@@ -63,13 +58,10 @@ Please also provide in your reply / 請於回覆中一併提供：
 · Contact person(s) – full legal name in English & Chinese, title, email & phone
   聯絡人 – 英文及中文法定全名、職位、電郵及電話
 · Accounts payable (A/P) contact name & email / 應付賬款聯絡人姓名及電郵
-· Bank name, account name, account number & bank code (if credit terms are requested)
-  銀行名稱、戶口名稱、戶口號碼及銀行代碼（如申請賬期）
-· Estimated monthly purchase (HKD) & requested payment terms / 預計每月採購額（港元）及擬定付款條件
 
-Once we receive all mandatory documents and information, we will process your application and contact you with the result.
+Once we receive the required documents and information, we will proceed with your new customer registration and contact you accordingly.
 
-收到全部必須文件及資料後，我們將為貴公司辦理申請並另行通知結果。
+收到所需文件及資料後，我們將為貴公司辦理新客戶登記，並另行通知。
 
 If you have any questions, please feel free to contact us.
 如有任何查詢，歡迎隨時聯絡我們。
@@ -78,14 +70,14 @@ ${signatureBlock(options)}`
 }
 
 export function buildMacauCustomerRequestEmail(options: CustomerRequestEmailOptions = {}): string {
-  return `Subject: Kirii New Customer Account Setup – Required Documents / 新客戶登記所需文件
+  return `Subject: Kirii New Customer Registration – Required Documents / 新客戶登記所需文件及資料
 
 Dear Sir/Madam / 尊貴的客戶：
 
-Thank you for your interest in opening a trading account with Kirii (Hong Kong) Limited.
-To proceed under our New Customer Account Setup & Credit Management Protocol (v3), please reply to this email with scanned PDF copies (or clear photos) of the documents listed below.
+Thank you for your interest in trading with Kirii (Hong Kong) Limited.
+To complete new customer registration, please reply to this email with the documents and company information listed below (scanned PDF or clear photos).
 
-感謝您有意與桐井（香港）有限公司建立交易賬戶。為辦理新客戶登記及信貸審批（Protocol v3），請回覆本電郵並附上以下文件之清晰掃描副本（PDF 或照片）。
+感謝您有意與桐井（香港）有限公司建立業務關係。為完成新客戶登記，請回覆本電郵，並提供以下文件及公司資料（清晰掃描副本 PDF 或照片）。
 
 ────────────────────────────────────────
 【Mandatory Documents / 必須提交】
@@ -100,18 +92,11 @@ To proceed under our New Customer Account Setup & Credit Management Protocol (v3
 3. Latest Annual Return (Form NAR1) / 最新周年申報表副本
    · Made-up-to date within the last 12 months / 備忘日期須為過去12個月內
 
-4. Commercial Registration Certificate / 商業登記證明
-   · Issued within the last 12 months / 須為過去12個月內簽發
-   · Basic lookup: Commercial Registration Information Platform / 商業登記訊息平台：
-     https://eservice.dsaj.gov.mo/dsajservice9/commercial-platform
-   · Formal certificate (查公司紙): apply via 商社通 https://www.ab.gov.mo/ or 一戶通
-   · Issued by CRCBM / 商業及動產登記局
-
 ────────────────────────────────────────
 【Optional / 可選（建議提供）】
 ────────────────────────────────────────
 
-5. Bank Proof / 銀行戶口證明
+4. Bank Proof / 銀行戶口證明
    · e.g. bank statement header or cancelled cheque / 例如：月結單表頭或空白支票
    · Account name must match the registered company name / 戶口名稱須與公司註冊名稱一致
 
@@ -127,12 +112,10 @@ Please also provide in your reply / 請於回覆中一併提供：
 · Contact person(s) – full legal name in English & Chinese, title, email & phone
   聯絡人 – 英文及中文法定全名、職位、電郵及電話
 · Accounts payable (A/P) contact name & email / 應付賬款聯絡人姓名及電郵
-· Bank details & requested payment terms (if credit is requested)
-  銀行資料及擬定付款條件（如申請賬期）
 
-Once we receive all mandatory documents and information, we will process your application and contact you with the result.
+Once we receive the required documents and information, we will proceed with your new customer registration and contact you accordingly.
 
-收到全部必須文件及資料後，我們將為貴公司辦理申請並另行通知結果。
+收到所需文件及資料後，我們將為貴公司辦理新客戶登記，並另行通知。
 
 If you have any questions, please feel free to contact us.
 如有任何查詢，歡迎隨時聯絡我們。
