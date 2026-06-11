@@ -77,6 +77,33 @@ export function MandatoryDocumentSlot({
         onChange={onFileChange}
       />
 
+      {file && expenseClaimDocumentKey && (
+        <div className="space-y-2 max-w-md rounded-md border border-[#02315a]/15 bg-white p-3">
+          <p className="text-xs text-muted-foreground">
+            {formatRegistryFeeLine(REGISTRY_DOCUMENT_FEES[expenseClaimDocumentKey])}
+            {" · "}
+            Applicant / 申請人：{applicantName?.trim() || "-"}
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            className="gap-1.5"
+            onClick={() =>
+              downloadRegistryExpenseClaim({
+                applicantName: applicantName || "",
+                companyNameEn,
+                companyNameZh,
+                brNumber,
+                documentKey: expenseClaimDocumentKey,
+              })
+            }
+          >
+            <Download className="h-4 w-4" />
+            Claim Reimbursement / 請求報銷
+          </Button>
+        </div>
+      )}
+
       {rule && (
         <div className="space-y-2 max-w-md">
           <Label htmlFor={`validity-${docKey}`}>
@@ -91,34 +118,6 @@ export function MandatoryDocumentSlot({
           <p className="text-xs text-muted-foreground">
             {rule.helperEn} / {rule.helperZh}
           </p>
-          {file && expenseClaimDocumentKey && (
-            <div className="space-y-2 rounded-md border border-[#02315a]/15 bg-white p-3">
-              <p className="text-xs text-muted-foreground">
-                Fee reference / 費用參考：{" "}
-                {formatRegistryFeeLine(REGISTRY_DOCUMENT_FEES[expenseClaimDocumentKey])}
-                {" · "}
-                Applicant / 申請人：{applicantName?.trim() || "-"}
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() =>
-                  downloadRegistryExpenseClaim({
-                    applicantName: applicantName || "",
-                    companyNameEn,
-                    companyNameZh,
-                    brNumber,
-                    documentKey: expenseClaimDocumentKey,
-                  })
-                }
-              >
-                <Download className="h-4 w-4" />
-                Download Expense Claim Form / 下載公司報銷申請書
-              </Button>
-            </div>
-          )}
           {dateValid && (
             <p className="text-xs text-green-700">{dateValidation?.messageEn}</p>
           )}

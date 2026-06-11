@@ -71,10 +71,6 @@ import {
   resolveStaffDisplayName,
   type SalesRepOption,
 } from "@/lib/hk-new-customer-staff"
-import {
-  formatRegistryFeeLine,
-  REGISTRY_DOCUMENT_FEES,
-} from "@/lib/hk-new-customer-registry-expense-claim"
 import { getProfile } from "@/utils/profile"
 import type { Profile } from "@/types/profile"
 import type {
@@ -690,8 +686,7 @@ export default function NewCustomerSettingPage() {
                   >
                     Companies Registry e-Services Portal / 公司註冊處電子服務
                   </a>
-                  . {formatRegistryFeeLine(REGISTRY_DOCUMENT_FEES.cr_company_particulars)}. Applicant / 申請人：
-                  {staffDisplayName || "-"}
+                  .
                 </div>
                 <div>
                   <span className="font-medium text-foreground">Macau / 澳門：</span> Free basic lookup via{" "}
@@ -723,9 +718,7 @@ export default function NewCustomerSettingPage() {
                   >
                     DSAJ commercial registration services / 法務局商業登記服務
                   </a>
-                  . Issued by CRCBM / 商業及動產登記局.{" "}
-                  {formatRegistryFeeLine(REGISTRY_DOCUMENT_FEES.macau_commercial_registration)}. Applicant / 申請人：
-                  {staffDisplayName || "-"}
+                  . Issued by CRCBM / 商業及動產登記局.
                 </div>
               </div>
             </li>
