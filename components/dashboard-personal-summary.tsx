@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import type { DashboardPersonalSummary } from "@/lib/dashboard-personal-summary"
 
@@ -9,29 +9,59 @@ type DashboardPersonalSummaryProps = {
   fullName?: string | null
 }
 
+const SUMMARY_POLL_MS = 30_000
+
 export function DashboardPersonalSummary({ email, fullName }: DashboardPersonalSummaryProps) {
   const [summary, setSummary] = useState<DashboardPersonalSummary | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const loadSummary = useCallback(async (showLoading = false) => {
     if (!email && !fullName) {
       setLoading(false)
       return
     }
 
+    if (showLoading) setLoading(true)
+
     const params = new URLSearchParams()
     if (email) params.set("email", email)
     if (fullName) params.set("fullName", fullName)
 
-    void fetch(`/api/dashboard/personal-summary?${params.toString()}`)
-      .then((response) => response.json())
-      .then((result) => {
-        if (result.success && result.data) {
-          setSummary(result.data)
-        }
+    try {
+      const response = await fetch(`/api/dashboard/personal-summary?${params.toString()}`, {
+        cache: "no-store",
       })
-      .finally(() => setLoading(false))
+      const result = await response.json()
+      if (result.success && result.data) {
+        setSummary(result.data)
+      }
+    } finally {
+      if (showLoading) setLoading(false)
+    }
   }, [email, fullName])
+
+  useEffect(() => {
+    void loadSummary(true)
+
+    const intervalId = window.setInterval(() => {
+      void loadSummary(false)
+    }, SUMMARY_POLL_MS)
+
+    const refreshOnFocus = () => {
+      if (document.visibilityState === "visible") {
+        void loadSummary(false)
+      }
+    }
+
+    window.addEventListener("focus", refreshOnFocus)
+    document.addEventListener("visibilitychange", refreshOnFocus)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.removeEventListener("focus", refreshOnFocus)
+      document.removeEventListener("visibilitychange", refreshOnFocus)
+    }
+  }, [loadSummary])
 
   if (loading) return null
 
