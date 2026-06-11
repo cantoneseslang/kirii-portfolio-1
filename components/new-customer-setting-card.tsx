@@ -2,13 +2,15 @@
 
 import Link from "next/link"
 import React from "react"
+import { NewFeatureBadge } from "@/components/new-feature-badge"
 
 const NewCustomerSettingCard = () => {
   return (
     <Link href="/dashboard/new-customer-setting" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">
-          NewCustomer Setting
+        <h3 className="flex flex-wrap items-center gap-2 text-xl font-bold transition-colors">
+          <span className="hover:text-[#02315a] hover:underline">NewCustomer Setting</span>
+          <NewFeatureBadge />
         </h3>
         <p className="text-[#3c3852] text-sm mt-4">新客戶登記</p>
 

@@ -6,7 +6,7 @@ const NotebookLMCard = () => {
   return (
     <a href="https://notebooklm.google.com/notebook/b55d9b1e-2c68-4cba-b39d-569d5460aa1e" target="_blank" rel="noopener noreferrer" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">NotebookLM 🆕（使用前必須要開VPN）</h3>
+        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">NotebookLM（使用前必須要開VPN）</h3>
         <p className="text-[#3c3852] text-sm mt-4">桐井香港資料博士</p>
         
         <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">

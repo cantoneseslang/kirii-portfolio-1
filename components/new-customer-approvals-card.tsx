@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { NewFeatureBadge } from "@/components/new-feature-badge"
 import { useAuth } from "@/context/auth-context"
 import { getApproverRole } from "@/lib/hk-new-customer-approval"
 
@@ -40,8 +41,9 @@ export default function NewCustomerApprovalsCard() {
     <Link href="/dashboard/new-customer-setting/approvals" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">
-            NewCustomer Approvals
+          <h3 className="flex flex-1 flex-wrap items-center gap-2 text-xl font-bold transition-colors">
+            <span className="hover:text-[#02315a] hover:underline">NewCustomer Approvals</span>
+            <NewFeatureBadge />
           </h3>
           {pendingCount !== null && pendingCount > 0 && (
             <span className="shrink-0 rounded-full bg-[#02315a] px-2.5 py-0.5 text-xs font-semibold text-white">

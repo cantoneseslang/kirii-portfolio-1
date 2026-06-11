@@ -6,7 +6,7 @@ const KHK_AI_MONITOR_Card = () => {
   return (
     <a href="/api/khk-monitor/access" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">KHK_AI_MONITOR 🆕</h3>
+        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">KHK_AI_MONITOR</h3>
         <p className="text-[#3c3852] text-sm mt-4">工廠現場監視</p>
         
         <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">

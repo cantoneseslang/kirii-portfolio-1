@@ -21,7 +21,7 @@ const CollectPaymentCard = () => {
       onClick={handleOpenSecurePortal}
     >
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Collect payment 🆕</h3>
+        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Collect payment</h3>
         <p className="text-[#3c3852] text-sm mt-4">回收金額統計表</p>
         
         <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">
