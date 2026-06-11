@@ -26,6 +26,8 @@ ANCHOR_FIELDS: list[tuple[str, str]] = [
     ("(註冊地址)", "{registeredAddress}"),
     ("(送貨地址)", "{deliveryAddress}"),
     ("(銀行名稱)", "{bankName}"),
+    ("(分店名稱)", "{bankBranchName}"),
+    ("(分店號碼)", "{bankBranchNumber}"),
     ("(戶口號碼)", "{accountNumber}"),
     ("(銀行代碼 / 國際銀行代碼)", "{bankCode}"),
 ]

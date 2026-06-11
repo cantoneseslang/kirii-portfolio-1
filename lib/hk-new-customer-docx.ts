@@ -65,6 +65,8 @@ function buildTemplateData(registration: HkNewCustomerRegistration) {
     invoiceEmail: mark(invoiceEmail),
     invoicePost: mark(invoicePost),
     bankName: registration.bankName || "",
+    bankBranchName: registration.bankBranchName || "",
+    bankBranchNumber: registration.bankBranchNumber || "",
     accountName: registration.accountName || "",
     accountNumber: registration.accountNumber || "",
     bankCode: registration.bankCode || "",

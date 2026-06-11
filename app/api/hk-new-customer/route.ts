@@ -202,6 +202,8 @@ export async function POST(request: Request) {
       apPhone: String(formData.get("apPhone") || "").trim() || undefined,
       invoiceDelivery: parseInvoiceDelivery(formData.get("invoiceDeliveryJson")),
       bankName: String(formData.get("bankName") || "").trim() || undefined,
+      bankBranchName: String(formData.get("bankBranchName") || "").trim() || undefined,
+      bankBranchNumber: String(formData.get("bankBranchNumber") || "").trim() || undefined,
       accountName: String(formData.get("accountName") || "").trim() || undefined,
       accountNumber: String(formData.get("accountNumber") || "").trim() || undefined,
       bankCode: String(formData.get("bankCode") || "").trim() || undefined,

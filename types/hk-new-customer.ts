@@ -150,6 +150,8 @@ export type HkNewCustomerRegistration = {
   invoiceDelivery: ("email" | "post")[]
 
   bankName?: string
+  bankBranchName?: string
+  bankBranchNumber?: string
   accountName?: string
   accountNumber?: string
   bankCode?: string

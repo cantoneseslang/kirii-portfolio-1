@@ -177,6 +177,8 @@ export default function NewCustomerSettingPage() {
   const [invoiceEmail, setInvoiceEmail] = useState(true)
   const [invoicePost, setInvoicePost] = useState(false)
   const [bankName, setBankName] = useState("")
+  const [bankBranchName, setBankBranchName] = useState("")
+  const [bankBranchNumber, setBankBranchNumber] = useState("")
   const [accountName, setAccountName] = useState("")
   const [accountNumber, setAccountNumber] = useState("")
   const [bankCode, setBankCode] = useState("")
@@ -352,6 +354,8 @@ export default function NewCustomerSettingPage() {
     formData.append("apPhone", apPhone)
     formData.append("invoiceDeliveryJson", JSON.stringify(invoiceDelivery))
     formData.append("bankName", bankName)
+    formData.append("bankBranchName", bankBranchName)
+    formData.append("bankBranchNumber", bankBranchNumber)
     formData.append("accountName", accountName)
     formData.append("accountNumber", accountNumber)
     formData.append("bankCode", bankCode)
@@ -971,8 +975,25 @@ export default function NewCustomerSettingPage() {
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="bankName">Bank Name</Label>
+                  <Label htmlFor="bankName">Bank Name / 銀行名稱</Label>
                   <Input id="bankName" value={bankName} onChange={(e) => setBankName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bankBranchName">Branch Name / 分店名稱</Label>
+                  <Input
+                    id="bankBranchName"
+                    value={bankBranchName}
+                    onChange={(e) => setBankBranchName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bankBranchNumber">Branch No. / 分店號碼</Label>
+                  <Input
+                    id="bankBranchNumber"
+                    value={bankBranchNumber}
+                    onChange={(e) => setBankBranchNumber(e.target.value)}
+                    placeholder="e.g. 123 / 例如：123"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="accountName">Account Name / 戶口名稱</Label>
@@ -984,11 +1005,11 @@ export default function NewCustomerSettingPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="accountNumber">Account Number</Label>
+                  <Label htmlFor="accountNumber">Account Number / 戶口號碼</Label>
                   <Input id="accountNumber" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bankCode">Bank Code / SWIFT Code</Label>
+                  <Label htmlFor="bankCode">Bank Code / SWIFT Code / 銀行代碼</Label>
                   <Input id="bankCode" value={bankCode} onChange={(e) => setBankCode(e.target.value)} />
                 </div>
               </CardContent>
