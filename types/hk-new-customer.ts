@@ -120,6 +120,24 @@ export type DocumentValidityDates = {
   macau_commercial_registration?: string
 }
 
+export type SalesProductCategory = "studs" | "gypsum_insulation" | "ceiling"
+
+export type SalesMarketRegion = "hong_kong" | "macau" | "china" | "overseas"
+
+export type SalesForecastLine = {
+  sharePercent: string
+  monthlyAmount: string
+}
+
+export type SalesForecastRegion = {
+  enabled: boolean
+  categories: Record<SalesProductCategory, SalesForecastLine>
+}
+
+export type SalesForecast = {
+  regions: Record<SalesMarketRegion, SalesForecastRegion>
+}
+
 export type HkNewCustomerRegistration = {
   id: string
   createdAt: string
@@ -157,6 +175,8 @@ export type HkNewCustomerRegistration = {
   bankCode?: string
 
   estimatedMonthlyPurchase?: number
+  estimatedAnnualPurchase?: number
+  salesForecast?: SalesForecast
   paymentTerms?: "advance" | "30_days_invoice" | "30_days_eom" | "other"
   paymentTermsOther?: string
 

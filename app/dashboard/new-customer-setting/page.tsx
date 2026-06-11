@@ -44,7 +44,11 @@ import { CiDocumentSlot } from "@/components/ci-document-slot"
 import { Nar1DocumentSlot } from "@/components/nar1-document-slot"
 import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
 import { CustomerDocumentRequestEmail } from "@/components/customer-document-request-email"
+import { SalesForecastFields, calculateSalesForecastTotals } from "@/components/sales-forecast-fields"
 import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
+import {
+  emptySalesForecast,
+} from "@/lib/hk-new-customer-sales-forecast"
 import {
   fillIfEmpty,
   mergeDirectorsIntoContacts,
@@ -60,6 +64,7 @@ import type {
   DocumentValidityDates,
   HkNewCustomerIndexItem,
   HkNewCustomerRegistration,
+  SalesForecast,
   StructuredAddress,
 } from "@/types/hk-new-customer"
 
@@ -182,7 +187,7 @@ export default function NewCustomerSettingPage() {
   const [accountName, setAccountName] = useState("")
   const [accountNumber, setAccountNumber] = useState("")
   const [bankCode, setBankCode] = useState("")
-  const [estimatedMonthlyPurchase, setEstimatedMonthlyPurchase] = useState("")
+  const [salesForecast, setSalesForecast] = useState<SalesForecast>(emptySalesForecast)
   const [paymentTerms, setPaymentTerms] = useState<string>("advance")
   const [paymentTermsOther, setPaymentTermsOther] = useState("")
   const [attachmentFiles, setAttachmentFiles] = useState<AttachmentFiles>({})
@@ -292,6 +297,11 @@ export default function NewCustomerSettingPage() {
     }
   }, [])
 
+  const salesForecastTotals = useMemo(
+    () => calculateSalesForecastTotals(salesForecast),
+    [salesForecast],
+  )
+
   const invoiceDelivery = useMemo(() => {
     const values: ("email" | "post")[] = []
     if (invoiceEmail) values.push("email")
@@ -359,7 +369,9 @@ export default function NewCustomerSettingPage() {
     formData.append("accountName", accountName)
     formData.append("accountNumber", accountNumber)
     formData.append("bankCode", bankCode)
-    formData.append("estimatedMonthlyPurchase", estimatedMonthlyPurchase)
+    formData.append("salesForecastJson", JSON.stringify(salesForecast))
+    formData.append("estimatedMonthlyPurchase", String(salesForecastTotals.monthlyTotal || ""))
+    formData.append("estimatedAnnualPurchase", String(salesForecastTotals.annualTotal || ""))
     formData.append("paymentTerms", paymentTerms)
     formData.append("paymentTermsOther", paymentTermsOther)
     formData.append("documentsChecklistJson", JSON.stringify(checklistFromAttachments(attachmentFiles)))
@@ -1020,18 +1032,9 @@ export default function NewCustomerSettingPage() {
                 <CardTitle>Part 5: Requested Terms / 擬定交易條件</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <SalesForecastFields value={salesForecast} onChange={setSalesForecast} />
                 <div className="space-y-2">
-                  <Label htmlFor="estimatedMonthlyPurchase">Estimated Monthly Purchase (HKD)</Label>
-                  <Input
-                    id="estimatedMonthlyPurchase"
-                    type="number"
-                    min="0"
-                    value={estimatedMonthlyPurchase}
-                    onChange={(e) => setEstimatedMonthlyPurchase(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Requested Payment Terms</Label>
+                  <Label>Requested Payment Terms / 擬定付款條件</Label>
                   <RadioGroup value={paymentTerms} onValueChange={setPaymentTerms}>
                     <label className="flex items-center gap-2 text-sm">
                       <RadioGroupItem value="advance" /> Advance Payment / 預付
@@ -1234,6 +1237,8 @@ export default function NewCustomerSettingPage() {
                     }) || "-"}
                   </div>
                   <div><span className="font-medium">Sales Rep:</span> {selectedRecord.salesRepName || "-"}</div>
+                  <div><span className="font-medium">Monthly Purchase:</span> {selectedRecord.estimatedMonthlyPurchase ?? "-"}</div>
+                  <div><span className="font-medium">Annual Purchase:</span> {selectedRecord.estimatedAnnualPurchase ?? "-"}</div>
                   <div><span className="font-medium">Payment Terms:</span> {selectedRecord.paymentTerms || "-"}</div>
                 </div>
 

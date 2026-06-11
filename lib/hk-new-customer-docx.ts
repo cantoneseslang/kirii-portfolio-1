@@ -74,6 +74,10 @@ function buildTemplateData(registration: HkNewCustomerRegistration) {
       registration.estimatedMonthlyPurchase !== undefined
         ? String(registration.estimatedMonthlyPurchase)
         : "",
+    estimatedAnnualPurchase:
+      registration.estimatedAnnualPurchase !== undefined
+        ? String(registration.estimatedAnnualPurchase)
+        : "",
     payAdvance: mark(registration.paymentTerms === "advance"),
     pay30Invoice: mark(registration.paymentTerms === "30_days_invoice"),
     pay30Eom: mark(registration.paymentTerms === "30_days_eom"),

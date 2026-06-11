@@ -22,6 +22,7 @@ import {
   searchRegistrations,
   uploadAttachmentFile,
 } from "@/lib/hk-new-customer-storage"
+import { normalizeSalesForecast } from "@/lib/hk-new-customer-sales-forecast"
 
 export const runtime = "nodejs"
 
@@ -210,6 +211,10 @@ export async function POST(request: Request) {
       estimatedMonthlyPurchase: formData.get("estimatedMonthlyPurchase")
         ? Number(formData.get("estimatedMonthlyPurchase"))
         : undefined,
+      estimatedAnnualPurchase: formData.get("estimatedAnnualPurchase")
+        ? Number(formData.get("estimatedAnnualPurchase"))
+        : undefined,
+      salesForecast: normalizeSalesForecast(parseJsonField(formData.get("salesForecastJson"), null)),
       paymentTerms: (String(formData.get("paymentTerms") || "") || undefined) as HkNewCustomerRegistration["paymentTerms"],
       paymentTermsOther: String(formData.get("paymentTermsOther") || "").trim() || undefined,
       documentsChecklist: parseChecklist(formData.get("documentsChecklistJson")),
