@@ -171,6 +171,14 @@ export default function DashboardPage() {
 
   return (
     <DashboardShell>
+      <div className="news-ticker mb-4 overflow-hidden border-y border-gray-200 py-2">
+        <div className="news-ticker-content max-h-[3rem] md:max-h-none">
+          <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">
+            13-02-2026 Added KHK Monitor 工廠現場監視 ・ 13-02-2026 Added NotebookLM 桐井資料博士 ・ 13-02-2026 Collectpayment 回收金額統計表
+          </span>
+        </div>
+      </div>
+
       <DashboardHeader
         heading="Dashboard"
         text={`Welcome, ${profile?.full_name || "User"}${isBypassMode ? " (Demo Mode)" : ""}`}
@@ -186,14 +194,6 @@ export default function DashboardPage() {
       <HkdRmbRateCard />
       <SteelPriceChartCard />
       <AluminumPriceChartCard />
-
-      <div className="news-ticker mt-1 mb-2 overflow-hidden border-y border-gray-200 py-2">
-        <div className="news-ticker-content max-h-[3rem] md:max-h-none">
-          <span className="text-blue-600 font-medium text-sm md:text-base animate-marquee">
-            13-02-2026 Added KHK Monitor 工廠現場監視 ・ 13-02-2026 Added NotebookLM 桐井資料博士 ・ 13-02-2026 Collectpayment 回收金額統計表
-          </span>
-        </div>
-      </div>
 
       {isBypassMode && (
         <Alert className="mt-4">
