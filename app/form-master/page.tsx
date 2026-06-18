@@ -1,6 +1,7 @@
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
 import { Footer } from "@/components/footer"
+import { requireCardAccessPage } from "@/lib/portfolio-access"
 import { FileSpreadsheet, FileText } from "lucide-react"
 
 type DownloadItem = {
@@ -182,7 +183,8 @@ const formatRevision = (value: string): string => {
 const downloadButtonClassName =
   "inline-flex h-8 w-8 items-center justify-center rounded border border-[#02315a] text-[#02315a] hover:bg-[#02315a]/10 transition-colors"
 
-export default function FormMasterPage() {
+export default async function FormMasterPage() {
+  await requireCardAccessPage("form_master")
   return (
     <DashboardShell>
       <DashboardHeader heading="Form Master" text="公司文件" center />

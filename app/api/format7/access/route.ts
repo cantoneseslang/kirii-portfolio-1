@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import {
+  getRequestMeta,
+  logActivityEventServer,
+  requireCardAccessApi,
+} from "@/lib/portfolio-access";
 
 const COOKIE_NAME = "format7_portal_gate";
-/** Lets /format7/latest/* work after the one-time gate cookie is consumed (e.g. export fetch without Referer). */
 const SESSION_COOKIE_NAME = "format7_portal_session";
 const INTENT_COOKIE_NAME = "format7_dashboard_intent";
 const SESSION_MAX_AGE_SEC = 60 * 45;
@@ -10,9 +14,11 @@ const SESSION_MAX_AGE_SEC = 60 * 45;
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
+  const access = await requireCardAccessApi("collect_payment", req);
+  if (!access.ok) return access.response;
+
   const reqUrl = new URL(req.url);
   const referer = req.headers.get("referer");
-  const loginUrl = new URL("/", req.url);
   const cookieHeader = req.headers.get("cookie") ?? "";
   const userAgent = req.headers.get("user-agent") ?? "";
   const hasIntentCookie = cookieHeader
@@ -33,15 +39,19 @@ export async function GET(req: Request) {
     }
   }
 
-  console.log(
-    `[format7_access] incoming path=${reqUrl.pathname} referer=${referer ?? "none"} intent=${hasIntentCookie} ua=${userAgent.slice(0, 80)}`
-  );
-
-  // Allow either strict dashboard referer OR a short-lived click intent cookie.
   if (!hasValidReferer && !hasIntentCookie) {
-    console.log("[format7_access] blocked -> redirect / (missing valid referer and intent)");
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/", req.url));
   }
+
+  const { ipAddress } = getRequestMeta(req);
+  await logActivityEventServer({
+    userId: access.userId,
+    eventType: "portal_open",
+    resourceKey: "collect_payment",
+    resourcePath: "/api/format7/access",
+    ipAddress,
+    userAgent,
+  });
 
   const redirectUrl = new URL("/format7/latest", req.url);
   const response = NextResponse.redirect(redirectUrl);
@@ -67,7 +77,6 @@ export async function GET(req: Request) {
     path: "/",
     maxAge: 0,
   });
-  console.log("[format7_access] allowed -> redirect /format7/latest and set one-time gate");
 
   return response;
 }

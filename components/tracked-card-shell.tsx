@@ -12,7 +12,7 @@ interface TrackedCardShellProps {
 export function TrackedCardShell({ cardKey, children }: TrackedCardShellProps) {
   return (
     <div
-      onClickCapture={() => {
+      onPointerDown={() => {
         trackCardClick(cardKey)
       }}
     >

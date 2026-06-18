@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
@@ -43,22 +43,17 @@ const DASHBOARD_NEWS_TICKER =
 
 export default function DashboardPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { user, isLoading, logout } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
-  // バイパス機能の確認
-  const isBypassMode = searchParams.get('bypass') === 'true'
-  
-  // Redirect to home page if no session exists (バイパスモードでない場合のみ)
+
   useEffect(() => {
-    if (!isBypassMode && !isLoading && !user) {
+    if (!isLoading && !user) {
       console.log("Dashboard: No user found, redirecting to home page")
       router.push("/")
     }
-  }, [isBypassMode, isLoading, user, router])
+  }, [isLoading, user, router])
   
   const handleSignOut = async () => {
     try {
@@ -73,21 +68,13 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    // Load profile when user is loaded (バイパスモードの場合はスキップ)
-    if (user && !isLoading && !isBypassMode) {
+    if (user && !isLoading) {
       loadProfile()
-    } else if (isBypassMode) {
-      // バイパスモードの場合はダミープロファイルを設定
-      setProfile({
-        id: 'bypass-user',
-        full_name: 'Demo User',
-        is_admin: true,
-      } as Profile)
     }
-  }, [user, isLoading, isBypassMode])
+  }, [user, isLoading])
 
   useEffect(() => {
-    if (isBypassMode || !user?.email) return
+    if (!user?.email) return
     if (!isBlockedAuthEmail(user.email)) return
 
     const forceLogout = async () => {
@@ -96,19 +83,19 @@ export default function DashboardPage() {
     }
 
     void forceLogout()
-  }, [isBypassMode, user?.email, logout, router])
+  }, [user?.email, logout, router])
 
   useEffect(() => {
-    if (!profile || isBypassMode) return
+    if (!profile) return
     if (profile.is_active === false) {
       void logout().then(() => router.push("/"))
     }
-  }, [profile, isBypassMode, logout, router])
+  }, [profile, logout, router])
 
   useEffect(() => {
-    if (!user || isBypassMode) return
+    if (!user) return
     trackPageView("/dashboard")
-  }, [user, isBypassMode])
+  }, [user])
 
   const loadProfile = async () => {
     if (!user) return
@@ -156,8 +143,7 @@ export default function DashboardPage() {
     }
   }
 
-  // Loading display while authentication is loading (バイパスモードでない場合のみ)
-  if (isLoading && !isBypassMode) {
+  if (isLoading) {
     return (
       <div className="container py-10">
         <div className="flex items-center justify-center h-64">
@@ -170,8 +156,7 @@ export default function DashboardPage() {
     )
   }
 
-  // User not authenticated (バイパスモードでない場合のみ)
-  if (!user && !isBypassMode) {
+  if (!user) {
     return (
       <div className="container py-10">
         <Alert>
@@ -193,30 +178,17 @@ export default function DashboardPage() {
 
       <DashboardHeader
         heading="Dashboard"
-        text={`Welcome, ${profile?.full_name || "User"}${isBypassMode ? " (Demo Mode)" : ""}`}
+        text={`Welcome, ${profile?.full_name || "User"}`}
       />
 
-      {!isBypassMode && (
-        <DashboardPersonalSummary
-          email={user?.email || null}
-          fullName={profile?.full_name || (user?.user_metadata?.full_name as string | undefined) || null}
-        />
-      )}
+      <DashboardPersonalSummary
+        email={user?.email || null}
+        fullName={profile?.full_name || (user?.user_metadata?.full_name as string | undefined) || null}
+      />
 
       <HkdRmbRateCard />
       <SteelPriceChartCard />
       <AluminumPriceChartCard />
-
-      {isBypassMode && (
-        <Alert className="mt-4">
-          <AlertDescription>
-            <strong>Demo Mode:</strong> You are currently in bypass mode. Some features may be limited.
-            <Link href="/dashboard" className="text-blue-600 hover:underline ml-2">
-              Exit Demo Mode
-            </Link>
-          </AlertDescription>
-        </Alert>
-      )}
 
       {user?.email && getApproverRole(user.email) && (
         <div className="mt-6">

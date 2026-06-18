@@ -1,9 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextRequest, NextResponse } from "next/server"
-import { verifyFormat7AccessTokenEdge } from "@/lib/format7-access-token-edge"
 
-const PRODUCT_MANUAL_COOKIE = "product_manual_portal_access"
-const CERTIFICATION_COOKIE = "certification_portal_access"
 const FORMAT7_GATE_COOKIE = "format7_portal_gate"
 const FORMAT7_SESSION_COOKIE = "format7_portal_session"
 
@@ -13,17 +10,26 @@ const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uc2hiY3ZycnpsdW1mb21uaWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4Mzk2MDksImV4cCI6MjA1OTQxNTYwOX0.trKf8ddsJh1hEYayUo6Bb3ytSFqZlNFb9lKlHsyhJ9M"
 
-function redirectToDashboard(request: NextRequest) {
-  return NextResponse.redirect(new URL("/dashboard", request.url))
+const PUBLIC_EXACT_PATHS = new Set([
+  "/",
+  "/forgot-password",
+  "/reset-password-confirmation",
+])
+
+const PUBLIC_API_PREFIXES = ["/api/cron/"]
+
+function isPublicRoute(pathname: string): boolean {
+  if (PUBLIC_EXACT_PATHS.has(pathname)) return true
+  if (pathname === "/api/record-login") return true
+  return PUBLIC_API_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 }
 
 function redirectToLogin(request: NextRequest) {
   return NextResponse.redirect(new URL("/", request.url))
 }
 
-async function hasValidToken(tokenValue: string | undefined) {
-  if (!tokenValue) return false
-  return verifyFormat7AccessTokenEdge(tokenValue)
+function unauthorizedApiResponse() {
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 }
 
 function createSupabaseMiddlewareClient(request: NextRequest, response: NextResponse) {
@@ -42,14 +48,11 @@ function createSupabaseMiddlewareClient(request: NextRequest, response: NextResp
   })
 }
 
-async function handleAuthRoutes(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const bypass = request.nextUrl.searchParams.get("bypass") === "true"
+function isRedirect(response: NextResponse) {
+  return response.status >= 300 && response.status < 400
+}
 
-  if (bypass) {
-    return NextResponse.next()
-  }
-
+async function getSessionResponse(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -61,98 +64,78 @@ async function handleAuthRoutes(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  if (
-    (pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) &&
-    !session
-  ) {
-    return redirectToLogin(request)
-  }
-
-  if (pathname === "/" && session) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
-  }
-
-  return response
+  return { response, session }
 }
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+function handleFormat7Gate(request: NextRequest, baseResponse: NextResponse) {
+  const gate = request.cookies.get(FORMAT7_GATE_COOKIE)?.value
+  const session = request.cookies.get(FORMAT7_SESSION_COOKIE)?.value
+  const allowBySession = Boolean(session)
+  let allowByReferer = false
 
-  if (
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/admin") ||
-    pathname === "/"
-  ) {
-    return handleAuthRoutes(request)
-  }
-
-  if (pathname.startsWith("/product-manual")) {
-    const token = request.cookies.get(PRODUCT_MANUAL_COOKIE)?.value
-    if (!(await hasValidToken(token))) {
-      return redirectToDashboard(request)
-    }
-  }
-
-  if (pathname.startsWith("/certification")) {
-    const token = request.cookies.get(CERTIFICATION_COOKIE)?.value
-    if (!(await hasValidToken(token))) {
-      return redirectToDashboard(request)
-    }
-  }
-
-  if (pathname.startsWith("/format7/latest")) {
-    const gate = request.cookies.get(FORMAT7_GATE_COOKIE)?.value
-    const session = request.cookies.get(FORMAT7_SESSION_COOKIE)?.value
-    const allowBySession = Boolean(session)
-    let allowByReferer = false
-
-    const referer = request.headers.get("referer")
-    if (referer) {
-      let refererUrl: URL
-      try {
-        refererUrl = new URL(referer)
-      } catch {
-        return redirectToLogin(request)
-      }
-
+  const referer = request.headers.get("referer")
+  if (referer) {
+    try {
+      const refererUrl = new URL(referer)
       const isSameOrigin = refererUrl.origin === request.nextUrl.origin
       const isAllowedPath =
         refererUrl.pathname.startsWith("/api/format7/access") ||
         refererUrl.pathname.startsWith("/dashboard") ||
         refererUrl.pathname.startsWith("/format7/latest")
 
-      if (!isSameOrigin || !isAllowedPath) {
-        return redirectToLogin(request)
-      }
-
-      allowByReferer = true
-    }
-
-    if (!gate && !allowByReferer && !allowBySession) {
+      allowByReferer = isSameOrigin && isAllowedPath
+    } catch {
       return redirectToLogin(request)
     }
+  }
 
-    const response = NextResponse.next()
-    if (gate) {
-      response.cookies.set(FORMAT7_GATE_COOKIE, "", {
-        path: "/format7",
-        maxAge: 0,
-      })
+  if (!gate && !allowByReferer && !allowBySession) {
+    return redirectToLogin(request)
+  }
+
+  if (gate) {
+    baseResponse.cookies.set(FORMAT7_GATE_COOKIE, "", {
+      path: "/format7",
+      maxAge: 0,
+    })
+  }
+
+  return baseResponse
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  if (isPublicRoute(pathname)) {
+    if (pathname !== "/") {
+      return NextResponse.next()
+    }
+
+    const { response, session } = await getSessionResponse(request)
+    if (session) {
+      return NextResponse.redirect(new URL("/dashboard", request.url))
     }
     return response
   }
 
-  return NextResponse.next()
+  const { response, session } = await getSessionResponse(request)
+
+  if (!session) {
+    if (pathname.startsWith("/api/")) {
+      return unauthorizedApiResponse()
+    }
+    return redirectToLogin(request)
+  }
+
+  if (pathname.startsWith("/format7/latest")) {
+    return handleFormat7Gate(request, response)
+  }
+
+  return response
 }
 
 export const config = {
   matcher: [
-    "/",
-    "/dashboard/:path*",
-    "/admin/:path*",
-    "/product-manual/:path*",
-    "/certification/:path*",
-    "/format7/latest",
-    "/format7/latest/:path*",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 }

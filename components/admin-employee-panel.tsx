@@ -25,14 +25,17 @@ const DEPARTMENT_SWITCH_KEYS = [
   "Factory",
 ] as const satisfies readonly DepartmentPermissionKey[]
 
+const SCROLLABLE_TABLE_WRAPPER =
+  "max-h-[calc(100vh-20rem)] min-h-[24rem] overflow-auto overscroll-contain"
+
 interface AdminEmployeePanelProps {
   initialEmployees: AdminEmployeeRow[]
   initialActivityEvents: ActivityEventRow[]
   nameByUserId: Record<string, string>
 }
 
-function formatHongKongTime(date: Date | null): string {
-  if (!date) return "Not logged in"
+function formatHongKongTime(date: Date | null, emptyLabel = "Not logged in"): string {
+  if (!date) return emptyLabel
   const hongKongTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
   return hongKongTime.toLocaleString("en-US", {
     year: "numeric",
@@ -139,15 +142,15 @@ export function AdminEmployeePanel({
         </div>
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
           <div className="text-2xl font-bold">{summary.activeUsers}</div>
-          <div className="text-sm">Recently Active</div>
+          <div className="text-sm">Active (login or card, 7d)</div>
         </div>
         <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
           <div className="text-2xl font-bold">{summary.inactiveUsers}</div>
-          <div className="text-sm">Inactive (7d+)</div>
+          <div className="text-sm">Inactive (7d+, this month)</div>
         </div>
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           <div className="text-2xl font-bold">{summary.unusedUsers}</div>
-          <div className="text-sm">Unused This Month</div>
+          <div className="text-sm">No login or card use</div>
         </div>
       </div>
 
@@ -165,22 +168,24 @@ export function AdminEmployeePanel({
                 左の Active で有効/無効、Department 列のスイッチで部門権限を変更できます（緑=ON、赤=OFF）。
               </p>
             </div>
-            <div className="overflow-x-auto">
+            <div className={SCROLLABLE_TABLE_WRAPPER}>
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Active</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Display Title</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Login Count</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Login (HK)</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usage</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Active</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Display Title</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Email</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Position</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Login Count</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last Login (HK)</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Card Activity</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last Activity (HK)</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Usage</th>
                     {DEPARTMENT_SWITCH_KEYS.map((token) => (
                       <th
                         key={token}
-                        className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap"
+                        className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50"
                       >
                         {token}
                       </th>
@@ -217,6 +222,12 @@ export function AdminEmployeePanel({
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{employee.loginCount}</td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatHongKongTime(employee.lastLogin)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {employee.cardActivityCount}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatHongKongTime(employee.lastActivity, "No activity")}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${employee.usageStatusColor}`}>
@@ -255,15 +266,15 @@ export function AdminEmployeePanel({
                 社員がポートフォリオ内のどこへアクセスし、何をしたかを記録します。
               </p>
             </div>
-            <div className="overflow-x-auto">
+            <div className={SCROLLABLE_TABLE_WRAPPER}>
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time (HK)</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resource</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Path</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Time (HK)</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Employee</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Event</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Resource</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Path</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">

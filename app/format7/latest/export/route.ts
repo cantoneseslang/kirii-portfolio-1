@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { exportLatestFormat7SpreadsheetAsXlsx } from "@/lib/format7-google-sheet";
+import { requireCardAccessApi } from "@/lib/portfolio-access";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,10 @@ function contentDispositionAttachment(filenameStem: string) {
   return `attachment; filename="${asciiFilename}"; filename*=UTF-8''${star}`;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const access = await requireCardAccessApi("collect_payment", req);
+  if (!access.ok) return access.response;
+
   try {
     const { buffer, filenameStem } = await exportLatestFormat7SpreadsheetAsXlsx();
     return new NextResponse(buffer, {

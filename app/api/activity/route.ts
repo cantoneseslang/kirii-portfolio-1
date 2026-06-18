@@ -5,18 +5,26 @@ import { createServerSupabaseClient } from "@/utils/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    let body: {
+      eventType?: string
+      resourceKey?: CardPermissionKey | string
+      resourcePath?: string
+      metadata?: Record<string, unknown>
+    } = {}
+
+    try {
+      body = await request.json()
+    } catch {
+      const text = await request.text()
+      body = text ? JSON.parse(text) : {}
+    }
+
     const {
       eventType = "card_click",
       resourceKey,
       resourcePath,
       metadata,
-    } = body as {
-      eventType?: string
-      resourceKey?: CardPermissionKey | string
-      resourcePath?: string
-      metadata?: Record<string, unknown>
-    }
+    } = body
 
     const supabaseAuth = await createServerSupabaseClient()
     const {

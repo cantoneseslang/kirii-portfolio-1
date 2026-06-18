@@ -1,10 +1,22 @@
 import Link from "next/link";
 import Format7TableViewer from "@/components/format7-table-viewer";
 import { getLatestFormat7SheetData } from "@/lib/format7-google-sheet";
+import { requireCardAccessPage, logActivityEventServer, getAuthenticatedProfile } from "@/lib/portfolio-access";
 
 export const dynamic = "force-dynamic";
 
 export default async function LatestFormat7Page() {
+  await requireCardAccessPage("collect_payment")
+
+  const access = await getAuthenticatedProfile()
+  if (access.ok) {
+    await logActivityEventServer({
+      userId: access.userId,
+      eventType: "page_view",
+      resourceKey: "collect_payment",
+      resourcePath: "/format7/latest",
+    })
+  }
   let sheetTitle = "";
   let rows: string[][] = [];
 

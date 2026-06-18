@@ -23,6 +23,18 @@ export async function trackActivity(payload: ActivityPayload) {
 }
 
 export function trackCardClick(resourceKey: CardPermissionKey, resourcePath?: string) {
+  const payload = JSON.stringify({
+    eventType: "card_click",
+    resourceKey,
+    resourcePath: resourcePath || "/dashboard",
+  })
+
+  if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+    const blob = new Blob([payload], { type: "application/json" })
+    navigator.sendBeacon("/api/activity", blob)
+    return
+  }
+
   void trackActivity({
     eventType: "card_click",
     resourceKey,

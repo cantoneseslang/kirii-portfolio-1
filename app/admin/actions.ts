@@ -365,6 +365,8 @@ export interface AdminEmployeeRow extends Profile {
   email?: string
   loginCount: number
   lastLogin: Date | null
+  cardActivityCount: number
+  lastActivity: Date | null
   usageStatus: "Active" | "Inactive" | "Unused"
   usageStatusColor: string
 }
@@ -437,6 +439,13 @@ export async function getAdminEmployeeData(): Promise<{
       .lte("login_timestamp", endOfMonth.toISOString())
       .eq("login_success", true)
 
+    const { data: monthActivity } = await supabase
+      .from("activity_events")
+      .select("user_id, created_at, event_type")
+      .gte("created_at", startOfMonth.toISOString())
+      .lte("created_at", endOfMonth.toISOString())
+      .in("event_type", ["card_click", "portal_open", "page_view"])
+
     const { data: authUsers } = await supabase.auth.admin.listUsers({ page: 1, perPage: 2000 })
     const emailById = new Map((authUsers?.users || []).map((user) => [user.id, user.email || ""]))
 
@@ -448,15 +457,28 @@ export async function getAdminEmployeeData(): Promise<{
           ? new Date(Math.max(...userLogins.map((l) => new Date(l.login_timestamp).getTime())))
           : null
 
+      const userActivities = monthActivity?.filter((a) => a.user_id === profile.id) || []
+      const cardActivityCount = userActivities.length
+      const lastActivity =
+        userActivities.length > 0
+          ? new Date(Math.max(...userActivities.map((a) => new Date(a.created_at).getTime())))
+          : null
+
+      const engagementDates = [lastLogin, lastActivity].filter((d): d is Date => d !== null)
+      const lastEngagement =
+        engagementDates.length > 0
+          ? new Date(Math.max(...engagementDates.map((d) => d.getTime())))
+          : null
+
       let usageStatus: AdminEmployeeRow["usageStatus"] = "Unused"
       let usageStatusColor = "text-red-600 bg-red-100"
 
-      if (loginCount > 0) {
-        const daysSinceLastLogin = lastLogin
-          ? Math.floor((currentDate.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24))
+      if (loginCount > 0 || cardActivityCount > 0) {
+        const daysSinceEngagement = lastEngagement
+          ? Math.floor((currentDate.getTime() - lastEngagement.getTime()) / (1000 * 60 * 60 * 24))
           : 0
 
-        if (daysSinceLastLogin <= 7) {
+        if (daysSinceEngagement <= 7) {
           usageStatus = "Active"
           usageStatusColor = "text-green-600 bg-green-100"
         } else {
@@ -470,6 +492,8 @@ export async function getAdminEmployeeData(): Promise<{
         email: emailById.get(profile.id) || "",
         loginCount,
         lastLogin,
+        cardActivityCount,
+        lastActivity,
         usageStatus,
         usageStatusColor,
         is_active: profile.is_active !== false,
