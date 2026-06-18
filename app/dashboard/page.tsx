@@ -41,6 +41,9 @@ import { TrackedCardShell } from "@/components/tracked-card-shell";
 const DASHBOARD_NEWS_TICKER =
   "15-04-2026 追加Foodpanda 追加午餐內容 ・ 09-06-2026 NewCustomer Setting 新客戶登記 ・ 11-06-2026 Update Lunch Order System 更新午餐訂購系統";
 
+const DASHBOARD_CARD_GRID = "grid grid-cols-1 md:grid-cols-[repeat(2,420px)] gap-6"
+const DASHBOARD_CARD_GRID_SINGLE = "grid grid-cols-1 md:grid-cols-[420px] gap-6"
+
 export default function DashboardPage() {
   const router = useRouter()
   const { user, isLoading, logout } = useAuth()
@@ -193,7 +196,7 @@ export default function DashboardPage() {
       {user?.email && getApproverRole(user.email) && (
         <div className="mt-6">
           <h3 className="text-lg font-semibold mb-4">New Customer Approval / 新客戶登記審批</h3>
-          <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center justify-center">
+          <div className={DASHBOARD_CARD_GRID_SINGLE}>
             <NewCustomerApprovalsCard />
           </div>
         </div>
@@ -202,7 +205,7 @@ export default function DashboardPage() {
       <div className="grid gap-8 mt-6">
         <div>
           <h3 className="text-lg font-semibold mb-4">Department: All Employees-ERP</h3>
-          <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center justify-center">
+          <div className={DASHBOARD_CARD_GRID}>
             {hasCardPermission(profile, "lunch_order") && (
               <TrackedCardShell cardKey="lunch_order">
                 <LunchOrderCard
@@ -216,8 +219,6 @@ export default function DashboardPage() {
                 <LunchOrderSheetCard />
               </TrackedCardShell>
             )}
-          </div>
-          <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center justify-center mt-6">
             {hasCardPermission(profile, "qr_scan") && (
               <TrackedCardShell cardKey="qr_scan">
                 <QRScanCard />
@@ -241,7 +242,7 @@ export default function DashboardPage() {
           hasCardPermission(profile, "new_customer_setting")) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Sales-ERP</h3>
-            <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center justify-center">
+            <div className={DASHBOARD_CARD_GRID}>
               {hasCardPermission(profile, "salesperson_calendar") && (
                 <TrackedCardShell cardKey="salesperson_calendar">
                   <SalespersonCalendarCard />
@@ -252,8 +253,6 @@ export default function DashboardPage() {
                   <SalesDashboardCard />
                 </TrackedCardShell>
               )}
-            </div>
-            <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center justify-center mt-6">
               {hasCardPermission(profile, "gantt_wbs") && (
                 <TrackedCardShell cardKey="gantt_wbs">
                   <GanttChartWBSCard />
@@ -264,8 +263,6 @@ export default function DashboardPage() {
                   <CompanyInfoCard />
                 </TrackedCardShell>
               )}
-            </div>
-            <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center justify-center mt-6">
               {hasCardPermission(profile, "product_manual") && (
                 <TrackedCardShell cardKey="product_manual">
                   <ProductManualCard />
@@ -276,8 +273,6 @@ export default function DashboardPage() {
                   <CertificateCard />
                 </TrackedCardShell>
               )}
-            </div>
-            <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center justify-center mt-6">
               {hasCardPermission(profile, "collect_payment") && (
                 <TrackedCardShell cardKey="collect_payment">
                   <CollectPaymentCardWrapper />
@@ -295,7 +290,7 @@ export default function DashboardPage() {
         {hasCardPermission(profile, "pq_form") && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Factory-ERP</h3>
-            <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center justify-center">
+            <div className={DASHBOARD_CARD_GRID_SINGLE}>
               <TrackedCardShell cardKey="pq_form">
                 <PQFormCard />
               </TrackedCardShell>
@@ -307,7 +302,7 @@ export default function DashboardPage() {
         {hasCardPermission(profile, "supplier_info") && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Purchasing</h3>
-            <div className="flex flex-col gap-6 items-stretch md:items-start">
+            <div className={DASHBOARD_CARD_GRID_SINGLE}>
               <TrackedCardShell cardKey="supplier_info">
                 <SupplierInfoCard />
               </TrackedCardShell>
@@ -318,7 +313,7 @@ export default function DashboardPage() {
         {hasCardPermission(profile, "form_master") && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: ISO</h3>
-            <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center justify-center">
+            <div className={DASHBOARD_CARD_GRID_SINGLE}>
               <TrackedCardShell cardKey="form_master">
                 <FormMasterCard />
               </TrackedCardShell>

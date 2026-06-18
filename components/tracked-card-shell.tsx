@@ -12,7 +12,7 @@ interface TrackedCardShellProps {
 export function TrackedCardShell({ cardKey, children }: TrackedCardShellProps) {
   return (
     <div
-      className="w-full md:w-auto"
+      className="w-full min-w-0"
       onPointerDown={() => {
         trackCardClick(cardKey)
       }}
