@@ -1,8 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
 import { getCardPermissionDefinition, type CardPermissionKey } from "@/lib/card-permissions"
+import { createServerSupabaseClient } from "@/utils/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,19 +18,20 @@ export async function POST(request: NextRequest) {
       metadata?: Record<string, unknown>
     }
 
-    const supabaseAuth = createServerComponentClient({ cookies })
+    const supabaseAuth = await createServerSupabaseClient()
     const {
-      data: { session },
-    } = await supabaseAuth.auth.getSession()
+      data: { user },
+      error: userError,
+    } = await supabaseAuth.auth.getUser()
 
-    if (!session?.user) {
+    if (userError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { data: profile } = await supabaseAuth
       .from("profiles")
       .select("is_active")
-      .eq("id", session.user.id)
+      .eq("id", user.id)
       .single()
 
     if (profile?.is_active === false) {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     )
 
     const { error } = await service.from("activity_events").insert({
-      user_id: session.user.id,
+      user_id: user.id,
       event_type: eventType,
       resource_key: resourceKey || null,
       resource_label: cardDef?.label || null,

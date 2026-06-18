@@ -9,7 +9,7 @@ export const revalidate = 0
 export default async function AdminPage() {
   const isAdmin = await checkIsAdmin()
   if (!isAdmin) {
-    redirect("/dashboard")
+    redirect("/?admin_denied=1")
   }
 
   const { employees, activityEvents, error } = await getAdminEmployeeData()

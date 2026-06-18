@@ -1,8 +1,6 @@
 "use server"
 
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { createClient } from "@supabase/supabase-js"
-import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import type { CardPermissionKey } from "@/lib/card-permissions"
 import {
@@ -11,6 +9,7 @@ import {
   type DepartmentPermissionKey,
 } from "@/lib/card-permissions"
 import type { Profile } from "@/types/profile"
+import { createServerSupabaseClient } from "@/utils/supabase/server"
 
 export async function createUser(
   email: string,
@@ -20,7 +19,7 @@ export async function createUser(
   is_admin: boolean = false,
 ): Promise<{ success: boolean; error?: string; userId?: string }> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     
     const currentUserIsAdmin = await checkIsAdmin()
     if (!currentUserIsAdmin) {
@@ -71,7 +70,7 @@ export async function createUser(
 
 export async function deleteUser(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     
     const currentUserIsAdmin = await checkIsAdmin()
     if (!currentUserIsAdmin) {
@@ -108,7 +107,7 @@ export async function deleteUser(id: string): Promise<{ success: boolean; error?
 
 export async function updateUserAdmin(userId: string, isAdmin: boolean): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     
     const currentUserIsAdmin = await checkIsAdmin()
     if (!currentUserIsAdmin) {
@@ -139,7 +138,7 @@ export async function updateUserActive(
   isActive: boolean,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     const currentUserIsAdmin = await checkIsAdmin()
     if (!currentUserIsAdmin) {
       return { success: false, error: "Unauthorized" }
@@ -173,7 +172,7 @@ export async function updateUserDepartmentPermission(
   enabled: boolean,
 ): Promise<{ success: boolean; error?: string; department?: string }> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     const currentUserIsAdmin = await checkIsAdmin()
     if (!currentUserIsAdmin) {
       return { success: false, error: "Unauthorized" }
@@ -233,7 +232,7 @@ export async function updateUserCardPermission(
   enabled: boolean,
 ): Promise<{ success: boolean; error?: string; card_permissions?: Record<string, boolean> }> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     const currentUserIsAdmin = await checkIsAdmin()
     if (!currentUserIsAdmin) {
       return { success: false, error: "Unauthorized" }
@@ -279,7 +278,7 @@ export async function updateUserCardPermission(
 
 export async function getUsers(): Promise<{ users: any[]; error: string | null }> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     const { data, error } = await supabase.from("profiles").select("*").order("full_name", { ascending: true })
 
     if (error) {
@@ -321,16 +320,21 @@ export async function getActivityEvents(limit = 200): Promise<{
 
 export async function checkIsAdmin(): Promise<boolean> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
 
-    if (!session?.user) {
+    if (userError || !user) {
       return false
     }
 
-    const { data, error } = await supabase.from("profiles").select("is_admin, is_active").eq("id", session.user.id).single()
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("is_admin, is_active")
+      .eq("id", user.id)
+      .single()
 
     if (error) {
       return false
@@ -380,15 +384,15 @@ async function logAdminActivity(params: {
   metadata?: Record<string, unknown>
 }) {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    if (!session?.user) return
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
 
     const service = getServiceRoleClient()
     await service.from("activity_events").insert({
-      user_id: session.user.id,
+      user_id: user.id,
       event_type: params.eventType,
       resource_key: params.resourceKey,
       resource_label: params.resourceLabel || null,
