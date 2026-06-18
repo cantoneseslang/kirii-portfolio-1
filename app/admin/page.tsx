@@ -44,7 +44,7 @@ export default async function AdminPage() {
         <div className="mt-2 text-sm">
           <p>Current Month: {currentYear}-{currentMonth.toString().padStart(2, "0")}</p>
           <p>Users Retrieved: {employees.length}</p>
-          <p className="mt-1">左の Active スイッチで退職・停止、Edit cards でカード権限を即時変更できます。</p>
+          <p className="mt-1">左の Active スイッチで退職・停止、Department 列のスイッチで部門権限を変更できます。</p>
           <p className="mt-1">
             <Link href="/dashboard" className="underline">
               Back to Dashboard

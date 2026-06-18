@@ -1,26 +1,29 @@
 "use client"
 
-import { Fragment, useMemo, useState, useTransition } from "react"
+import { useMemo, useState, useTransition } from "react"
 import { AdminPermissionSwitch } from "@/components/admin-permission-switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { resolveDisplayTitle } from "@/lib/display-title"
 import {
   updateUserActive,
-  updateUserCardPermission,
   updateUserDepartmentPermission,
   type ActivityEventRow,
   type AdminEmployeeRow,
 } from "@/app/admin/actions"
 import {
-  CARD_PERMISSIONS,
-  DEPARTMENT_PERMISSION_KEYS,
   getCardPermissionDefinition,
   hasDepartmentToken,
-  resolveCardPermissionState,
   type CardPermissionKey,
   type DepartmentPermissionKey,
 } from "@/lib/card-permissions"
+
+const DEPARTMENT_SWITCH_KEYS = [
+  "All Employees",
+  "Sales",
+  "Purchasing",
+  "Factory",
+] as const satisfies readonly DepartmentPermissionKey[]
 
 interface AdminEmployeePanelProps {
   initialEmployees: AdminEmployeeRow[]
@@ -54,7 +57,6 @@ export function AdminEmployeePanel({
 }: AdminEmployeePanelProps) {
   const [employees, setEmployees] = useState(initialEmployees)
   const [activityEvents] = useState(initialActivityEvents)
-  const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
   const [pendingKey, setPendingKey] = useState<string | null>(null)
   const [, startTransition] = useTransition()
   const { toast } = useToast()
@@ -112,27 +114,9 @@ export function AdminEmployeePanel({
         const result = await updateUserDepartmentPermission(employee.id, token, enabled)
         if (result.success) {
           setEmployees((prev) =>
-            prev.map((row) => {
-              if (row.id !== employee.id) return row
-              if (token === "Admin") return { ...row, is_admin: enabled }
-              return { ...row, department: result.department ?? row.department }
-            }),
-          )
-        }
-        return result
-      })
-    })
-  }
-
-  const handleCardToggle = (employee: AdminEmployeeRow, cardKey: CardPermissionKey, enabled: boolean) => {
-    startTransition(async () => {
-      await runUpdate(`card-${employee.id}-${cardKey}`, async () => {
-        const result = await updateUserCardPermission(employee.id, cardKey, enabled)
-        if (result.success) {
-          setEmployees((prev) =>
             prev.map((row) =>
               row.id === employee.id
-                ? { ...row, card_permissions: result.card_permissions || row.card_permissions }
+                ? { ...row, department: result.department ?? row.department }
                 : row,
             ),
           )
@@ -178,7 +162,7 @@ export function AdminEmployeePanel({
             <div className="px-6 py-4 bg-gray-50 border-b">
               <h3 className="text-lg font-semibold">Employee Access Control</h3>
               <p className="text-sm text-gray-600 mt-1">
-                左のスイッチで社員の有効/無効、行を開いて部門・カード権限を即時変更できます。
+                左の Active で有効/無効、Department 列のスイッチで部門権限を変更できます（緑=ON、赤=OFF）。
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -189,126 +173,72 @@ export function AdminEmployeePanel({
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Display Title</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Login Count</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Login (HK)</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usage</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cards</th>
+                    {DEPARTMENT_SWITCH_KEYS.map((token) => (
+                      <th
+                        key={token}
+                        className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap"
+                      >
+                        {token}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {employees.map((employee) => {
-                    const isExpanded = expandedUserId === employee.id
                     const accountEnabled = employee.is_active !== false
                     return (
-                      <Fragment key={employee.id}>
-                        <tr
-                          className={!accountEnabled ? "bg-red-50" : employee.usageStatus === "Inactive" ? "bg-yellow-50" : ""}
-                        >
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <AdminPermissionSwitch
-                              checked={accountEnabled}
-                              disabled={pendingKey === `active-${employee.id}`}
-                              onCheckedChange={(checked) => handleActiveToggle(employee, checked)}
-                              aria-label={`Toggle active for ${employee.full_name}`}
-                            />
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-[#02315a]">
-                            {resolveDisplayTitle(employee)}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {employee.full_name}
-                            {!accountEnabled && (
-                              <span className="ml-2 text-xs text-red-600 font-semibold">DISABLED</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{employee.email || "N/A"}</td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{employee.department || "—"}</td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{employee.position || "—"}</td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{employee.loginCount}</td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatHongKongTime(employee.lastLogin)}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${employee.usageStatusColor}`}>
-                              {employee.usageStatus}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <button
-                              type="button"
-                              className="text-sm text-blue-600 hover:underline"
-                              onClick={() => setExpandedUserId(isExpanded ? null : employee.id)}
-                            >
-                              {isExpanded ? "Close" : "Edit cards"}
-                            </button>
-                          </td>
-                        </tr>
-                        {isExpanded && (
-                          <tr className="bg-slate-50">
-                            <td colSpan={10} className="px-6 py-5">
-                              <div className="space-y-6">
-                                <div>
-                                  <h4 className="text-sm font-semibold mb-3">Department Permissions</h4>
-                                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                                    {DEPARTMENT_PERMISSION_KEYS.map((token) => {
-                                      const enabled =
-                                        token === "Admin"
-                                          ? employee.is_admin === true
-                                          : hasDepartmentToken(employee.department, token)
-                                      return (
-                                        <label
-                                          key={token}
-                                          className="flex items-center justify-between gap-3 rounded border bg-white px-3 py-2 text-sm"
-                                        >
-                                          <span>{token}</span>
-                                          <AdminPermissionSwitch
-                                            checked={enabled}
-                                            disabled={pendingKey === `dept-${employee.id}-${token}`}
-                                            onCheckedChange={(checked) =>
-                                              handleDepartmentToggle(employee, token, checked)
-                                            }
-                                          />
-                                        </label>
-                                      )
-                                    })}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <h4 className="text-sm font-semibold mb-3">Card Permissions</h4>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                                    {CARD_PERMISSIONS.map((card) => {
-                                      const enabled = resolveCardPermissionState(employee, card.key)
-                                      return (
-                                        <label
-                                          key={card.key}
-                                          className="flex items-center justify-between gap-3 rounded border bg-white px-3 py-2"
-                                        >
-                                          <div className="min-w-0">
-                                            <div className="text-sm font-medium truncate">{card.label}</div>
-                                            {card.labelZh && (
-                                              <div className="text-xs text-gray-500 truncate">{card.labelZh}</div>
-                                            )}
-                                          </div>
-                                          <AdminPermissionSwitch
-                                            checked={enabled}
-                                            disabled={pendingKey === `card-${employee.id}-${card.key}`}
-                                            onCheckedChange={(checked) =>
-                                              handleCardToggle(employee, card.key, checked)
-                                            }
-                                          />
-                                        </label>
-                                      )
-                                    })}
-                                  </div>
-                                </div>
-                              </div>
+                      <tr
+                        key={employee.id}
+                        className={!accountEnabled ? "bg-red-50" : employee.usageStatus === "Inactive" ? "bg-yellow-50" : ""}
+                      >
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <AdminPermissionSwitch
+                            checked={accountEnabled}
+                            disabled={pendingKey === `active-${employee.id}`}
+                            onCheckedChange={(checked) => handleActiveToggle(employee, checked)}
+                            aria-label={`Toggle active for ${employee.full_name}`}
+                          />
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-[#02315a]">
+                          {resolveDisplayTitle(employee)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {employee.full_name}
+                          {!accountEnabled && (
+                            <span className="ml-2 text-xs text-red-600 font-semibold">DISABLED</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{employee.email || "N/A"}</td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{employee.position || "—"}</td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{employee.loginCount}</td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatHongKongTime(employee.lastLogin)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${employee.usageStatusColor}`}>
+                            {employee.usageStatus}
+                          </span>
+                        </td>
+                        {DEPARTMENT_SWITCH_KEYS.map((token) => {
+                          const enabled = hasDepartmentToken(employee.department, token)
+                          return (
+                            <td key={`${employee.id}-${token}`} className="px-3 py-4 whitespace-nowrap text-center">
+                              <AdminPermissionSwitch
+                                checked={enabled}
+                                disabled={pendingKey === `dept-${employee.id}-${token}`}
+                                onCheckedChange={(checked) =>
+                                  handleDepartmentToggle(employee, token, checked)
+                                }
+                                aria-label={`${token} for ${employee.full_name}`}
+                              />
                             </td>
-                          </tr>
-                        )}
-                      </Fragment>
+                          )
+                        })}
+                      </tr>
                     )
                   })}
                 </tbody>
