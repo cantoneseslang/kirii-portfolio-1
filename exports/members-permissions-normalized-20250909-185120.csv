@@ -2,9 +2,9 @@ id,full_name,email,department,position,is_admin,has_all_employees,has_sales,has_
 ffaa1ce7-8f23-475b-8492-1ff39d7a0975,Wu Ka Yan,irenewu@kirii.com.hk,"All Employees,Sales,Purchasing",Acc. Manager,false,1,1,1,0,2025-04-08T11:27:51.807337+00:00
 33f2d0fc-e522-4443-9fff-93f307f03e79,Kit Yu Yi,kami@kirii.com.hk,"All Employees,Sales",Ass. Sales Manageress,false,1,1,0,0,2025-04-08T11:27:51.807337+00:00
 291c1dfd-871e-47bd-8fe5-26833ebe9c43,Wong Hong Keung,alexwong@kirii.com.hk,"All Employees,Sales,Purchasing,Factory",Fty. Manager,false,1,1,1,1,2025-04-08T11:27:38.315424+00:00
-875c862b-0f4e-48c4-9c50-9eaf5db5fd63,Lo Leung Kei,ralphlo@kirii.com.hk,All Employees,General Clerk,false,1,0,0,0,2025-04-08T11:27:51.807337+00:00
+875c862b-0f4e-48c4-9c50-9eaf5db5fd63,Lo Leung Kei,ralphlo@kirii.com.hk,"All Employees,Sales",General Clerk,false,1,1,0,0,2025-04-08T11:27:51.807337+00:00
 852daee1-80fc-4824-9043-1ca0c8ba91ce,Mak Wan Hoi,brontem@kirii.com.hk,"All Employees,Factory",General Clerk,false,1,0,0,1,2025-04-08T11:27:51.807337+00:00
-36d38c8f-b488-4771-87c1-b0afda48cdc6,Yeung Siu Tuen,tina@kirii.com.hk,"All Employees,Factory",General Clerk,false,1,0,0,1,2025-04-08T11:27:51.807337+00:00
+36d38c8f-b488-4771-87c1-b0afda48cdc6,Yeung Siu Tuen,tina@kirii.com.hk,"All Employees,Factory,Sales",General Clerk,false,1,1,0,1,2025-04-08T11:27:51.807337+00:00
 3f77c95e-2068-42d1-a368-633c04f407d4,Sakon Hiroki,hiroki.sakon@kirii.com.hk,All Employees,General Manager,true,1,0,0,0,2025-04-08T11:27:38.315424+00:00
 bb5ab7a2-0bc0-4312-bb8f-6ff395b9ef28,Japan Head Office,japan@kirii.com.hk,"All Employees,Sales,Purchasing,Factory",Head Office,false,1,1,1,1,2025-04-08T11:28:23.459027+00:00
 aefc048f-7672-49b3-81f9-e2ac898c2a55,Poon Hiu Yi,ada@kirii.com.hk,"All Employees,Sales",Project Administrator,false,1,1,0,0,2025-04-08T11:27:51.807337+00:00

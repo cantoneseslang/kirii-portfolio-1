@@ -34,6 +34,9 @@ import { DashboardPersonalSummary } from "@/components/dashboard-personal-summar
 import { DashboardNewsTicker } from "@/components/dashboard-news-ticker";
 import { isBlockedAuthEmail } from "@/lib/blocked-auth-emails";
 import { getApproverRole } from "@/lib/hk-new-customer-approval";
+import { hasCardPermission } from "@/lib/card-permissions";
+import { trackPageView } from "@/lib/track-activity";
+import { TrackedCardShell } from "@/components/tracked-card-shell";
 
 const DASHBOARD_NEWS_TICKER =
   "15-04-2026 追加Foodpanda 追加午餐內容 ・ 09-06-2026 NewCustomer Setting 新客戶登記 ・ 11-06-2026 Update Lunch Order System 更新午餐訂購系統";
@@ -94,6 +97,18 @@ export default function DashboardPage() {
 
     void forceLogout()
   }, [isBypassMode, user?.email, logout, router])
+
+  useEffect(() => {
+    if (!profile || isBypassMode) return
+    if (profile.is_active === false) {
+      void logout().then(() => router.push("/"))
+    }
+  }, [profile, isBypassMode, logout, router])
+
+  useEffect(() => {
+    if (!user || isBypassMode) return
+    trackPageView("/dashboard")
+  }, [user, isBypassMode])
 
   const loadProfile = async () => {
     if (!user) return
@@ -216,64 +231,125 @@ export default function DashboardPage() {
         <div>
           <h3 className="text-lg font-semibold mb-4">Department: All Employees-ERP</h3>
           <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-            <LunchOrderCard
-              fullName={profile?.full_name || user?.user_metadata?.full_name || null}
-              email={user?.email || null}
-            />
-            <LunchOrderSheetCard />
+            {hasCardPermission(profile, "lunch_order") && (
+              <TrackedCardShell cardKey="lunch_order">
+                <LunchOrderCard
+                  fullName={profile?.full_name || user?.user_metadata?.full_name || null}
+                  email={user?.email || null}
+                />
+              </TrackedCardShell>
+            )}
+            {hasCardPermission(profile, "lunch_order_sheet") && (
+              <TrackedCardShell cardKey="lunch_order_sheet">
+                <LunchOrderSheetCard />
+              </TrackedCardShell>
+            )}
           </div>
           <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
-            <QRScanCard />
-            <KHK_AI_MONITOR_Card />
+            {hasCardPermission(profile, "qr_scan") && (
+              <TrackedCardShell cardKey="qr_scan">
+                <QRScanCard />
+              </TrackedCardShell>
+            )}
+            {hasCardPermission(profile, "khk_ai_monitor") && (
+              <TrackedCardShell cardKey="khk_ai_monitor">
+                <KHK_AI_MONITOR_Card />
+              </TrackedCardShell>
+            )}
           </div>
         </div>
         
-        {(profile?.department?.includes("Sales") || profile?.is_admin) && (
+        {(hasCardPermission(profile, "salesperson_calendar") ||
+          hasCardPermission(profile, "sales_amount") ||
+          hasCardPermission(profile, "gantt_wbs") ||
+          hasCardPermission(profile, "company_info") ||
+          hasCardPermission(profile, "product_manual") ||
+          hasCardPermission(profile, "certificate") ||
+          hasCardPermission(profile, "collect_payment") ||
+          hasCardPermission(profile, "new_customer_setting")) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Sales-ERP</h3>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-              <SalespersonCalendarCard />
-              <SalesDashboardCard />
+              {hasCardPermission(profile, "salesperson_calendar") && (
+                <TrackedCardShell cardKey="salesperson_calendar">
+                  <SalespersonCalendarCard />
+                </TrackedCardShell>
+              )}
+              {hasCardPermission(profile, "sales_amount") && (
+                <TrackedCardShell cardKey="sales_amount">
+                  <SalesDashboardCard />
+                </TrackedCardShell>
+              )}
             </div>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
-              <GanttChartWBSCard />
-              <CompanyInfoCard />
+              {hasCardPermission(profile, "gantt_wbs") && (
+                <TrackedCardShell cardKey="gantt_wbs">
+                  <GanttChartWBSCard />
+                </TrackedCardShell>
+              )}
+              {hasCardPermission(profile, "company_info") && (
+                <TrackedCardShell cardKey="company_info">
+                  <CompanyInfoCard />
+                </TrackedCardShell>
+              )}
             </div>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
-              <ProductManualCard />
-              <CertificateCard />
+              {hasCardPermission(profile, "product_manual") && (
+                <TrackedCardShell cardKey="product_manual">
+                  <ProductManualCard />
+                </TrackedCardShell>
+              )}
+              {hasCardPermission(profile, "certificate") && (
+                <TrackedCardShell cardKey="certificate">
+                  <CertificateCard />
+                </TrackedCardShell>
+              )}
             </div>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center mt-6">
-              <CollectPaymentCardWrapper />
-              <NewCustomerSettingCard />
+              {hasCardPermission(profile, "collect_payment") && (
+                <TrackedCardShell cardKey="collect_payment">
+                  <CollectPaymentCardWrapper />
+                </TrackedCardShell>
+              )}
+              {hasCardPermission(profile, "new_customer_setting") && (
+                <TrackedCardShell cardKey="new_customer_setting">
+                  <NewCustomerSettingCard />
+                </TrackedCardShell>
+              )}
             </div>
           </div>
         )}
         
-        {(profile?.department?.includes("Factory") || profile?.is_admin) && (
+        {hasCardPermission(profile, "pq_form") && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Factory-ERP</h3>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-              <PQFormCard />
+              <TrackedCardShell cardKey="pq_form">
+                <PQFormCard />
+              </TrackedCardShell>
             </div>
             <p className="text-[#3c3852] text-sm mt-1 ml-1">ISO-FAC-10(03/26)</p>
           </div>
         )}
 
-        {(profile?.department?.includes("Purchasing") || profile?.is_admin) && (
+        {hasCardPermission(profile, "supplier_info") && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Purchasing</h3>
             <div className="flex flex-col gap-6 items-start">
-              <SupplierInfoCard />
+              <TrackedCardShell cardKey="supplier_info">
+                <SupplierInfoCard />
+              </TrackedCardShell>
             </div>
           </div>
         )}
 
-        {profile?.is_admin && (
+        {hasCardPermission(profile, "form_master") && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: ISO</h3>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-              <FormMasterCard />
+              <TrackedCardShell cardKey="form_master">
+                <FormMasterCard />
+              </TrackedCardShell>
             </div>
             <div className="text-[#3c3852] text-sm mt-1 ml-1">
               <p>ISO-9001:2015(Certificate No.CC1420)</p>

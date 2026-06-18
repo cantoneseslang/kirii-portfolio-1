@@ -1,8 +1,16 @@
 "use server"
 
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
+import type { CardPermissionKey } from "@/lib/card-permissions"
+import {
+  buildCardPermissionsPatch,
+  setDepartmentToken,
+  type DepartmentPermissionKey,
+} from "@/lib/card-permissions"
+import type { Profile } from "@/types/profile"
 
 export async function createUser(
   email: string,
@@ -14,17 +22,13 @@ export async function createUser(
   try {
     const supabase = createServerComponentClient({ cookies })
     
-    // 現在のユーザーが管理者かどうかチェック
     const currentUserIsAdmin = await checkIsAdmin()
     if (!currentUserIsAdmin) {
-      console.error("Unauthorized: Only admins can create users")
       return { success: false, error: "Unauthorized: Only administrators can create users" }
     }
     
-    // ランダムパスワードを生成
     const password = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
     
-    // Supabase Authでユーザーを作成
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password,
@@ -33,29 +37,34 @@ export async function createUser(
     })
 
     if (authError) {
-      console.error("Error creating auth user:", authError)
       return { success: false, error: authError.message }
     }
 
-    // プロフィールを作成
     const { error: profileError } = await supabase.from("profiles").insert({
       id: authData.user.id,
       full_name,
       department,
       position,
       is_admin,
+      is_active: true,
+      card_permissions: {},
       updated_at: new Date().toISOString()
     })
 
     if (profileError) {
-      console.error("Error creating profile:", profileError)
       return { success: false, error: profileError.message }
     }
+
+    await logAdminActivity({
+      eventType: "admin_change",
+      resourceKey: "create_user",
+      resourceLabel: full_name,
+      metadata: { email, department, position, is_admin },
+    })
 
     revalidatePath("/admin")
     return { success: true, userId: authData.user.id }
   } catch (error: any) {
-    console.error("Unexpected error in createUser:", error)
     return { success: false, error: error.message }
   }
 }
@@ -64,36 +73,35 @@ export async function deleteUser(id: string): Promise<{ success: boolean; error?
   try {
     const supabase = createServerComponentClient({ cookies })
     
-    // 現在のユーザーが管理者かどうかチェック
     const currentUserIsAdmin = await checkIsAdmin()
     if (!currentUserIsAdmin) {
-      console.error("Unauthorized: Only admins can delete users")
       return { success: false, error: "Unauthorized: Only administrators can delete users" }
     }
     
-    // まずprofilesテーブルからユーザー情報を削除
     const { error: profileError } = await supabase
       .from("profiles")
       .delete()
       .eq("id", id)
     
     if (profileError) {
-      console.error("Error deleting profile:", profileError)
       return { success: false, error: profileError.message }
     }
     
-    // 次にauth.usersテーブルからユーザーを削除
     const { error: authError } = await supabase.auth.admin.deleteUser(id)
     
     if (authError) {
-      console.error("Error deleting auth user:", authError)
       return { success: false, error: authError.message }
     }
+
+    await logAdminActivity({
+      eventType: "admin_change",
+      resourceKey: "delete_user",
+      metadata: { userId: id },
+    })
     
     revalidatePath("/admin")
     return { success: true }
   } catch (error: any) {
-    console.error("Unexpected error in deleteUser:", error)
     return { success: false, error: error.message }
   }
 }
@@ -102,24 +110,169 @@ export async function updateUserAdmin(userId: string, isAdmin: boolean): Promise
   try {
     const supabase = createServerComponentClient({ cookies })
     
-    // 現在のユーザーが管理者かどうかチェック
     const currentUserIsAdmin = await checkIsAdmin()
     if (!currentUserIsAdmin) {
-      console.error("Unauthorized: Only admins can update user admin status")
       return { success: false, error: "Unauthorized: Only administrators can update user admin status" }
     }
 
     const { error } = await supabase.from("profiles").update({ is_admin: isAdmin }).eq("id", userId)
 
     if (error) {
-      console.error("Error updating user admin status:", error)
       return { success: false, error: error.message }
     }
+
+    await logAdminActivity({
+      eventType: "admin_change",
+      resourceKey: "toggle_admin",
+      metadata: { userId, isAdmin },
+    })
 
     revalidatePath("/admin")
     return { success: true }
   } catch (error: any) {
-    console.error("Unexpected error in updateUserAdmin:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+export async function updateUserActive(
+  userId: string,
+  isActive: boolean,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createServerComponentClient({ cookies })
+    const currentUserIsAdmin = await checkIsAdmin()
+    if (!currentUserIsAdmin) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_active: isActive, updated_at: new Date().toISOString() })
+      .eq("id", userId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    await logAdminActivity({
+      eventType: "admin_change",
+      resourceKey: "toggle_active",
+      metadata: { userId, isActive },
+    })
+
+    revalidatePath("/admin")
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function updateUserDepartmentPermission(
+  userId: string,
+  token: DepartmentPermissionKey,
+  enabled: boolean,
+): Promise<{ success: boolean; error?: string; department?: string }> {
+  try {
+    const supabase = createServerComponentClient({ cookies })
+    const currentUserIsAdmin = await checkIsAdmin()
+    if (!currentUserIsAdmin) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    if (token === "Admin") {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ is_admin: enabled, updated_at: new Date().toISOString() })
+        .eq("id", userId)
+      if (error) return { success: false, error: error.message }
+      await logAdminActivity({
+        eventType: "admin_change",
+        resourceKey: "department_admin",
+        metadata: { userId, enabled },
+      })
+      revalidatePath("/admin")
+      return { success: true }
+    }
+
+    const { data: profile, error: fetchError } = await supabase
+      .from("profiles")
+      .select("department")
+      .eq("id", userId)
+      .single()
+
+    if (fetchError || !profile) {
+      return { success: false, error: fetchError?.message || "Profile not found" }
+    }
+
+    const department = setDepartmentToken(profile.department, token, enabled)
+    const { error } = await supabase
+      .from("profiles")
+      .update({ department, updated_at: new Date().toISOString() })
+      .eq("id", userId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    await logAdminActivity({
+      eventType: "admin_change",
+      resourceKey: `department_${token.toLowerCase().replace(/\s+/g, "_")}`,
+      metadata: { userId, enabled, department },
+    })
+
+    revalidatePath("/admin")
+    return { success: true, department }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function updateUserCardPermission(
+  userId: string,
+  cardKey: CardPermissionKey,
+  enabled: boolean,
+): Promise<{ success: boolean; error?: string; card_permissions?: Record<string, boolean> }> {
+  try {
+    const supabase = createServerComponentClient({ cookies })
+    const currentUserIsAdmin = await checkIsAdmin()
+    if (!currentUserIsAdmin) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    const { data: profile, error: fetchError } = await supabase
+      .from("profiles")
+      .select("card_permissions")
+      .eq("id", userId)
+      .single()
+
+    if (fetchError || !profile) {
+      return { success: false, error: fetchError?.message || "Profile not found" }
+    }
+
+    const card_permissions = buildCardPermissionsPatch(
+      { id: userId, card_permissions: profile.card_permissions || {} } as Profile,
+      cardKey,
+      enabled,
+    )
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ card_permissions, updated_at: new Date().toISOString() })
+      .eq("id", userId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    await logAdminActivity({
+      eventType: "admin_change",
+      resourceKey: cardKey,
+      metadata: { userId, enabled },
+    })
+
+    revalidatePath("/admin")
+    return { success: true, card_permissions }
+  } catch (error: any) {
     return { success: false, error: error.message }
   }
 }
@@ -130,14 +283,39 @@ export async function getUsers(): Promise<{ users: any[]; error: string | null }
     const { data, error } = await supabase.from("profiles").select("*").order("full_name", { ascending: true })
 
     if (error) {
-      console.error("Error fetching users:", error)
       return { users: [], error: error.message }
     }
 
     return { users: data, error: null }
   } catch (error: any) {
-    console.error("Unexpected error in getUsers:", error)
     return { users: [], error: error.message }
+  }
+}
+
+export async function getActivityEvents(limit = 200): Promise<{
+  events: ActivityEventRow[]
+  error: string | null
+}> {
+  try {
+    const currentUserIsAdmin = await checkIsAdmin()
+    if (!currentUserIsAdmin) {
+      return { events: [], error: "Unauthorized" }
+    }
+
+    const supabase = getServiceRoleClient()
+    const { data, error } = await supabase
+      .from("activity_events")
+      .select("id, user_id, event_type, resource_key, resource_label, resource_path, metadata, created_at")
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      return { events: [], error: error.message }
+    }
+
+    return { events: (data || []) as ActivityEventRow[], error: null }
+  } catch (error: any) {
+    return { events: [], error: error.message }
   }
 }
 
@@ -152,16 +330,161 @@ export async function checkIsAdmin(): Promise<boolean> {
       return false
     }
 
-    const { data, error } = await supabase.from("profiles").select("is_admin").eq("id", session.user.id).single()
+    const { data, error } = await supabase.from("profiles").select("is_admin, is_active").eq("id", session.user.id).single()
 
     if (error) {
-      console.error("Error checking admin status:", error)
+      return false
+    }
+
+    if (data?.is_active === false) {
       return false
     }
 
     return data?.is_admin === true
-  } catch (error: any) {
-    console.error("Unexpected error in checkIsAdmin:", error)
+  } catch {
     return false
+  }
+}
+
+export interface ActivityEventRow {
+  id: string
+  user_id: string
+  event_type: string
+  resource_key?: string | null
+  resource_label?: string | null
+  resource_path?: string | null
+  metadata?: Record<string, unknown> | null
+  created_at: string
+}
+
+export interface AdminEmployeeRow extends Profile {
+  email?: string
+  loginCount: number
+  lastLogin: Date | null
+  usageStatus: "Active" | "Inactive" | "Unused"
+  usageStatusColor: string
+}
+
+function getServiceRoleClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } },
+  )
+}
+
+async function logAdminActivity(params: {
+  eventType: string
+  resourceKey: string
+  resourceLabel?: string
+  metadata?: Record<string, unknown>
+}) {
+  try {
+    const supabase = createServerComponentClient({ cookies })
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session?.user) return
+
+    const service = getServiceRoleClient()
+    await service.from("activity_events").insert({
+      user_id: session.user.id,
+      event_type: params.eventType,
+      resource_key: params.resourceKey,
+      resource_label: params.resourceLabel || null,
+      metadata: params.metadata || {},
+    })
+  } catch {
+    // non-blocking
+  }
+}
+
+export async function getAdminEmployeeData(): Promise<{
+  employees: AdminEmployeeRow[]
+  activityEvents: ActivityEventRow[]
+  error: string | null
+}> {
+  try {
+    const isAdmin = await checkIsAdmin()
+    if (!isAdmin) {
+      return { employees: [], activityEvents: [], error: "Unauthorized" }
+    }
+
+    const supabase = getServiceRoleClient()
+    const { data: profiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, full_name, department, position, is_admin, is_active, card_permissions, updated_at")
+      .order("full_name")
+
+    if (profilesError) {
+      return { employees: [], activityEvents: [], error: profilesError.message }
+    }
+
+    const currentDate = new Date()
+    const currentMonth = currentDate.getMonth() + 1
+    const currentYear = currentDate.getFullYear()
+    const startOfMonth = new Date(currentYear, currentMonth - 1, 1)
+    const endOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59)
+
+    const { data: loginHistory } = await supabase
+      .from("login_history")
+      .select("user_id, login_timestamp, login_success")
+      .gte("login_timestamp", startOfMonth.toISOString())
+      .lte("login_timestamp", endOfMonth.toISOString())
+      .eq("login_success", true)
+
+    const { data: authUsers } = await supabase.auth.admin.listUsers({ page: 1, perPage: 2000 })
+    const emailById = new Map((authUsers?.users || []).map((user) => [user.id, user.email || ""]))
+
+    const employees: AdminEmployeeRow[] = (profiles || []).map((profile) => {
+      const userLogins = loginHistory?.filter((h) => h.user_id === profile.id) || []
+      const loginCount = userLogins.length
+      const lastLogin =
+        userLogins.length > 0
+          ? new Date(Math.max(...userLogins.map((l) => new Date(l.login_timestamp).getTime())))
+          : null
+
+      let usageStatus: AdminEmployeeRow["usageStatus"] = "Unused"
+      let usageStatusColor = "text-red-600 bg-red-100"
+
+      if (loginCount > 0) {
+        const daysSinceLastLogin = lastLogin
+          ? Math.floor((currentDate.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24))
+          : 0
+
+        if (daysSinceLastLogin <= 7) {
+          usageStatus = "Active"
+          usageStatusColor = "text-green-600 bg-green-100"
+        } else {
+          usageStatus = "Inactive"
+          usageStatusColor = "text-yellow-600 bg-yellow-100"
+        }
+      }
+
+      return {
+        ...profile,
+        email: emailById.get(profile.id) || "",
+        loginCount,
+        lastLogin,
+        usageStatus,
+        usageStatusColor,
+        is_active: profile.is_active !== false,
+        card_permissions: profile.card_permissions || {},
+      }
+    })
+
+    const { data: activityEvents, error: activityError } = await supabase
+      .from("activity_events")
+      .select("id, user_id, event_type, resource_key, resource_label, resource_path, metadata, created_at")
+      .order("created_at", { ascending: false })
+      .limit(300)
+
+    if (activityError) {
+      return { employees, activityEvents: [], error: activityError.message }
+    }
+
+    return { employees, activityEvents: (activityEvents || []) as ActivityEventRow[], error: null }
+  } catch (error: any) {
+    return { employees: [], activityEvents: [], error: error.message }
   }
 }

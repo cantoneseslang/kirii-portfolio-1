@@ -108,12 +108,12 @@ INSERT INTO profiles (
   id, username, full_name, department, position, is_admin, updated_at
 ) 
 SELECT 
-  user_data.id, 'Lo Leung Kei', 'Lo Leung Kei', 'All Employees', 'General Clerk', FALSE, now()
+  user_data.id, 'Lo Leung Kei', 'Lo Leung Kei', 'All Employees,Sales', 'General Clerk', FALSE, now()
 FROM user_data
 ON CONFLICT (id) DO UPDATE SET
   username = 'Lo Leung Kei',
   full_name = 'Lo Leung Kei', 
-  department = 'All Employees',
+  department = 'All Employees,Sales',
   position = 'General Clerk',
   is_admin = FALSE,
   updated_at = now();
@@ -126,12 +126,12 @@ INSERT INTO profiles (
   id, username, full_name, department, position, is_admin, updated_at
 ) 
 SELECT 
-  user_data.id, 'Yeung Siu Tuen', 'Yeung Siu Tuen', 'All Employees', 'General Clerk', FALSE, now()
+  user_data.id, 'Yeung Siu Tuen', 'Yeung Siu Tuen', 'All Employees,Factory,Sales', 'General Clerk', FALSE, now()
 FROM user_data
 ON CONFLICT (id) DO UPDATE SET
   username = 'Yeung Siu Tuen',
   full_name = 'Yeung Siu Tuen', 
-  department = 'All Employees',
+  department = 'All Employees,Factory,Sales',
   position = 'General Clerk',
   is_admin = FALSE,
   updated_at = now();

@@ -283,8 +283,8 @@ WITH user_data AS (
   UNION ALL SELECT 'kami@kirii.com.hk', 'Kit Yu Yi', 'All Employees,Sales', 'Ass. Sales Manageress', false
   UNION ALL SELECT 'ricky@kirii.com.hk', 'Cheng Tak Wong', 'All Employees', 'Stock Keeper', false
   UNION ALL SELECT 'ada@kirii.com.hk', 'Poon Hiu Yi', 'All Employees,Sales', 'Project Administrator', false
-  UNION ALL SELECT 'ralphlo@kirii.com.hk', 'Lo Leung Kei', 'All Employees', 'General Clerk', false
-  UNION ALL SELECT 'tina@kirii.com.hk', 'Yeung Siu Tuen', 'All Employees', 'General Clerk', false
+  UNION ALL SELECT 'ralphlo@kirii.com.hk', 'Lo Leung Kei', 'All Employees,Sales', 'General Clerk', false
+  UNION ALL SELECT 'tina@kirii.com.hk', 'Yeung Siu Tuen', 'All Employees,Factory,Sales', 'General Clerk', false
   UNION ALL SELECT 'brontem@kirii.com.hk', 'Mak Wan Hoi', 'All Employees', 'General Clerk', false
   UNION ALL SELECT 'irenewu@kirii.com.hk', 'Wu Ka Yan', 'All Employees,Purchasing,Sales', 'Acc. Manager', false
   UNION ALL SELECT 'info1@kirii.com.hk', 'Yau Lai Yuk', 'All Employees', 'Worker', false

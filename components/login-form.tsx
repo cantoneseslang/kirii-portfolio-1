@@ -50,6 +50,19 @@ export function LoginForm() {
       }
 
       if (data.user) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("is_active")
+          .eq("id", data.user.id)
+          .single()
+
+        if (profileData?.is_active === false) {
+          await supabase.auth.signOut()
+          setError("This account is disabled. Please contact an administrator.")
+          setIsLoading(false)
+          return
+        }
+
         console.log('Login successful for user:', data.user.id)
         
         // Record login history

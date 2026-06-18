@@ -7,5 +7,7 @@ export interface Profile {
   position?: string
   updated_at?: string
   is_admin?: boolean
+  is_active?: boolean
+  card_permissions?: Record<string, boolean>
 }
 
