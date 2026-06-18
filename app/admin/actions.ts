@@ -417,7 +417,7 @@ export async function getAdminEmployeeData(): Promise<{
     const supabase = getServiceRoleClient()
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, full_name, department, position, is_admin, is_active, card_permissions, updated_at")
+      .select("id, username, full_name, department, position, is_admin, is_active, card_permissions, updated_at")
       .order("full_name")
 
     if (profilesError) {

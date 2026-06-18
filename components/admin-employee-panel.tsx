@@ -1,9 +1,10 @@
 "use client"
 
 import { Fragment, useMemo, useState, useTransition } from "react"
-import { Switch } from "@/components/ui/switch"
+import { AdminPermissionSwitch } from "@/components/admin-permission-switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
+import { resolveDisplayTitle } from "@/lib/display-title"
 import {
   updateUserActive,
   updateUserCardPermission,
@@ -185,6 +186,7 @@ export function AdminEmployeePanel({
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Active</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Display Title</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
@@ -205,12 +207,15 @@ export function AdminEmployeePanel({
                           className={!accountEnabled ? "bg-red-50" : employee.usageStatus === "Inactive" ? "bg-yellow-50" : ""}
                         >
                           <td className="px-4 py-4 whitespace-nowrap">
-                            <Switch
+                            <AdminPermissionSwitch
                               checked={accountEnabled}
                               disabled={pendingKey === `active-${employee.id}`}
                               onCheckedChange={(checked) => handleActiveToggle(employee, checked)}
                               aria-label={`Toggle active for ${employee.full_name}`}
                             />
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-[#02315a]">
+                            {resolveDisplayTitle(employee)}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {employee.full_name}
@@ -242,7 +247,7 @@ export function AdminEmployeePanel({
                         </tr>
                         {isExpanded && (
                           <tr className="bg-slate-50">
-                            <td colSpan={9} className="px-6 py-5">
+                            <td colSpan={10} className="px-6 py-5">
                               <div className="space-y-6">
                                 <div>
                                   <h4 className="text-sm font-semibold mb-3">Department Permissions</h4>
@@ -258,7 +263,7 @@ export function AdminEmployeePanel({
                                           className="flex items-center justify-between gap-3 rounded border bg-white px-3 py-2 text-sm"
                                         >
                                           <span>{token}</span>
-                                          <Switch
+                                          <AdminPermissionSwitch
                                             checked={enabled}
                                             disabled={pendingKey === `dept-${employee.id}-${token}`}
                                             onCheckedChange={(checked) =>
@@ -287,7 +292,7 @@ export function AdminEmployeePanel({
                                               <div className="text-xs text-gray-500 truncate">{card.labelZh}</div>
                                             )}
                                           </div>
-                                          <Switch
+                                          <AdminPermissionSwitch
                                             checked={enabled}
                                             disabled={pendingKey === `card-${employee.id}-${card.key}`}
                                             onCheckedChange={(checked) =>

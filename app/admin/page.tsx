@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { getAdminEmployeeData, checkIsAdmin } from "@/app/admin/actions"
 import { AdminEmployeePanel } from "@/components/admin-employee-panel"
+import { resolveDisplayTitle } from "@/lib/display-title"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -14,7 +15,12 @@ export default async function AdminPage() {
 
   const { employees, activityEvents, error } = await getAdminEmployeeData()
   const nameByUserId = Object.fromEntries(
-    employees.map((employee) => [employee.id, employee.full_name || employee.email || employee.id]),
+    employees.map((employee) => [
+      employee.id,
+      resolveDisplayTitle(employee) !== "—"
+        ? resolveDisplayTitle(employee)
+        : employee.full_name || employee.email || employee.id,
+    ]),
   )
 
   const currentDate = new Date()
