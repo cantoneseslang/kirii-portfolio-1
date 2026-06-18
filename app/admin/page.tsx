@@ -13,7 +13,8 @@ export default async function AdminPage() {
     redirect("/?admin_denied=1")
   }
 
-  const { employees, activityEvents, error } = await getAdminEmployeeData()
+  const { employees, activityEvents, lunchOrderActivity, lunchOrderError, error } =
+    await getAdminEmployeeData()
   const nameByUserId = Object.fromEntries(
     employees.map((employee) => [
       employee.id,
@@ -56,6 +57,8 @@ export default async function AdminPage() {
       <AdminEmployeePanel
         initialEmployees={employees}
         initialActivityEvents={activityEvents}
+        initialLunchOrderActivity={lunchOrderActivity}
+        lunchOrderError={lunchOrderError}
         nameByUserId={nameByUserId}
       />
     </div>

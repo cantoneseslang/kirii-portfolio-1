@@ -9,6 +9,7 @@ import {
   type DepartmentPermissionKey,
 } from "@/lib/card-permissions"
 import type { Profile } from "@/types/profile"
+import { fetchLunchOrderActivity, type LunchOrderActivityRow } from "@/lib/lunch-order-admin"
 import { createServerSupabaseClient } from "@/utils/supabase/server"
 
 export async function createUser(
@@ -405,15 +406,25 @@ async function logAdminActivity(params: {
   }
 }
 
+export type { LunchOrderActivityRow } from "@/lib/lunch-order-admin"
+
 export async function getAdminEmployeeData(): Promise<{
   employees: AdminEmployeeRow[]
   activityEvents: ActivityEventRow[]
+  lunchOrderActivity: LunchOrderActivityRow[]
+  lunchOrderError: string | null
   error: string | null
 }> {
   try {
     const isAdmin = await checkIsAdmin()
     if (!isAdmin) {
-      return { employees: [], activityEvents: [], error: "Unauthorized" }
+      return {
+        employees: [],
+        activityEvents: [],
+        lunchOrderActivity: [],
+        lunchOrderError: null,
+        error: "Unauthorized",
+      }
     }
 
     const supabase = getServiceRoleClient()
@@ -423,7 +434,13 @@ export async function getAdminEmployeeData(): Promise<{
       .order("full_name")
 
     if (profilesError) {
-      return { employees: [], activityEvents: [], error: profilesError.message }
+      return {
+        employees: [],
+        activityEvents: [],
+        lunchOrderActivity: [],
+        lunchOrderError: null,
+        error: profilesError.message,
+      }
     }
 
     const currentDate = new Date()
@@ -508,11 +525,31 @@ export async function getAdminEmployeeData(): Promise<{
       .limit(300)
 
     if (activityError) {
-      return { employees, activityEvents: [], error: activityError.message }
+      return {
+        employees,
+        activityEvents: [],
+        lunchOrderActivity: [],
+        lunchOrderError: null,
+        error: activityError.message,
+      }
     }
 
-    return { employees, activityEvents: (activityEvents || []) as ActivityEventRow[], error: null }
+    const { rows: lunchOrderActivity, error: lunchOrderError } = await fetchLunchOrderActivity(7, 300)
+
+    return {
+      employees,
+      activityEvents: (activityEvents || []) as ActivityEventRow[],
+      lunchOrderActivity,
+      lunchOrderError,
+      error: null,
+    }
   } catch (error: any) {
-    return { employees: [], activityEvents: [], error: error.message }
+    return {
+      employees: [],
+      activityEvents: [],
+      lunchOrderActivity: [],
+      lunchOrderError: null,
+      error: error.message,
+    }
   }
 }

@@ -10,6 +10,7 @@ import {
   updateUserDepartmentPermission,
   type ActivityEventRow,
   type AdminEmployeeRow,
+  type LunchOrderActivityRow,
 } from "@/app/admin/actions"
 import {
   getCardPermissionDefinition,
@@ -31,6 +32,8 @@ const SCROLLABLE_TABLE_WRAPPER =
 interface AdminEmployeePanelProps {
   initialEmployees: AdminEmployeeRow[]
   initialActivityEvents: ActivityEventRow[]
+  initialLunchOrderActivity: LunchOrderActivityRow[]
+  lunchOrderError: string | null
   nameByUserId: Record<string, string>
 }
 
@@ -56,13 +59,27 @@ function formatEventTime(iso: string): string {
 export function AdminEmployeePanel({
   initialEmployees,
   initialActivityEvents,
+  initialLunchOrderActivity,
+  lunchOrderError,
   nameByUserId,
 }: AdminEmployeePanelProps) {
   const [employees, setEmployees] = useState(initialEmployees)
   const [activityEvents] = useState(initialActivityEvents)
+  const [lunchOrderActivity] = useState(initialLunchOrderActivity)
   const [pendingKey, setPendingKey] = useState<string | null>(null)
   const [, startTransition] = useTransition()
   const { toast } = useToast()
+
+  const lunchSummary = useMemo(() => {
+    const total = lunchOrderActivity.length
+    const proxy = lunchOrderActivity.filter((row) => row.isProxyOrder).length
+    const operators = new Set(
+      lunchOrderActivity
+        .filter((row) => row.isProxyOrder && row.operatorMemberName)
+        .map((row) => row.operatorMemberName as string),
+    ).size
+    return { total, proxy, operators }
+  }, [lunchOrderActivity])
 
   const summary = useMemo(() => {
     const totalUsers = employees.length
@@ -158,6 +175,7 @@ export function AdminEmployeePanel({
         <TabsList>
           <TabsTrigger value="employees">Employees & Permissions</TabsTrigger>
           <TabsTrigger value="activity">Activity Monitor</TabsTrigger>
+          <TabsTrigger value="lunch">Lunch Orders</TabsTrigger>
         </TabsList>
 
         <TabsContent value="employees" className="mt-4">
@@ -305,6 +323,86 @@ export function AdminEmployeePanel({
                         </tr>
                       )
                     })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="lunch" className="mt-4">
+          <div className="bg-white shadow-md rounded-lg overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b">
+              <h3 className="text-lg font-semibold">Lunch Order Activity（直近7日）</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                午餐訂購システムの落單記錄。代理落單（操作者 ≠ 訂餐人）を Portfolio Admin から確認できます。
+              </p>
+              <div className="flex flex-wrap gap-4 mt-3 text-sm">
+                <span>Total orders: <strong>{lunchSummary.total}</strong></span>
+                <span>Proxy orders: <strong>{lunchSummary.proxy}</strong></span>
+                <span>Proxy operators: <strong>{lunchSummary.operators}</strong></span>
+              </div>
+              {lunchOrderError && (
+                <p className="text-sm text-red-600 mt-2">{lunchOrderError}</p>
+              )}
+            </div>
+            <div className={SCROLLABLE_TABLE_WRAPPER}>
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Time (HK)</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Channel</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">訂餐人</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">操作者</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">代理</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">內容</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {lunchOrderActivity.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
+                        {lunchOrderError
+                          ? "午餐データを読み込めませんでした。"
+                          : "直近7日間の落單記錄はありません。"}
+                      </td>
+                    </tr>
+                  ) : (
+                    lunchOrderActivity.map((row) => (
+                      <tr
+                        key={row.id}
+                        className={row.isProxyOrder ? "bg-amber-50" : undefined}
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                          {formatEventTime(row.timestamp)}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{row.dateKey}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                          {row.channel === "foodpanda" ? "foodpanda" : "汀角路"}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          {row.memberName}
+                          <span className="text-gray-400 ml-1">({row.memberId})</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          {row.operatorMemberName || row.memberName}
+                          {row.operatorMemberId && (
+                            <span className="text-gray-400 ml-1">({row.operatorMemberId})</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          {row.isProxyOrder ? (
+                            <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
+                              是
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">{row.detail}</td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>
