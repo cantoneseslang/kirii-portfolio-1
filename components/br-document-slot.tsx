@@ -169,7 +169,7 @@ export function BrDocumentSlot({
           <Input
             id="br-certificate-company-en"
             value={validity.certificateCompanyNameEn}
-            placeholder="LIFESUPPORT (HK) LIMITED"
+            placeholder="KIRII (Hong Kong) Limited"
             onChange={(event) =>
               onValidityChange({ ...validity, certificateCompanyNameEn: event.target.value })
             }
