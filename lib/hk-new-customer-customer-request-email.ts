@@ -93,9 +93,17 @@ const OPTIONAL_DOCS = `───────────────────
    · e.g. bank statement header or cancelled cheque / 例如：月結單表頭或空白支票
    · Account name must match the registered company name / 戶口名稱須與公司註冊名稱一致`
 
+const EXCEL_QUESTIONNAIRE = `────────────────────────────────────────
+【Customer Questionnaire (Excel) / 客戶填寫問卷（Excel）】
+────────────────────────────────────────
+
+Please fill in the attached Excel questionnaire (column C only) and return it with your documents.
+This covers company details, contacts, bank account and payment terms below.
+請填寫附上的 Excel 問卷（只需填 C 欄），並連同文件一併交回。問卷已包含以下公司、聯絡、銀行及付款資料。`
+
 const HK_COMPANY_INFO = `────────────────────────────────────────
 【Company & Contact Information / 公司及聯絡資料】
-Please also provide in your reply / 請於回覆中一併提供：
+If you cannot use the Excel questionnaire, please also provide in your reply / 如未能使用 Excel 問卷，請於回覆中一併提供：
 ────────────────────────────────────────
 
 · Registered company name (English & Chinese) / 公司註冊中英文全名
@@ -109,7 +117,7 @@ Please also provide in your reply / 請於回覆中一併提供：
 
 const MACAU_COMPANY_INFO = `────────────────────────────────────────
 【Company & Contact Information / 公司及聯絡資料】
-Please also provide in your reply / 請於回覆中一併提供：
+If you cannot use the Excel questionnaire, please also provide in your reply / 如未能使用 Excel 問卷，請於回覆中一併提供：
 ────────────────────────────────────────
 
 · Registered company name (English & Chinese) / 公司註冊中英文全名
@@ -133,6 +141,8 @@ function buildEmailBody(
 ${introBlock(customerType)}
 
 ${mandatoryDocs}
+
+${EXCEL_QUESTIONNAIRE}
 
 ${OPTIONAL_DOCS}
 

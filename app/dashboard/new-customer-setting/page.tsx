@@ -52,6 +52,7 @@ import { CiDocumentSlot } from "@/components/ci-document-slot"
 import { Nar1DocumentSlot } from "@/components/nar1-document-slot"
 import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
 import { CustomerDocumentRequestEmail } from "@/components/customer-document-request-email"
+import { CustomerIntakeExcelImport } from "@/components/customer-intake-excel-import"
 import { SalesForecastFields, calculateSalesForecastTotals } from "@/components/sales-forecast-fields"
 import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
 import {
@@ -64,6 +65,7 @@ import {
   mergeRegisteredAddressAutofill,
   pickRegisteredAddressFromNar1,
 } from "@/lib/hk-new-customer-document-autofill"
+import type { HkNewCustomerIntakeImport } from "@/lib/hk-new-customer-intake-template"
 import {
   formatSalesRepLabel,
   formatSalesRepShortName,
@@ -370,6 +372,38 @@ export default function NewCustomerSettingPage() {
     if (companyNameZh) {
       setCompanyNameZh((current) => fillIfEmpty(current, companyNameZh))
     }
+  }, [])
+
+  const applyCustomerIntakeImport = useCallback((data: HkNewCustomerIntakeImport) => {
+    if (data.companyNameEn) setCompanyNameEn(data.companyNameEn)
+    if (data.companyNameZh) setCompanyNameZh(data.companyNameZh)
+    if (data.brNumber) setBrNumber(data.brNumber)
+    if (data.incorporationDate) setIncorporationDate(data.incorporationDate)
+    setRegisteredAddressDetail(data.registeredAddressDetail)
+    setDeliveryAddressDetail(data.deliveryAddressDetail)
+    setContacts(data.contacts)
+    setApContactNameDetail(data.apContactNameDetail)
+    if (data.apEmail) setApEmail(data.apEmail)
+    if (data.apPhoneCountryCode) setApPhoneCountryCode(data.apPhoneCountryCode)
+    if (data.apPhone) setApPhone(data.apPhone)
+    setInvoiceEmail(data.invoiceEmail)
+    setInvoicePost(data.invoicePost)
+    if (data.bankName) setBankName(data.bankName)
+    if (data.bankBranchName) setBankBranchName(data.bankBranchName)
+    if (data.bankBranchNumber) setBankBranchNumber(data.bankBranchNumber)
+    if (data.accountName) setAccountName(data.accountName)
+    if (data.accountNumber) setAccountNumber(data.accountNumber)
+    if (data.bankCode) setBankCode(data.bankCode)
+    if (["advance", "30_days_invoice", "30_days_eom", "other"].includes(data.paymentTerms)) {
+      setPaymentTerms(data.paymentTerms)
+    }
+    if (data.paymentTermsOther) setPaymentTermsOther(data.paymentTermsOther)
+    if (data.authorizedSignature) setAuthorizedSignature(data.authorizedSignature)
+    if (data.declarationDate) setDeclarationDate(data.declarationDate)
+    setError(data.warnings.length > 0 ? data.warnings.join(" ") : null)
+    setMessage(
+      `Imported ${data.importedFieldCount} fields from customer Excel questionnaire. Please upload Part 1 documents separately. / 已從客戶 Excel 問卷匯入 ${data.importedFieldCount} 項資料，Part 1 文件請另外上載。`,
+    )
   }, [])
 
   const salesForecastTotals = useMemo(
@@ -782,6 +816,8 @@ export default function NewCustomerSettingPage() {
         </TabsList>
 
         <TabsContent value="form" className="space-y-6">
+          <CustomerIntakeExcelImport onImport={applyCustomerIntakeImport} />
+
           <form className="space-y-6" onSubmit={(event) => handleSubmit(event, "submitted")}>
             <Card>
               <CardHeader>
