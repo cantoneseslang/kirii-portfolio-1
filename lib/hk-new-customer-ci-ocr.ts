@@ -20,7 +20,7 @@ Field mapping on the certificate:
 - Top-left 編號 / No. -> certificateNumber (digits only, e.g. 3228132)
 - Issued at Hong Kong on [date] / 本證明書於...發出 -> issueDate
 - Company name in the CENTER of the certificate body (large English name under the title) -> certificateCompanyNameEn
-  Example: "LIFESUPPORT (HK) LIMITED" in "I hereby certify that ... is this day incorporated"
+  Example: "KIRII (Hong Kong) Limited" in "I hereby certify that ... is this day incorporated"
 - Chinese company name if shown separately -> certificateCompanyNameZh
 
 Rules:
