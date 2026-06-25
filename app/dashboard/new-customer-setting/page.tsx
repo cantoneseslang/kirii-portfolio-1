@@ -65,7 +65,10 @@ import {
   mergeRegisteredAddressAutofill,
   pickRegisteredAddressFromNar1,
 } from "@/lib/hk-new-customer-document-autofill"
-import type { HkNewCustomerIntakeImport } from "@/lib/hk-new-customer-intake-template"
+import {
+  mergeAddressImport,
+  type HkNewCustomerIntakeImport,
+} from "@/lib/hk-new-customer-intake-template"
 import {
   formatSalesRepLabel,
   formatSalesRepShortName,
@@ -375,34 +378,15 @@ export default function NewCustomerSettingPage() {
   }, [])
 
   const applyCustomerIntakeImport = useCallback((data: HkNewCustomerIntakeImport) => {
-    if (data.companyNameEn) setCompanyNameEn(data.companyNameEn)
-    if (data.companyNameZh) setCompanyNameZh(data.companyNameZh)
-    if (data.brNumber) setBrNumber(data.brNumber)
-    if (data.incorporationDate) setIncorporationDate(data.incorporationDate)
-    setRegisteredAddressDetail(data.registeredAddressDetail)
-    setDeliveryAddressDetail(data.deliveryAddressDetail)
-    setContacts(data.contacts)
-    setApContactNameDetail(data.apContactNameDetail)
-    if (data.apEmail) setApEmail(data.apEmail)
-    if (data.apPhoneCountryCode) setApPhoneCountryCode(data.apPhoneCountryCode)
-    if (data.apPhone) setApPhone(data.apPhone)
-    setInvoiceEmail(data.invoiceEmail)
-    setInvoicePost(data.invoicePost)
-    if (data.bankName) setBankName(data.bankName)
-    if (data.bankBranchName) setBankBranchName(data.bankBranchName)
-    if (data.bankBranchNumber) setBankBranchNumber(data.bankBranchNumber)
-    if (data.accountName) setAccountName(data.accountName)
-    if (data.accountNumber) setAccountNumber(data.accountNumber)
-    if (data.bankCode) setBankCode(data.bankCode)
-    if (["advance", "30_days_invoice", "30_days_eom", "other"].includes(data.paymentTerms)) {
-      setPaymentTerms(data.paymentTerms)
-    }
-    if (data.paymentTermsOther) setPaymentTermsOther(data.paymentTermsOther)
-    if (data.authorizedSignature) setAuthorizedSignature(data.authorizedSignature)
-    if (data.declarationDate) setDeclarationDate(data.declarationDate)
+    if (data.companyNameEn) setCompanyNameEn((current) => fillIfEmpty(current, data.companyNameEn))
+    if (data.companyNameZh) setCompanyNameZh((current) => fillIfEmpty(current, data.companyNameZh))
+    if (data.brNumber) setBrNumber((current) => fillIfEmpty(current, data.brNumber))
+    if (data.incorporationDate) setIncorporationDate((current) => fillIfEmpty(current, data.incorporationDate))
+    setRegisteredAddressDetail((current) => mergeAddressImport(current, data.registeredAddressDetail))
+    setDeliveryAddressDetail((current) => mergeAddressImport(current, data.deliveryAddressDetail))
     setError(data.warnings.length > 0 ? data.warnings.join(" ") : null)
     setMessage(
-      `Imported ${data.importedFieldCount} fields from customer Excel questionnaire. Please upload Part 1 documents separately. / 已從客戶 Excel 問卷匯入 ${data.importedFieldCount} 項資料，Part 1 文件請另外上載。`,
+      `Imported ${data.importedFieldCount} Part 2 fields from customer Excel. Part 1 documents can still auto-fill other sections. / 已從客戶 Excel 匯入 Part 2 共 ${data.importedFieldCount} 項；Part 1 文件仍可自動填入其他欄位。`,
     )
   }, [])
 

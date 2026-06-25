@@ -94,12 +94,13 @@ const OPTIONAL_DOCS = `───────────────────
    · Account name must match the registered company name / 戶口名稱須與公司註冊名稱一致`
 
 const EXCEL_QUESTIONNAIRE = `────────────────────────────────────────
-【Customer Questionnaire (Excel) / 客戶填寫問卷（Excel）】
+【Part 2 Excel (Company Information) / Part 2 公司基本資料問卷】
 ────────────────────────────────────────
 
-Please fill in the attached Excel questionnaire (column C only) and return it with your documents.
-This covers company details, contacts, bank account and payment terms below.
-請填寫附上的 Excel 問卷（只需填 C 欄），並連同文件一併交回。問卷已包含以下公司、聯絡、銀行及付款資料。`
+Please fill in the attached Excel (column C only) and return it with your documents.
+It covers registered / delivery address and company details not shown on the certificates.
+Part 1 documents will still be processed separately in our system.
+請填寫附上的 Excel（只需填 C 欄）並連同文件交回，用於送貨地址及證件上沒有的公司資料。`
 
 const HK_COMPANY_INFO = `────────────────────────────────────────
 【Company & Contact Information / 公司及聯絡資料】

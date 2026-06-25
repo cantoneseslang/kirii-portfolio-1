@@ -51,12 +51,12 @@ export function CustomerIntakeExcelImport({ onImport }: CustomerIntakeExcelImpor
     <div className="space-y-3 rounded-lg border border-[#02315a]/20 bg-slate-50 p-4">
       <div>
         <div className="font-medium text-[#02315a]">
-          Customer Questionnaire (Excel) / 客戶填寫問卷
+          Part 2 Excel (Company Information) / Part 2 公司基本資料問卷
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Download the bilingual Excel form for your customer. When they return it, upload here to
-          auto-fill Parts 2–6. Documents (Part 1) are still uploaded separately. /
-          下載雙語 Excel 問卷給客戶填寫；客戶交回後在此上載，即可自動填入 Part 2–6。Part 1 文件仍需另外上載。
+          For delivery address and company details not on scanned documents. Part 1 uploads still
+          auto-fill company name, BR, contacts, etc. /
+          主要供客戶填寫送貨地址及文件上沒有的公司資料。Part 1 上載後仍會自動填入公司名、BR、聯絡人等。
         </p>
       </div>
 
