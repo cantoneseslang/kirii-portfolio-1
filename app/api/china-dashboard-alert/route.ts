@@ -78,21 +78,22 @@ export async function POST(request: NextRequest) {
   const scriptDir = body.scriptDir?.trim() || "-"
   const logFile = body.logFile?.trim() || "-"
   const occurredAt = body.occurredAt?.trim() || new Date().toISOString()
-  const errorSummary = body.errorSummary?.trim() || "(no error summary provided)"
+  const errorSummary = body.errorSummary?.trim() || "（エラー概要なし）"
 
-  const subject = `[china-dashboard] update failed (exit ${exitCode}) on ${computer}`
+  const subject = `[china-dashboard] 更新失敗（終了コード ${exitCode}）— ${computer}`
   const html = `
-    <h2>china-dashboard fetch failed</h2>
+    <h2>china-dashboard のデータ取得に失敗しました</h2>
     <table cellpadding="6" cellspacing="0" border="0">
-      <tr><td><strong>Time</strong></td><td>${escapeHtml(occurredAt)}</td></tr>
-      <tr><td><strong>Computer</strong></td><td>${escapeHtml(computer)}</td></tr>
-      <tr><td><strong>Exit code</strong></td><td>${exitCode}</td></tr>
-      <tr><td><strong>Script dir</strong></td><td>${escapeHtml(scriptDir)}</td></tr>
-      <tr><td><strong>Log file</strong></td><td>${escapeHtml(logFile)}</td></tr>
+      <tr><td><strong>日時</strong></td><td>${escapeHtml(occurredAt)}</td></tr>
+      <tr><td><strong>コンピュータ名</strong></td><td>${escapeHtml(computer)}</td></tr>
+      <tr><td><strong>終了コード</strong></td><td>${exitCode}</td></tr>
+      <tr><td><strong>スクリプトの場所</strong></td><td>${escapeHtml(scriptDir)}</td></tr>
+      <tr><td><strong>ログファイル</strong></td><td>${escapeHtml(logFile)}</td></tr>
     </table>
-    <h3>Recent errors / log tail</h3>
+    <h3>直近のエラー／ログ末尾</h3>
     <pre style="white-space:pre-wrap;font-family:Consolas,monospace;">${escapeHtml(errorSummary)}</pre>
-    <p>If this is 401 Unauthorized, check kirii-portfolio-1 dashboard API access.</p>
+    <p>401 Unauthorized の場合は、kirii-portfolio-1 の dashboard API がブロックされていないか確認してください。</p>
+    <p>手動確認: 該当 PC で fetch-data.bat を実行し、logs フォルダ内のログを確認してください。</p>
   `.trim()
 
   const result = await sendEmail({
