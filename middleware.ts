@@ -17,7 +17,7 @@ const PUBLIC_EXACT_PATHS = new Set([
 ])
 
 // china-dashboard fetch-data.ps1 (HK PC) calls these without a browser session.
-const PUBLIC_API_PREFIXES = ["/api/cron/", "/api/dashboard/"]
+const PUBLIC_API_PREFIXES = ["/api/cron/", "/api/dashboard/", "/api/china-dashboard-alert"]
 const PUBLIC_DATA_PREFIXES = ["/data/"]
 
 function isPublicRoute(pathname: string): boolean {

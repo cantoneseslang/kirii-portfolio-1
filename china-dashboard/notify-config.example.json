@@ -1,0 +1,5 @@
+{
+  "alert_url": "https://kirii-portfolio-1.vercel.app/api/china-dashboard-alert",
+  "alert_token": "same-as-vercel-env-CHINA_DASHBOARD_ALERT_SECRET",
+  "notify_cooldown_hours": 6
+}

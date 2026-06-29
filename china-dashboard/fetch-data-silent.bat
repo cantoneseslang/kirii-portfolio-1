@@ -18,6 +18,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0fetch-data.ps1" -R
 set "PS_EXIT=%ERRORLEVEL%"
 if not "%PS_EXIT%"=="0" (
   echo ERROR fetch-data.ps1 exit %PS_EXIT%>> "%LOG_FILE%"
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0notify-fetch-failure.ps1" -ExitCode %PS_EXIT% -LogFile "%LOG_FILE%"
 )
 echo === end exit %PS_EXIT% ===>> "%LOG_FILE%"
 endlocal & exit /b %PS_EXIT%

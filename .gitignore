@@ -23,6 +23,9 @@ yarn-error.log*
 # local MCP credentials (never commit)
 .mcp.json
 
+# china-dashboard alert token (China PC only)
+china-dashboard/notify-config.local.json
+
 # local full-folder backups (GitHub 100MB limit)
 kirii-portfolio-backup-*.tar.gz
 
