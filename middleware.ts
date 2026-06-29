@@ -16,12 +16,15 @@ const PUBLIC_EXACT_PATHS = new Set([
   "/reset-password-confirmation",
 ])
 
-const PUBLIC_API_PREFIXES = ["/api/cron/"]
+// china-dashboard fetch-data.ps1 (HK PC) calls these without a browser session.
+const PUBLIC_API_PREFIXES = ["/api/cron/", "/api/dashboard/"]
+const PUBLIC_DATA_PREFIXES = ["/data/"]
 
 function isPublicRoute(pathname: string): boolean {
   if (PUBLIC_EXACT_PATHS.has(pathname)) return true
   if (pathname === "/api/record-login") return true
-  return PUBLIC_API_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  if (PUBLIC_API_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return true
+  return PUBLIC_DATA_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 }
 
 function redirectToLogin(request: NextRequest) {
