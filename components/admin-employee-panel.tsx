@@ -39,8 +39,8 @@ interface AdminEmployeePanelProps {
 
 function formatHongKongTime(date: Date | null, emptyLabel = "Not logged in"): string {
   if (!date) return emptyLabel
-  const hongKongTime = new Date(date.getTime() + 8 * 60 * 60 * 1000)
-  return hongKongTime.toLocaleString("en-US", {
+  return date.toLocaleString("en-US", {
+    timeZone: "Asia/Hong_Kong",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
