@@ -4,9 +4,9 @@ import React from 'react';
 
 const PQFormCard = () => {
   return (
-    <div className="block w-full">
+    <div className="block w-full md:w-[420px]">
       <a href="https://pq-form.vercel.app/" target="_blank" rel="noopener" className="block w-full">
-        <div className="w-full md:w-[420px] min-h-[92px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
+        <div className="w-full min-h-[92px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
           <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors whitespace-nowrap">
             PQ-Form
           </h3>
@@ -19,7 +19,7 @@ const PQFormCard = () => {
           </div>
         </div>
       </a>
-      <p className="text-[#3c3852] text-sm mt-1 ml-1">ISO-FAC-10(03/26)</p>
+      <p className="text-[#3c3852] text-sm mt-1 ml-1 min-h-[1.25rem]">ISO-FAC-10(03/26)</p>
     </div>
   );
 }
