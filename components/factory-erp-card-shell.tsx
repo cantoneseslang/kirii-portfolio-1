@@ -2,15 +2,20 @@
 
 import { NewFeatureBadge } from "@/components/new-feature-badge"
 
-/** Shared Factory-ERP dashboard card — fixed identical height for all four cards. */
+/** Gray card body only — identical height for all Factory-ERP cards. */
 export const FACTORY_ERP_CARD_CLASS =
-  "w-full md:w-[420px] h-[120px] relative box-border p-4 pb-8 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md flex flex-col"
+  "w-full md:w-[420px] h-[92px] relative box-border p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md"
+
+/** Same height as PQ-Form ISO line under the card (outside gray box). */
+export const FACTORY_ERP_FOOTNOTE_CLASS =
+  "text-[#3c3852] text-sm mt-1 ml-1 min-h-[1.25rem] leading-5"
 
 type FactoryErpCardShellProps = {
   href: string
   title: string
   subtitle: string
   showNewBadge?: boolean
+  /** Shown under the card (outside). Empty string keeps matching blank space. */
   footnote?: string
   external?: boolean
 }
@@ -48,21 +53,23 @@ export function FactoryErpCardShell({
     : {}
 
   return (
-    <a href={href} className="block w-full md:w-[420px]" {...linkProps}>
-      <div className={FACTORY_ERP_CARD_CLASS}>
-        <h3 className="flex flex-nowrap items-center gap-2 text-xl font-bold transition-colors min-h-[28px]">
-          <span className="hover:text-[#02315a] hover:underline whitespace-nowrap">{title}</span>
-          {showNewBadge ? <NewFeatureBadge className="shrink-0" /> : null}
-        </h3>
-        <p className="text-[#3c3852] text-sm mt-3">{subtitle}</p>
-        <p
-          className={`text-[#3c3852] text-sm mt-auto ${footnote ? "" : "invisible select-none"}`}
-          aria-hidden={footnote ? undefined : true}
-        >
-          {footnote ?? "ISO-FAC-10(03/26)"}
-        </p>
-        <ArrowCorner />
-      </div>
-    </a>
+    <div className="block w-full md:w-[420px]">
+      <a href={href} className="block w-full" {...linkProps}>
+        <div className={FACTORY_ERP_CARD_CLASS}>
+          <h3 className="flex flex-nowrap items-center gap-2 text-xl font-bold transition-colors">
+            <span className="hover:text-[#02315a] hover:underline whitespace-nowrap">{title}</span>
+            {showNewBadge ? <NewFeatureBadge className="shrink-0" /> : null}
+          </h3>
+          <p className="text-[#3c3852] text-sm mt-4">{subtitle}</p>
+          <ArrowCorner />
+        </div>
+      </a>
+      <p
+        className={`${FACTORY_ERP_FOOTNOTE_CLASS}${footnote ? "" : " invisible select-none"}`}
+        aria-hidden={footnote ? undefined : true}
+      >
+        {footnote || "ISO-FAC-10(03/26)"}
+      </p>
+    </div>
   )
 }
