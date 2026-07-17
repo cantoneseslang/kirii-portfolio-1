@@ -6,8 +6,10 @@ const PQFormCard = () => {
   return (
     <div className="block w-full">
       <a href="https://pq-form.vercel.app/" target="_blank" rel="noopener" className="block w-full">
-        <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-          <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">PQ-Form</h3>
+        <div className="w-full md:w-[420px] min-h-[92px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
+          <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors whitespace-nowrap">
+            PQ-Form
+          </h3>
           <p className="text-[#3c3852] text-sm mt-4">產品品質檢定及用料紀錄表</p>
 
           <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">

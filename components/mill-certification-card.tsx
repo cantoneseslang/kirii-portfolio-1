@@ -6,10 +6,12 @@ import { NewFeatureBadge } from "@/components/new-feature-badge"
 const MillCertificationCard = () => {
   return (
     <a href="/mill-certification" className="block w-full">
-      <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="flex flex-wrap items-center gap-2 text-xl font-bold transition-colors">
-          <span className="hover:text-[#02315a] hover:underline">Mill Certification</span>
-          <NewFeatureBadge />
+      <div className="w-full md:w-[420px] min-h-[92px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
+        <h3 className="flex flex-nowrap items-center gap-2 text-xl font-bold transition-colors">
+          <span className="hover:text-[#02315a] hover:underline whitespace-nowrap">
+            Mill Certification
+          </span>
+          <NewFeatureBadge className="shrink-0" />
         </h3>
         <p className="text-[#3c3852] text-sm mt-4">原材料質量證明書</p>
 
