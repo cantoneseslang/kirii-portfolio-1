@@ -21,6 +21,9 @@ import KHK_AI_MONITOR_Card from "@/components/khk-ai-monitor-card";
 import CompanyInfoCard from "@/components/company-info-card";
 import ProductManualCard from "@/components/product-manual-card";
 import PQFormCard from "@/components/pq-form-card";
+import ManufacturingOrderCard from "@/components/manufacturing-order-card";
+import MaterialStockCard from "@/components/material-stock-card";
+import MillCertificationCard from "@/components/mill-certification-card";
 import CertificateCard from "@/components/certificate-card";
 import CollectPaymentCardWrapper from "@/components/collect-payment-card-wrapper";
 import SalespersonCalendarCard from "@/components/salesperson-calendar-card";
@@ -287,15 +290,38 @@ export default function DashboardPage() {
           </div>
         )}
         
-        {hasCardPermission(profile, "pq_form") && (
+        {(hasCardPermission(profile, "pq_form") ||
+          hasCardPermission(profile, "manufacturing_order") ||
+          hasCardPermission(profile, "material_stock") ||
+          hasCardPermission(profile, "mill_certification")) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Factory-ERP</h3>
-            <div className={DASHBOARD_CARD_GRID_SINGLE}>
-              <TrackedCardShell cardKey="pq_form">
-                <PQFormCard />
-              </TrackedCardShell>
+            <div className={DASHBOARD_CARD_GRID}>
+              <div className="flex flex-col gap-6">
+                {hasCardPermission(profile, "pq_form") && (
+                  <TrackedCardShell cardKey="pq_form">
+                    <PQFormCard />
+                  </TrackedCardShell>
+                )}
+                {hasCardPermission(profile, "material_stock") && (
+                  <TrackedCardShell cardKey="material_stock">
+                    <MaterialStockCard />
+                  </TrackedCardShell>
+                )}
+              </div>
+              <div className="flex flex-col gap-6">
+                {hasCardPermission(profile, "manufacturing_order") && (
+                  <TrackedCardShell cardKey="manufacturing_order">
+                    <ManufacturingOrderCard />
+                  </TrackedCardShell>
+                )}
+                {hasCardPermission(profile, "mill_certification") && (
+                  <TrackedCardShell cardKey="mill_certification">
+                    <MillCertificationCard />
+                  </TrackedCardShell>
+                )}
+              </div>
             </div>
-            <p className="text-[#3c3852] text-sm mt-1 ml-1">ISO-FAC-10(03/26)</p>
           </div>
         )}
 

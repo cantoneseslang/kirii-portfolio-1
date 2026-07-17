@@ -14,6 +14,9 @@ export type CardPermissionKey =
   | "collect_payment"
   | "new_customer_setting"
   | "pq_form"
+  | "manufacturing_order"
+  | "material_stock"
+  | "mill_certification"
   | "supplier_info"
   | "form_master"
 
@@ -45,6 +48,24 @@ export const CARD_PERMISSIONS: CardPermissionDefinition[] = [
   { key: "collect_payment", label: "Collect Payment", labelZh: "回收金額統計表", section: "sales" },
   { key: "new_customer_setting", label: "NewCustomer Setting", labelZh: "新客戶登記", section: "sales" },
   { key: "pq_form", label: "PQ Form", section: "factory" },
+  {
+    key: "manufacturing_order",
+    label: "Manufacturing Order",
+    labelZh: "生產依頼書",
+    section: "factory",
+  },
+  {
+    key: "material_stock",
+    label: "MaterialStock",
+    labelZh: "原材料庫存",
+    section: "factory",
+  },
+  {
+    key: "mill_certification",
+    label: "Mill Certification",
+    labelZh: "原材料質量證明書",
+    section: "factory",
+  },
   { key: "supplier_info", label: "Supplier Info", section: "purchasing" },
   { key: "form_master", label: "Form Master (ISO)", section: "admin" },
 ]
