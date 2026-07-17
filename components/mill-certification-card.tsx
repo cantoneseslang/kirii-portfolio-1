@@ -1,82 +1,26 @@
 "use client"
 
-import React, { useState } from "react"
-import Image from "next/image"
+import React from "react"
 import { NewFeatureBadge } from "@/components/new-feature-badge"
-import { LocalPdfPreviewModal } from "@/components/local-pdf-preview-modal"
-
-const FILES = [
-  {
-    label: "0.8*1210-Z-120-S280GD+Z",
-    pdfPath: "/pdfs/mill-cert/s280gd.pdf",
-    thumbPath: "/pdfs/mill-cert/thumbs/s280gd.png",
-    downloadName: "0.8x1210-Z-120-S280GD+Z.pdf",
-  },
-  {
-    label: "0.8*1210-Z-120-S350GD+Z",
-    pdfPath: "/pdfs/mill-cert/s350gd.pdf",
-    thumbPath: "/pdfs/mill-cert/thumbs/s350gd.png",
-    downloadName: "0.8x1210-Z-120-S350GD+Z.pdf",
-  },
-  {
-    label: "0.4*97",
-    pdfPath: "/pdfs/mill-cert/sx-0.4x97.pdf",
-    thumbPath: "/pdfs/mill-cert/thumbs/sx-0.4x97.png",
-    downloadName: "0.4x97.pdf",
-  },
-] as const
-
-type MillFile = (typeof FILES)[number]
 
 const MillCertificationCard = () => {
-  const [preview, setPreview] = useState<MillFile | null>(null)
-
   return (
-    <>
-      <div className="w-full md:w-[420px] relative p-4 pb-10 rounded-xl bg-[#f1f1f3] shadow-sm transition-all hover:shadow-md">
+    <a href="/mill-certification" className="block w-full">
+      <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
         <h3 className="flex flex-wrap items-center gap-2 text-xl font-bold transition-colors">
-          <span>Mill Certification</span>
+          <span className="hover:text-[#02315a] hover:underline">Mill Certification</span>
           <NewFeatureBadge />
         </h3>
-        <p className="text-[#3c3852] text-sm mt-2">原材料質量證明書</p>
+        <p className="text-[#3c3852] text-sm mt-4">原材料質量證明書</p>
 
-        <ul className="mt-4 space-y-2">
-          {FILES.map((file) => (
-            <li key={file.pdfPath}>
-              <button
-                type="button"
-                onClick={() => setPreview(file)}
-                className="w-full flex items-center gap-3 rounded-lg p-1.5 text-left transition-colors hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#02315a]"
-              >
-                <span className="relative shrink-0 w-10 h-14 overflow-hidden rounded border border-black/10 bg-white shadow-sm">
-                  <Image
-                    src={file.thumbPath}
-                    alt=""
-                    fill
-                    className="object-cover object-top"
-                    sizes="40px"
-                  />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-medium text-[#02315a] truncate">
-                    {file.label}
-                  </span>
-                  <span className="block text-xs text-[#3c3852]/60 mt-0.5">
-                    Preview / Download
-                  </span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center pointer-events-none">
+        <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             height={15}
             width={15}
+            className="transition-transform group-hover:translate-x-0.5"
           >
             <path
               fill="#fff"
@@ -85,14 +29,7 @@ const MillCertificationCard = () => {
           </svg>
         </div>
       </div>
-
-      <LocalPdfPreviewModal
-        isOpen={!!preview}
-        onClose={() => setPreview(null)}
-        filePath={preview?.pdfPath ?? ""}
-        fileName={preview?.downloadName ?? ""}
-      />
-    </>
+    </a>
   )
 }
 
