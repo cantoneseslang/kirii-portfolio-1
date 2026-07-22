@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server"
-import {
-  INTAKE_TEMPLATE_FILENAME,
-  readIntakeTemplateBuffer,
-} from "@/lib/hk-new-customer-intake-template"
+import { INTAKE_TEMPLATE_FILENAME } from "@/lib/hk-new-customer-intake-template"
+import { readIntakeTemplateBuffer } from "@/lib/hk-new-customer-intake-template-server"
 
 export async function GET() {
   const buffer = await readIntakeTemplateBuffer()

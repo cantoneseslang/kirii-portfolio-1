@@ -17,11 +17,12 @@ import {
 } from "@/lib/hk-new-customer-address"
 import { extractBrCoreNumber } from "@/lib/hk-new-customer-document-validity"
 import { buildHongKongCustomerRequestInstructionsBody } from "@/lib/hk-new-customer-customer-request-email"
-import fs from "fs/promises"
-import path from "path"
 
 export const INTAKE_TEMPLATE_FILENAME = "KIRII_New_Customer_Parts2-4_Questionnaire.xlsx"
+export const INTAKE_SAMPLE_TEMPLATE_FILENAME =
+  "KIRII_New_Customer_Parts2-4_Questionnaire_SAMPLE.xlsx"
 export const INTAKE_TEMPLATE_PUBLIC_URL = `/templates/${INTAKE_TEMPLATE_FILENAME}`
+export const INTAKE_SAMPLE_TEMPLATE_PUBLIC_URL = `/templates/${INTAKE_SAMPLE_TEMPLATE_FILENAME}`
 export const INTAKE_FILL_SHEET = "Fill In"
 export const INTAKE_INSTRUCTIONS_SHEET = "Instructions"
 export const INTAKE_LISTS_SHEET = "Lists"
@@ -613,19 +614,6 @@ export async function intakeTemplateToBuffer(workbook?: ExcelJS.Workbook): Promi
   const resolvedWorkbook = workbook ?? (await generateIntakeTemplateWorkbook())
   const arrayBuffer = await resolvedWorkbook.xlsx.writeBuffer()
   return Buffer.from(arrayBuffer)
-}
-
-export function getIntakeTemplateFilePath(): string {
-  return path.join(process.cwd(), "public/templates", INTAKE_TEMPLATE_FILENAME)
-}
-
-/** Serves the curated template in public/templates; falls back to generated workbook. */
-export async function readIntakeTemplateBuffer(): Promise<Buffer> {
-  try {
-    return await fs.readFile(getIntakeTemplateFilePath())
-  } catch {
-    return intakeTemplateToBuffer()
-  }
 }
 
 export function parseIntakeWorkbook(workbook: XLSX.WorkBook): HkNewCustomerIntakeImport {
