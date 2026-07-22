@@ -4,10 +4,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LegalNameErrorMessage } from "@/components/legal-name-input"
 import {
-  validateLegalChineseName,
-  validateLegalEnglishNamePart,
-} from "@/lib/hk-new-customer-name-validation"
-import type { ContactNameFields } from "@/lib/hk-new-customer-contact-name"
+  getContactNameFieldValidations,
+  type ContactNameFields,
+} from "@/lib/hk-new-customer-contact-name"
 import { cn } from "@/lib/utils"
 
 type ContactNameFieldsProps = {
@@ -29,7 +28,7 @@ function NameField({
   label: string
   value: string
   onChange: (value: string) => void
-  validation: ReturnType<typeof validateLegalEnglishNamePart>
+  validation: ReturnType<typeof getContactNameFieldValidations>["nameEnFirst"]
   showErrors: boolean
 }) {
   const showError = showErrors && Boolean(validation && !validation.valid)
@@ -55,54 +54,49 @@ export function ContactNameFields({
   onChange,
   showErrors = false,
 }: ContactNameFieldsProps) {
-  const firstValidation = validateLegalEnglishNamePart(value.nameEnFirst, "Given name", "英文名", {
-    required: true,
-  })
-  const middleValidation = validateLegalEnglishNamePart(value.nameEnMiddle, "Middle name", "英文中間名", {
-    required: true,
-    minLength: 1,
-  })
-  const lastValidation = validateLegalEnglishNamePart(value.nameEnLast, "Surname", "英文姓氏", {
-    required: true,
-  })
-  const chineseValidation = validateLegalChineseName(value.nameZh)
-  const showChineseError = showErrors && Boolean(chineseValidation && !chineseValidation.valid)
+  const validations = getContactNameFieldValidations(value)
+  const showSummaryError = showErrors && Boolean(validations.summary && !validations.summary.valid)
+  const showChineseError = showErrors && Boolean(validations.nameZh && !validations.nameZh.valid)
 
   return (
     <div className="md:col-span-2 space-y-4">
       <div>
         <div className="font-medium">Name / 姓名</div>
         <div className="text-sm text-muted-foreground">
-          Enter English given name, middle name, surname, and Chinese name. / 請分別填寫英文名字、中間名、姓氏及中文姓名。
+          Enter English given name and surname, or a full Chinese legal name. Middle name is optional. /
+          請填寫英文名字及姓氏，或填寫中文姓名全名；英文中間名可留空。
         </div>
       </div>
+      {showSummaryError && validations.summary && (
+        <LegalNameErrorMessage validation={validations.summary} />
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         <NameField
           id={`${idPrefix}-en-first`}
-          label="Given Name (English) / 英文名 *"
+          label="Given Name (English) / 英文名"
           value={value.nameEnFirst}
           onChange={(nameEnFirst) => onChange({ ...value, nameEnFirst })}
-          validation={firstValidation}
+          validation={validations.nameEnFirst}
           showErrors={showErrors}
         />
         <NameField
           id={`${idPrefix}-en-middle`}
-          label="Middle Name (English) / 英文中間名 *"
+          label="Middle Name (English) / 英文中間名"
           value={value.nameEnMiddle}
           onChange={(nameEnMiddle) => onChange({ ...value, nameEnMiddle })}
-          validation={middleValidation}
+          validation={validations.nameEnMiddle}
           showErrors={showErrors}
         />
         <NameField
           id={`${idPrefix}-en-last`}
-          label="Surname (English) / 英文姓氏 *"
+          label="Surname (English) / 英文姓氏"
           value={value.nameEnLast}
           onChange={(nameEnLast) => onChange({ ...value, nameEnLast })}
-          validation={lastValidation}
+          validation={validations.nameEnLast}
           showErrors={showErrors}
         />
         <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-zh`}>Name (Chinese) / 中文姓名 *</Label>
+          <Label htmlFor={`${idPrefix}-zh`}>Name (Chinese) / 中文姓名</Label>
           <Input
             id={`${idPrefix}-zh`}
             value={value.nameZh}
@@ -110,7 +104,9 @@ export function ContactNameFields({
             aria-invalid={showChineseError}
             className={cn(showChineseError && "border-red-500 focus-visible:ring-red-500")}
           />
-          {showChineseError && chineseValidation && <LegalNameErrorMessage validation={chineseValidation} />}
+          {showChineseError && validations.nameZh && (
+            <LegalNameErrorMessage validation={validations.nameZh} />
+          )}
         </div>
       </div>
     </div>

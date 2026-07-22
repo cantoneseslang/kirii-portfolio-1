@@ -14,6 +14,9 @@ import {
   HK_DISTRICTS,
   MACAU_DISTRICTS,
   emptyStructuredAddress,
+  enrichStructuredAddress,
+  normalizeHkDistrictKey,
+  normalizeMacauDistrictKey,
 } from "@/lib/hk-new-customer-address"
 import { extractBrCoreNumber } from "@/lib/hk-new-customer-document-validity"
 import { buildHongKongCustomerRequestInstructionsBody } from "@/lib/hk-new-customer-customer-request-email"
@@ -342,23 +345,13 @@ function parseArea(value: string): HkAddressArea | "" {
 function parseDistrict(value: string, region: AddressRegion | ""): string {
   const raw = value.trim()
   if (!raw) return ""
-  const normalized = raw.toLowerCase()
-  const pools =
-    region === "macau"
-      ? MACAU_DISTRICTS
-      : region === "hong_kong" || !region
-        ? HK_DISTRICTS
-        : []
-  const exact = pools.find((entry) => entry.value === normalized)
-  if (exact) return exact.value
-  const fuzzy = pools.find(
-    (entry) =>
-      entry.labelEn.toLowerCase() === normalized ||
-      entry.labelZh === raw ||
-      raw.includes(entry.labelEn) ||
-      raw.includes(entry.labelZh),
-  )
-  return fuzzy?.value || raw
+  if (region === "macau") {
+    return normalizeMacauDistrictKey(raw) || raw
+  }
+  if (region === "hong_kong" || !region) {
+    return normalizeHkDistrictKey(raw) || raw
+  }
+  return raw
 }
 
 function formatHkDistrictLabel(value: string): string {
@@ -479,14 +472,14 @@ export function mergeAddressImport(
   current: StructuredAddress,
   incoming: StructuredAddress,
 ): StructuredAddress {
-  return {
+  return enrichStructuredAddress({
     region: incoming.region || current.region,
     area: incoming.area || current.area,
     district: incoming.district || current.district,
     postalCode: incoming.postalCode || current.postalCode,
     addressEn: incoming.addressEn || current.addressEn,
     addressZh: incoming.addressZh || current.addressZh,
-  }
+  })
 }
 
 function formatRegionLabel(entry: (typeof ADDRESS_REGIONS)[number]): string {
@@ -647,7 +640,7 @@ export function parseIntakeWorkbook(workbook: XLSX.WorkBook): HkNewCustomerIntak
   const registeredRegion = parseRegion(values.get("registeredAddress.region") || "")
   const deliveryRegion = parseRegion(values.get("deliveryAddress.region") || "")
 
-  const registeredAddressDetail: StructuredAddress = {
+  const registeredAddressDetail = enrichStructuredAddress({
     ...emptyStructuredAddress(),
     region: registeredRegion || "hong_kong",
     area: parseArea(values.get("registeredAddress.area") || "") || undefined,
@@ -655,9 +648,9 @@ export function parseIntakeWorkbook(workbook: XLSX.WorkBook): HkNewCustomerIntak
     postalCode: values.get("registeredAddress.postalCode") || "",
     addressEn: values.get("registeredAddress.addressEn") || "",
     addressZh: values.get("registeredAddress.addressZh") || "",
-  }
+  })
 
-  const deliveryAddressDetail: StructuredAddress = {
+  const deliveryAddressDetail = enrichStructuredAddress({
     ...emptyStructuredAddress(),
     region: deliveryRegion || "hong_kong",
     area: parseArea(values.get("deliveryAddress.area") || "") || undefined,
@@ -665,7 +658,7 @@ export function parseIntakeWorkbook(workbook: XLSX.WorkBook): HkNewCustomerIntak
     postalCode: values.get("deliveryAddress.postalCode") || "",
     addressEn: values.get("deliveryAddress.addressEn") || "",
     addressZh: values.get("deliveryAddress.addressZh") || "",
-  }
+  })
 
   const companyNameEn = values.get("companyNameEn") || ""
   const companyNameZh = values.get("companyNameZh") || ""

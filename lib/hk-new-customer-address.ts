@@ -66,6 +66,100 @@ export function getHkDistrictsForArea(area?: HkAddressArea) {
   return HK_DISTRICTS.filter((entry) => entry.area === area)
 }
 
+export function normalizeHkDistrictKey(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return ""
+
+  if (HK_DISTRICTS.some((entry) => entry.value === trimmed)) return trimmed
+
+  const normalized = trimmed.toLowerCase()
+  for (const entry of HK_DISTRICTS) {
+    const label = `${entry.labelEn} / ${entry.labelZh}`
+    if (
+      normalized === entry.value ||
+      trimmed === label ||
+      trimmed === entry.labelEn ||
+      trimmed === entry.labelZh ||
+      trimmed.includes(entry.labelEn) ||
+      trimmed.includes(entry.labelZh)
+    ) {
+      return entry.value
+    }
+  }
+
+  return ""
+}
+
+export function normalizeMacauDistrictKey(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return ""
+
+  if (MACAU_DISTRICTS.some((entry) => entry.value === trimmed)) return trimmed
+
+  for (const entry of MACAU_DISTRICTS) {
+    const label = `${entry.labelEn} / ${entry.labelZh}`
+    if (trimmed === label || trimmed === entry.labelEn || trimmed === entry.labelZh) {
+      return entry.value
+    }
+  }
+
+  return ""
+}
+
+export function inferHkAreaFromText(text: string): HkAddressArea | undefined {
+  const upper = text.toUpperCase()
+  if (upper.includes("KOWLOON") || upper.includes("九龍")) return "kowloon"
+  if (upper.includes("NEW TERRITOR") || upper.includes("新界") || /\bNT\b/.test(upper)) {
+    return "new_territories"
+  }
+  if (upper.includes("HONG KONG ISLAND") || upper.includes("港島")) {
+    return "hong_kong_island"
+  }
+  return undefined
+}
+
+export function resolveHongKongAddressParts(
+  address: Pick<StructuredAddress, "area" | "district" | "addressEn" | "addressZh">,
+): { area?: HkAddressArea; district: string } {
+  const district = normalizeHkDistrictKey(address.district)
+  let area = address.area
+
+  if (district && !area) {
+    area = HK_DISTRICTS.find((entry) => entry.value === district)?.area
+  }
+
+  if (!area) {
+    area = inferHkAreaFromText([address.addressEn, address.addressZh].filter(Boolean).join(" "))
+  }
+
+  if (district) {
+    const districtEntry = HK_DISTRICTS.find((entry) => entry.value === district)
+    if (districtEntry) {
+      area = districtEntry.area
+    }
+  }
+
+  return { area, district }
+}
+
+export function enrichStructuredAddress(address: StructuredAddress): StructuredAddress {
+  if (address.region === "hong_kong") {
+    const { area, district } = resolveHongKongAddressParts(address)
+    return {
+      ...address,
+      area: area || address.area,
+      district: district || address.district,
+    }
+  }
+
+  if (address.region === "macau" && address.district) {
+    const district = normalizeMacauDistrictKey(address.district)
+    return district ? { ...address, district } : address
+  }
+
+  return address
+}
+
 export function getDistrictLabel(district: string, region?: AddressRegion): string {
   if (!district) return ""
   const hkMatch = HK_DISTRICTS.find((entry) => entry.value === district)

@@ -41,6 +41,7 @@ import {
   getAreaLabel,
   getDistrictLabel,
   getRegionLabel,
+  enrichStructuredAddress,
   resolveStructuredAddress,
   validateStructuredAddressForSubmit,
 } from "@/lib/hk-new-customer-address"
@@ -399,8 +400,12 @@ export default function NewCustomerSettingPage() {
     if (data.companyNameZh) setCompanyNameZh((current) => fillIfEmpty(current, data.companyNameZh))
     if (data.brNumber) setBrNumber((current) => fillIfEmpty(current, data.brNumber))
     if (data.incorporationDate) setIncorporationDate((current) => fillIfEmpty(current, data.incorporationDate))
-    setRegisteredAddressDetail((current) => mergeAddressImport(current, data.registeredAddressDetail))
-    setDeliveryAddressDetail((current) => mergeAddressImport(current, data.deliveryAddressDetail))
+    setRegisteredAddressDetail((current) =>
+      enrichStructuredAddress(mergeAddressImport(current, data.registeredAddressDetail)),
+    )
+    setDeliveryAddressDetail((current) =>
+      enrichStructuredAddress(mergeAddressImport(current, data.deliveryAddressDetail)),
+    )
     setContacts((current) => {
       const withPart3 = current.map((contact, index) =>
         mergeContactImport(contact, data.contacts[index] || contact),
@@ -1291,10 +1296,10 @@ export default function NewCustomerSettingPage() {
               <CardHeader>
                 <CardTitle>Part 3: Contact Information / 聯絡資料</CardTitle>
                 <CardDescription>
-                  Primary contacts must use full legal names in English (given name, middle name, surname) and
-                  Chinese. Nicknames are not allowed. Directors from NAR1 scan auto-fill the first contacts;
-                  add or edit remaining contacts manually. /
-                  必須分別填寫英文名字、中間名、姓氏及中文姓名全名，嚴禁使用花名。周年申報表掃描後會自動填入董事至首選聯絡人，其餘請手動填寫。
+                  Primary contacts must use legal names. Provide English given name and surname, or a full
+                  Chinese name. Middle name is optional. Nicknames are not allowed. Directors from NAR1 scan
+                  auto-fill the first contacts; add or edit remaining contacts manually. /
+                  聯絡人須填寫法定姓名：英文名字及姓氏，或中文姓名全名擇一即可；英文中間名可留空，嚴禁使用花名。周年申報表掃描後會自動填入董事至首選聯絡人，其餘請手動填寫。
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">

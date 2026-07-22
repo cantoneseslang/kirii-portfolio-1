@@ -6,7 +6,13 @@ import type {
   Nar1DocumentValidity,
   StructuredAddress,
 } from "@/types/hk-new-customer"
-import { emptyStructuredAddress, HK_DISTRICTS } from "@/lib/hk-new-customer-address"
+import {
+  emptyStructuredAddress,
+  enrichStructuredAddress,
+  inferHkAreaFromText,
+  normalizeHkDistrictKey,
+  resolveHongKongAddressParts,
+} from "@/lib/hk-new-customer-address"
 
 export function fillIfEmpty(current: string, next?: string): string {
   if (current.trim()) return current
@@ -35,46 +41,17 @@ function combinedAddressText(parts: Nar1AddressParts): string {
   return [parts.flatFloorBlock, parts.building, parts.street].filter(Boolean).join(" ")
 }
 
-function inferHkArea(text: string): HkAddressArea | undefined {
-  const upper = text.toUpperCase()
-  if (upper.includes("KOWLOON") || upper.includes("九龍")) return "kowloon"
-  if (upper.includes("NEW TERRITOR") || upper.includes("新界") || /\bNT\b/.test(upper)) {
-    return "new_territories"
-  }
-  if (upper.includes("HONG KONG ISLAND") || upper.includes("港島")) {
-    return "hong_kong_island"
-  }
-  return undefined
-}
-
 function normalizeOcrArea(value: unknown): HkAddressArea | undefined {
   if (value === "hong_kong_island" || value === "kowloon" || value === "new_territories") {
     return value
   }
   if (typeof value !== "string") return undefined
-  return inferHkArea(value)
+  return inferHkAreaFromText(value)
 }
 
 function normalizeOcrDistrictKey(value: unknown): string {
   if (typeof value !== "string") return ""
-  const trimmed = value.trim()
-  if (!trimmed) return ""
-  if (HK_DISTRICTS.some((entry) => entry.value === trimmed)) return trimmed
-
-  const upper = trimmed.toUpperCase()
-  for (const entry of HK_DISTRICTS) {
-    const labelUpper = entry.labelEn.toUpperCase()
-    const zhCore = entry.labelZh.replace(/區$/u, "")
-    if (
-      upper === labelUpper ||
-      trimmed === entry.labelZh ||
-      (zhCore && trimmed.includes(zhCore))
-    ) {
-      return entry.value
-    }
-  }
-
-  return ""
+  return normalizeHkDistrictKey(value)
 }
 
 function resolveHkAreaAndDistrict(parts: Nar1AddressParts): { area?: HkAddressArea; district: string } {
@@ -82,21 +59,17 @@ function resolveHkAreaAndDistrict(parts: Nar1AddressParts): { area?: HkAddressAr
     normalizeOcrDistrictKey(parts.districtKey) || normalizeOcrDistrictKey(parts.district)
 
   let area = normalizeOcrArea(parts.area)
-
-  if (district && !area) {
-    area = HK_DISTRICTS.find((entry) => entry.value === district)?.area
-  }
-
   const areaHintText = [parts.district, parts.country, combinedAddressText(parts)].filter(Boolean).join(" ")
   if (!area) {
-    area = inferHkArea(areaHintText)
+    area = inferHkAreaFromText(areaHintText)
   }
 
-  if (district && HK_DISTRICTS.some((entry) => entry.value === district)) {
-    area = HK_DISTRICTS.find((entry) => entry.value === district)?.area || area
-  }
-
-  return { area, district }
+  return resolveHongKongAddressParts({
+    area,
+    district,
+    addressEn: combinedAddressText(parts),
+    addressZh: "",
+  })
 }
 
 function formatAddressEn(parts: Nar1AddressParts): string {
@@ -104,28 +77,7 @@ function formatAddressEn(parts: Nar1AddressParts): string {
 }
 
 export function enrichStructuredAddressFromText(address: StructuredAddress): StructuredAddress {
-  if (address.region !== "hong_kong") return address
-
-  let area = address.area
-  const district = address.district && HK_DISTRICTS.some((entry) => entry.value === address.district)
-    ? address.district
-    : ""
-
-  if (district && !area) {
-    area = HK_DISTRICTS.find((entry) => entry.value === district)?.area
-  }
-
-  if (!area) {
-    area = inferHkArea([address.addressEn, address.addressZh].filter(Boolean).join(" "))
-  }
-
-  if (!area && !district) return address
-
-  return {
-    ...address,
-    area: address.area || area,
-    district: address.district || district,
-  }
+  return enrichStructuredAddress(address)
 }
 
 export function nar1AddressPartsToStructured(parts: Nar1AddressParts): StructuredAddress {
