@@ -67,6 +67,7 @@ export function normalizeContactEntry(contact: Partial<ContactEntry>): ContactEn
     email: String(contact.email || "").trim(),
     phoneCountryCode: phoneCountryCode || "+852",
     phone,
+    idNumber: String(contact.idNumber || "").trim(),
   }
 }
 

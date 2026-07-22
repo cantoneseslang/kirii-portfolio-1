@@ -154,6 +154,22 @@ ${closingBlock(customerType)}
 ${signatureBlock(options)}`
 }
 
+export function buildHongKongCustomerRequestInstructionsBody(): string {
+  return `${subjectLine("new")}
+
+${introBlock("new")}
+
+${HK_MANDATORY_DOCS}
+
+${EXCEL_QUESTIONNAIRE}
+
+${OPTIONAL_DOCS}
+
+${HK_COMPANY_INFO}
+
+${closingBlock("new")}`
+}
+
 export function buildHongKongCustomerRequestEmail(options: CustomerRequestEmailOptions = {}): string {
   return buildEmailBody("hong_kong", options)
 }

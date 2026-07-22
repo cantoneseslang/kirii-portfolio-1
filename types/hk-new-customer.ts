@@ -9,6 +9,7 @@ export type ContactEntry = {
   email: string
   phoneCountryCode: string
   phone: string
+  idNumber?: string
 }
 
 export type AddressRegion = "hong_kong" | "macau" | "china" | "overseas"

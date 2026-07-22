@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/context/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -67,8 +68,20 @@ import {
 } from "@/lib/hk-new-customer-document-autofill"
 import {
   mergeAddressImport,
+  mergeContactImport,
+  mergeNar1Import,
+  parseIntakeFileBuffer,
   type HkNewCustomerIntakeImport,
 } from "@/lib/hk-new-customer-intake-template"
+import {
+  classifyCustomerPackageFiles,
+  mergeBrScanResult,
+  mergeCiScanResult,
+  mergeNar1ScanResult,
+  scanBrDocument,
+  scanCiDocument,
+  scanNar1Document,
+} from "@/lib/hk-new-customer-customer-package-import"
 import {
   formatSalesRepLabel,
   formatSalesRepShortName,
@@ -128,6 +141,7 @@ const EMPTY_CONTACT: ContactEntry = {
   email: "",
   phoneCountryCode: "+852",
   phone: "",
+  idNumber: "",
 }
 
 function emptyContacts(): ContactEntry[] {
@@ -191,11 +205,14 @@ function AddressSummary({ detail, legacyText }: { detail?: StructuredAddress; le
 
 export default function NewCustomerSettingPage() {
   const { user } = useAuth()
+  const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState("form")
   const [registrationId] = useState(() => crypto.randomUUID())
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [packageImporting, setPackageImporting] = useState(false)
+  const [deepLinkHandled, setDeepLinkHandled] = useState(false)
 
   const [companyNameEn, setCompanyNameEn] = useState("")
   const [companyNameZh, setCompanyNameZh] = useState("")
@@ -384,11 +401,200 @@ export default function NewCustomerSettingPage() {
     if (data.incorporationDate) setIncorporationDate((current) => fillIfEmpty(current, data.incorporationDate))
     setRegisteredAddressDetail((current) => mergeAddressImport(current, data.registeredAddressDetail))
     setDeliveryAddressDetail((current) => mergeAddressImport(current, data.deliveryAddressDetail))
+    setContacts((current) => {
+      const withPart3 = current.map((contact, index) =>
+        mergeContactImport(contact, data.contacts[index] || contact),
+      )
+      if (data.nar1.directors && data.nar1.directors.length > 0) {
+        return mergeDirectorsIntoContacts(withPart3, data.nar1.directors, EMPTY_CONTACT)
+      }
+      return withPart3
+    })
+    setApContactNameDetail((current) => ({
+      nameEnFirst: data.apContactNameDetail.nameEnFirst || current.nameEnFirst,
+      nameEnMiddle: data.apContactNameDetail.nameEnMiddle || current.nameEnMiddle,
+      nameEnLast: data.apContactNameDetail.nameEnLast || current.nameEnLast,
+      nameZh: data.apContactNameDetail.nameZh || current.nameZh,
+    }))
+    if (data.apEmail) setApEmail((current) => fillIfEmpty(current, data.apEmail))
+    if (data.apPhoneCountryCode) {
+      setApPhoneCountryCode((current) => fillIfEmpty(current, data.apPhoneCountryCode))
+    }
+    if (data.apPhone) setApPhone((current) => fillIfEmpty(current, data.apPhone))
+    if (data.invoiceEmail !== null) setInvoiceEmail(data.invoiceEmail)
+    if (data.invoicePost !== null) setInvoicePost(data.invoicePost)
+    if (data.bankName) setBankName((current) => fillIfEmpty(current, data.bankName))
+    if (data.bankBranchName) setBankBranchName((current) => fillIfEmpty(current, data.bankBranchName))
+    if (data.bankBranchNumber) setBankBranchNumber((current) => fillIfEmpty(current, data.bankBranchNumber))
+    if (data.accountName) setAccountName((current) => fillIfEmpty(current, data.accountName))
+    if (data.accountNumber) setAccountNumber((current) => fillIfEmpty(current, data.accountNumber))
+    if (data.bankCode) setBankCode((current) => fillIfEmpty(current, data.bankCode))
+    const hasNar1Import =
+      Boolean(data.nar1.madeUpToDate || data.nar1.shareCapital) || (data.nar1.directors?.length || 0) > 0
+    if (hasNar1Import) {
+      setDocumentValidityDates((current) => {
+        const existing =
+          typeof current.nar1 === "object" && current.nar1 ? current.nar1 : EMPTY_NAR1_VALIDITY
+        return {
+          ...current,
+          nar1: mergeNar1Import(existing, {
+            ...data.nar1,
+            businessRegistrationNumber: data.nar1.businessRegistrationNumber || data.brNumber,
+            companyNameEn: data.nar1.companyNameEn || data.companyNameEn,
+            companyNameZh: data.nar1.companyNameZh || data.companyNameZh,
+          }),
+        }
+      })
+    }
     setError(data.warnings.length > 0 ? data.warnings.join(" ") : null)
     setMessage(
-      `Imported ${data.importedFieldCount} Part 2 fields from customer Excel. Part 1 documents can still auto-fill other sections. / 已從客戶 Excel 匯入 Part 2 共 ${data.importedFieldCount} 項；Part 1 文件仍可自動填入其他欄位。`,
+      `Imported ${data.importedFieldCount} fields from customer Excel (Parts 2–4). Part 1 documents can still auto-fill other sections. / 已從客戶 Excel 匯入 Part 2–4 共 ${data.importedFieldCount} 項；Part 1 文件仍可自動填入其他欄位。`,
     )
   }, [])
+
+  const applyCustomerPackageImport = useCallback(
+    async (files: File[]) => {
+      setPackageImporting(true)
+      setError(null)
+      const warnings: string[] = []
+      const classified = classifyCustomerPackageFiles(files)
+
+      if (!classified.excel && !classified.br && !classified.ci && !classified.nar1) {
+        setPackageImporting(false)
+        throw new Error(
+          "Please include the filled Excel and/or BR, CI, NAR1 documents. / 請上載已填寫的 Excel 及/或 BR、CI、NAR1 文件。",
+        )
+      }
+
+      let intake: HkNewCustomerIntakeImport | null = null
+      if (classified.excel) {
+        try {
+          intake = parseIntakeFileBuffer(await classified.excel.arrayBuffer())
+          if (intake.importedFieldCount === 0) {
+            warnings.push("Excel has no answers in column C. / Excel C 欄沒有填寫內容。")
+          } else {
+            applyCustomerIntakeImport(intake)
+          }
+        } catch (excelError) {
+          warnings.push(
+            excelError instanceof Error ? excelError.message : "Failed to read Excel. / 無法讀取 Excel。",
+          )
+        }
+      }
+
+      setAttachmentFiles((prev) => ({
+        ...prev,
+        ...(classified.br ? { br: classified.br } : {}),
+        ...(classified.ci ? { ci: classified.ci } : {}),
+        ...(classified.nar1 ? { nar1: classified.nar1 } : {}),
+        ...(classified.bankProof ? { bank_proof: classified.bankProof } : {}),
+        ...(classified.other ? { other: classified.other } : {}),
+      }))
+
+      let scannedBr = false
+      let scannedCi = false
+      let scannedNar1 = false
+      let mergedNar1ForAutofill: Nar1DocumentValidity | null = null
+
+      if (classified.br) {
+        try {
+          const extracted = await scanBrDocument(classified.br)
+          setDocumentValidityDates((prev) => ({
+            ...prev,
+            br: mergeBrScanResult(
+              prev.br || EMPTY_BR_VALIDITY,
+              extracted,
+              intake?.brNumber || brNumber,
+            ),
+          }))
+          const coreBrNumber = extractBrCoreNumber(
+            extracted.certificateBrNumber || intake?.brNumber || "",
+          )
+          if (coreBrNumber) setBrNumber((current) => fillIfEmpty(current, coreBrNumber))
+          if (extracted.certificateCompanyNameEn) {
+            setCompanyNameEn((current) =>
+              fillIfEmpty(current, extracted.certificateCompanyNameEn!),
+            )
+          }
+          if (extracted.certificateCompanyNameZh) {
+            setCompanyNameZh((current) =>
+              fillIfEmpty(current, extracted.certificateCompanyNameZh!),
+            )
+          }
+          scannedBr = true
+        } catch (scanError) {
+          warnings.push(
+            `BR: ${scanError instanceof Error ? scanError.message : "scan failed"}`,
+          )
+        }
+      }
+
+      if (classified.ci) {
+        try {
+          const extracted = await scanCiDocument(classified.ci)
+          setDocumentValidityDates((prev) => ({
+            ...prev,
+            ci: mergeCiScanResult(
+              typeof prev.ci === "object" && prev.ci ? prev.ci : EMPTY_CI_VALIDITY,
+              extracted,
+            ),
+          }))
+          applyCiScanAutofill(extracted.issueDate, extracted.certificateCompanyNameZh)
+          scannedCi = true
+        } catch (scanError) {
+          warnings.push(
+            `CI: ${scanError instanceof Error ? scanError.message : "scan failed"}`,
+          )
+        }
+      }
+
+      if (classified.nar1) {
+        try {
+          const extracted = await scanNar1Document(classified.nar1)
+          setDocumentValidityDates((prev) => {
+            const existing =
+              typeof prev.nar1 === "object" && prev.nar1 ? prev.nar1 : EMPTY_NAR1_VALIDITY
+            const merged = mergeNar1ScanResult(existing, extracted)
+            mergedNar1ForAutofill = merged
+            return { ...prev, nar1: merged }
+          })
+          scannedNar1 = true
+        } catch (scanError) {
+          warnings.push(
+            `NAR1: ${scanError instanceof Error ? scanError.message : "scan failed"}`,
+          )
+        }
+      }
+
+      if (mergedNar1ForAutofill) {
+        applyNar1ScanAutofill(mergedNar1ForAutofill)
+      }
+
+      const summaryParts: string[] = []
+      if (intake && intake.importedFieldCount > 0) {
+        summaryParts.push(`Excel ${intake.importedFieldCount} fields / Excel ${intake.importedFieldCount} 項`)
+      }
+      const scannedParts = [
+        scannedBr && "BR",
+        scannedCi && "CI",
+        scannedNar1 && "NAR1",
+      ].filter(Boolean)
+      if (scannedParts.length > 0) {
+        summaryParts.push(`Scanned ${scannedParts.join(", ")} / 已掃描 ${scannedParts.join("、")}`)
+      }
+
+      setMessage(
+        summaryParts.length > 0
+          ? `Imported ${summaryParts.join(" · ")}. Review and submit when ready. / 已匯入 ${summaryParts.join(" · ")}，請核對後提交。`
+          : "Files attached. Complete missing fields manually. / 文件已上載，請手動補充未識別欄位。",
+      )
+      if (warnings.length > 0) {
+        setError(warnings.join(" "))
+      }
+      setPackageImporting(false)
+    },
+    [applyCustomerIntakeImport, applyCiScanAutofill, applyNar1ScanAutofill, brNumber],
+  )
 
   const salesForecastTotals = useMemo(
     () => calculateSalesForecastTotals(salesForecast),
@@ -640,7 +846,7 @@ export default function NewCustomerSettingPage() {
     }
   }, [])
 
-  const loadRecord = async (id: string) => {
+  const loadRecord = useCallback(async (id: string) => {
     setSearchLoading(true)
     setError(null)
     try {
@@ -655,13 +861,29 @@ export default function NewCustomerSettingPage() {
     } finally {
       setSearchLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (activeTab === "search") {
       void runSearch(searchQuery)
     }
   }, [activeTab, runSearch, searchQuery])
+
+  // Dashboard "審批中" links land here with ?tab=search&id=<registrationId>
+  useEffect(() => {
+    if (deepLinkHandled) return
+    const tab = searchParams.get("tab")?.trim()
+    const id = searchParams.get("id")?.trim()
+    if (tab === "search" || id) {
+      setActiveTab("search")
+    }
+    if (id) {
+      setDeepLinkHandled(true)
+      void loadRecord(id)
+    } else if (tab === "search") {
+      setDeepLinkHandled(true)
+    }
+  }, [deepLinkHandled, loadRecord, searchParams])
 
   return (
     <div className="space-y-6 py-6">
@@ -800,7 +1022,10 @@ export default function NewCustomerSettingPage() {
         </TabsList>
 
         <TabsContent value="form" className="space-y-6">
-          <CustomerIntakeExcelImport onImport={applyCustomerIntakeImport} />
+          <CustomerIntakeExcelImport
+            onPackageImport={applyCustomerPackageImport}
+            importing={packageImporting}
+          />
 
           <form className="space-y-6" onSubmit={(event) => handleSubmit(event, "submitted")}>
             <Card>
@@ -1110,6 +1335,14 @@ export default function NewCustomerSettingPage() {
                     <div className="space-y-2">
                       <Label>Email</Label>
                       <Input type="email" value={contact.email} onChange={(e) => updateContact(index, "email", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`contact-${index}-id-number`}>ID Number / 身分證號碼</Label>
+                      <Input
+                        id={`contact-${index}-id-number`}
+                        value={contact.idNumber || ""}
+                        onChange={(e) => updateContact(index, "idNumber", e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <PhoneWithCountryCodeInput

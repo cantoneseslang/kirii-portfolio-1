@@ -5,19 +5,22 @@ import { Download, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
-  INTAKE_TEMPLATE_FILENAME,
-  parseIntakeFileBuffer,
-  type HkNewCustomerIntakeImport,
-} from "@/lib/hk-new-customer-intake-template"
+  getCustomerPackageAcceptAttribute,
+  type CustomerPackageFiles,
+} from "@/lib/hk-new-customer-customer-package-import"
+import { INTAKE_TEMPLATE_FILENAME } from "@/lib/hk-new-customer-intake-template"
 
 type CustomerIntakeExcelImportProps = {
-  onImport: (data: HkNewCustomerIntakeImport) => void
+  onPackageImport: (files: File[]) => Promise<void>
+  importing?: boolean
 }
 
-export function CustomerIntakeExcelImport({ onImport }: CustomerIntakeExcelImportProps) {
+export function CustomerIntakeExcelImport({
+  onPackageImport,
+  importing = false,
+}: CustomerIntakeExcelImportProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
-  const [importing, setImporting] = useState(false)
 
   const handleDownload = () => {
     const link = document.createElement("a")
@@ -27,23 +30,15 @@ export function CustomerIntakeExcelImport({ onImport }: CustomerIntakeExcelImpor
   }
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const files = Array.from(event.target.files || [])
     event.target.value = ""
-    if (!file) return
+    if (files.length === 0) return
 
-    setImporting(true)
     setError(null)
     try {
-      const buffer = await file.arrayBuffer()
-      const parsed = parseIntakeFileBuffer(buffer)
-      if (parsed.importedFieldCount === 0) {
-        throw new Error("No answers found in column C. Please use the KIRII questionnaire template.")
-      }
-      onImport(parsed)
+      await onPackageImport(files)
     } catch (importError) {
-      setError(importError instanceof Error ? importError.message : "Failed to import Excel file.")
-    } finally {
-      setImporting(false)
+      setError(importError instanceof Error ? importError.message : "Failed to import customer files.")
     }
   }
 
@@ -51,12 +46,12 @@ export function CustomerIntakeExcelImport({ onImport }: CustomerIntakeExcelImpor
     <div className="space-y-3 rounded-lg border border-[#02315a]/20 bg-slate-50 p-4">
       <div>
         <div className="font-medium text-[#02315a]">
-          Part 2 Excel (Company Information) / Part 2 公司基本資料問卷
+          Customer Excel (Parts 2–4) / 客戶問卷（Part 2–4）
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          For delivery address and company details not on scanned documents. Part 1 uploads still
-          auto-fill company name, BR, contacts, etc. /
-          主要供客戶填寫送貨地址及文件上沒有的公司資料。Part 1 上載後仍會自動填入公司名、BR、聯絡人等。
+          Download the questionnaire, then upload the filled Excel together with BR / CI / NAR1 scans (PDF or
+          photos). The form auto-fills from both. /
+          下載問卷後，可一次上載填好的 Excel 及 BR / CI / NAR1 掃描件（PDF 或照片），系統會自動填入表格。
         </p>
       </div>
 
@@ -72,12 +67,15 @@ export function CustomerIntakeExcelImport({ onImport }: CustomerIntakeExcelImpor
           onClick={() => inputRef.current?.click()}
         >
           <Upload className="h-4 w-4" />
-          {importing ? "Importing… / 匯入中…" : "Import filled Excel / 匯入客戶問卷"}
+          {importing
+            ? "Importing… / 匯入中…"
+            : "Import Excel & documents / 匯入問卷及文件"}
         </Button>
         <input
           ref={inputRef}
           type="file"
-          accept=".xlsx,.xls"
+          accept={getCustomerPackageAcceptAttribute()}
+          multiple
           className="hidden"
           onChange={handleFileChange}
         />
@@ -91,3 +89,5 @@ export function CustomerIntakeExcelImport({ onImport }: CustomerIntakeExcelImpor
     </div>
   )
 }
+
+export type { CustomerPackageFiles }

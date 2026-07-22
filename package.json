@@ -53,6 +53,7 @@
     "date-fns": "4.1.0",
     "docxtemplater": "^3.68.7",
     "embla-carousel-react": "8.5.1",
+    "exceljs": "^4.4.0",
     "framer-motion": "latest",
     "googleapis": "^126.0.1",
     "input-otp": "1.4.1",
