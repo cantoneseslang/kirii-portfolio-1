@@ -10,6 +10,10 @@ const navItems = [
     href: "/dashboard",
   },
   {
+    title: "Notifications",
+    href: "/dashboard/notifications",
+  },
+  {
     title: "Profile",
     href: "/dashboard/profile",
   },

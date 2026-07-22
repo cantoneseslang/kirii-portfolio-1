@@ -22,8 +22,21 @@ export type DashboardPersonalSummary = {
   pendingApprovals: DashboardApplicationItem[]
 }
 
-function submissionStatusLabelZh(_status: ApprovalStatus): string {
-  return "審批中"
+function submissionStatusLabelZh(status: ApprovalStatus): string {
+  switch (status) {
+    case "pending_sales_manager":
+      return "審批中（待營業經理）"
+    case "pending_finance":
+      return "審批中（待財務）"
+    case "pending_gm":
+      return "審批中（待社長）"
+    case "approved":
+      return "已完成"
+    case "rejected":
+      return "已拒絕"
+    default:
+      return "審批中"
+  }
 }
 
 function toApplicationItem(
@@ -74,7 +87,7 @@ export async function buildDashboardPersonalSummary(params: {
           item.id,
           item.companyNameEn,
           item.approvalStatus,
-          "/dashboard/new-customer-setting",
+          `/dashboard/new-customer-setting?tab=search&id=${encodeURIComponent(item.id)}`,
         ),
       )
     }

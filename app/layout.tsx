@@ -5,6 +5,7 @@ import { Inter, Noto_Sans_SC } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/context/auth-context"
 import { OrderProvider } from "@/context/order-context"
+import { PortfolioNotificationRoot } from "@/components/portfolio-notification-root"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const notoSansSC = Noto_Sans_SC({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-noto-sc" })
@@ -25,7 +26,10 @@ export default function RootLayout({
       <body className={`${inter.variable} ${notoSansSC.variable} font-sans`} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light">
           <AuthProvider>
-            <OrderProvider>{children}</OrderProvider>
+            <OrderProvider>
+              <PortfolioNotificationRoot />
+              {children}
+            </OrderProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -141,16 +141,27 @@ export async function listSubmissionsForEmail(email: string): Promise<HkNewCusto
   if (!normalized) return []
 
   const index = await getIndex()
+  const rank = (status?: string | null) => {
+    if (!status) return 9
+    if (status.startsWith("pending")) return 0
+    if (status === "rejected") return 1
+    if (status === "approved") return 2
+    return 3
+  }
+
   return index.items
     .filter(
       (item) =>
         item.submitterEmail?.trim().toLowerCase() === normalized &&
         item.status === "submitted" &&
-        item.approvalStatus &&
-        item.approvalStatus !== "approved" &&
-        item.approvalStatus !== "rejected",
+        Boolean(item.approvalStatus),
     )
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort((a, b) => {
+      const byStatus = rank(a.approvalStatus) - rank(b.approvalStatus)
+      if (byStatus !== 0) return byStatus
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+    .slice(0, 30)
 }
 
 export async function uploadCompletedForm(params: {
