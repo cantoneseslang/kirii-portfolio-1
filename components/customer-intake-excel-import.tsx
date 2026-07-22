@@ -8,10 +8,7 @@ import {
   getCustomerPackageAcceptAttribute,
   type CustomerPackageFiles,
 } from "@/lib/hk-new-customer-customer-package-import"
-import {
-  INTAKE_SAMPLE_TEMPLATE_FILENAME,
-  INTAKE_TEMPLATE_FILENAME,
-} from "@/lib/hk-new-customer-intake-template"
+import { INTAKE_TEMPLATE_FILENAME } from "@/lib/hk-new-customer-intake-template"
 
 type CustomerIntakeExcelImportProps = {
   onPackageImport: (files: File[]) => Promise<void>
@@ -25,10 +22,10 @@ export function CustomerIntakeExcelImport({
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const downloadFile = (href: string, filename: string) => {
+  const handleDownload = () => {
     const link = document.createElement("a")
-    link.href = href
-    link.download = filename
+    link.href = "/api/hk-new-customer/intake-template"
+    link.download = INTAKE_TEMPLATE_FILENAME
     link.click()
   }
 
@@ -52,32 +49,16 @@ export function CustomerIntakeExcelImport({
           Customer Excel (Parts 2–4) / 客戶問卷（Part 2–4）
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Download a blank questionnaire or the pre-filled sample for testing, then upload the Excel together
-          with BR / CI / NAR1 scans (PDF or photos). The form auto-fills from both. /
-          可下載空白問卷或已填寫的範例問卷作測試，再連同 BR / CI / NAR1 掃描件（PDF 或照片）一次上載，系統會自動填入表格。
+          Download the questionnaire, then upload the filled Excel together with BR / CI / NAR1 scans (PDF or
+          photos). The form auto-fills from both. /
+          下載問卷後，可一次上載填好的 Excel 及 BR / CI / NAR1 掃描件（PDF 或照片），系統會自動填入表格。
         </p>
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          className="gap-2"
-          onClick={() => downloadFile("/api/hk-new-customer/intake-template", INTAKE_TEMPLATE_FILENAME)}
-        >
+        <Button type="button" variant="outline" className="gap-2" onClick={handleDownload}>
           <Download className="h-4 w-4" />
-          Blank template / 空白問卷
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="gap-2 border-emerald-600 text-emerald-800 hover:bg-emerald-50"
-          onClick={() =>
-            downloadFile("/api/hk-new-customer/intake-template/sample", INTAKE_SAMPLE_TEMPLATE_FILENAME)
-          }
-        >
-          <Download className="h-4 w-4" />
-          Sample (pre-filled) / 範例問卷（已填寫）
+          Download Excel / 下載問卷
         </Button>
         <Button
           type="button"
