@@ -401,10 +401,16 @@ export default function NewCustomerSettingPage() {
     if (data.brNumber) setBrNumber((current) => fillIfEmpty(current, data.brNumber))
     if (data.incorporationDate) setIncorporationDate((current) => fillIfEmpty(current, data.incorporationDate))
     setRegisteredAddressDetail((current) =>
-      enrichStructuredAddress(mergeAddressImport(current, data.registeredAddressDetail)),
+      enrichStructuredAddress({
+        ...current,
+        ...data.registeredAddressDetail,
+      }),
     )
     setDeliveryAddressDetail((current) =>
-      enrichStructuredAddress(mergeAddressImport(current, data.deliveryAddressDetail)),
+      enrichStructuredAddress({
+        ...current,
+        ...data.deliveryAddressDetail,
+      }),
     )
     setContacts((current) => {
       const withPart3 = current.map((contact, index) =>

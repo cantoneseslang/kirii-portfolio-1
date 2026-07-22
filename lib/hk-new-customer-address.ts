@@ -66,6 +66,20 @@ export function getHkDistrictsForArea(area?: HkAddressArea) {
   return HK_DISTRICTS.filter((entry) => entry.area === area)
 }
 
+export function getEffectiveHkArea(address: Pick<StructuredAddress, "area" | "district">): HkAddressArea | undefined {
+  if (address.area) return address.area
+  const districtKey = normalizeHkDistrictKey(address.district)
+  if (!districtKey) return undefined
+  return HK_DISTRICTS.find((entry) => entry.value === districtKey)?.area
+}
+
+export function getHkDistrictOptionsForAddress(
+  address: Pick<StructuredAddress, "area" | "district">,
+) {
+  const effectiveArea = getEffectiveHkArea(address)
+  return effectiveArea ? getHkDistrictsForArea(effectiveArea) : HK_DISTRICTS
+}
+
 export function normalizeHkDistrictKey(value: string): string {
   const trimmed = value.trim()
   if (!trimmed) return ""

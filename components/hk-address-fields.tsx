@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -13,9 +14,12 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   ADDRESS_REGIONS,
   enrichStructuredAddress,
-  getHkDistrictsForArea,
+  getEffectiveHkArea,
+  getHkDistrictOptionsForAddress,
   HK_ADDRESS_AREAS,
+  HK_DISTRICTS,
   MACAU_DISTRICTS,
+  normalizeHkDistrictKey,
 } from "@/lib/hk-new-customer-address"
 import type { AddressRegion, HkAddressArea, StructuredAddress } from "@/types/hk-new-customer"
 
@@ -34,6 +38,13 @@ export function HkAddressFields({ idPrefix, titleEn, titleZh, value, onChange }:
   const isMacau = value.region === "macau"
   const isChina = value.region === "china"
 
+  useEffect(() => {
+    if (value.region !== "hong_kong") return
+    const enriched = enrichStructuredAddress(value)
+    if (enriched.area === value.area && enriched.district === value.district) return
+    onChange(enriched)
+  }, [value, onChange])
+
   const updateRegion = (region: AddressRegion) => {
     onChange({
       ...value,
@@ -46,20 +57,28 @@ export function HkAddressFields({ idPrefix, titleEn, titleZh, value, onChange }:
   }
 
   const updateArea = (area: HkAddressArea) => {
-    const validDistricts = getHkDistrictsForArea(area)
+    const validDistricts = getHkDistrictOptionsForAddress({ area, district: value.district })
     const district = validDistricts.some((entry) => entry.value === value.district) ? value.district : ""
     onChange({ ...value, area, district })
   }
 
-  const hkDistrictOptions = getHkDistrictsForArea(resolvedValue.area)
-  const districtSelectValue =
-    resolvedValue.district && (isHongKong || isMacau)
-      ? (isHongKong
-          ? hkDistrictOptions.some((entry) => entry.value === resolvedValue.district)
-          : MACAU_DISTRICTS.some((entry) => entry.value === resolvedValue.district))
-        ? resolvedValue.district
-        : ""
-      : resolvedValue.district
+  const updateDistrict = (district: string) => {
+    if (!isHongKong) {
+      onChange({ ...value, district })
+      return
+    }
+
+    const districtEntry = HK_DISTRICTS.find((entry) => entry.value === district)
+    onChange({
+      ...value,
+      area: districtEntry?.area || getEffectiveHkArea({ area: value.area, district }) || value.area,
+      district,
+    })
+  }
+
+  const hkAreaValue = getEffectiveHkArea(resolvedValue)
+  const hkDistrictOptions = getHkDistrictOptionsForAddress(resolvedValue)
+  const hkDistrictValue = normalizeHkDistrictKey(resolvedValue.district)
 
   return (
     <div className="space-y-4 rounded-lg border p-4 md:col-span-2">
@@ -89,7 +108,8 @@ export function HkAddressFields({ idPrefix, titleEn, titleZh, value, onChange }:
           <div className="space-y-2">
             <Label htmlFor={`${idPrefix}-area`}>Area / 區域</Label>
             <Select
-              value={resolvedValue.area || ""}
+              key={`${idPrefix}-area-${hkAreaValue || "empty"}`}
+              value={hkAreaValue || undefined}
               onValueChange={(next) => updateArea(next as HkAddressArea)}
             >
               <SelectTrigger id={`${idPrefix}-area`}>
@@ -113,18 +133,12 @@ export function HkAddressFields({ idPrefix, titleEn, titleZh, value, onChange }:
             </Label>
             {isHongKong ? (
               <Select
-                value={districtSelectValue}
-                onValueChange={(next) => onChange({ ...value, district: next })}
-                disabled={!resolvedValue.area}
+                key={`${idPrefix}-district-${hkAreaValue || "none"}-${hkDistrictValue || "empty"}`}
+                value={hkDistrictValue || undefined}
+                onValueChange={updateDistrict}
               >
                 <SelectTrigger id={`${idPrefix}-district`}>
-                  <SelectValue
-                    placeholder={
-                      resolvedValue.area
-                        ? "Select district / 選擇分區"
-                        : "Select area first / 請先選擇區域"
-                    }
-                  />
+                  <SelectValue placeholder="Select district / 選擇分區" />
                 </SelectTrigger>
                 <SelectContent>
                   {hkDistrictOptions.map((district) => (
@@ -136,7 +150,7 @@ export function HkAddressFields({ idPrefix, titleEn, titleZh, value, onChange }:
               </Select>
             ) : isMacau ? (
               <Select
-                value={districtSelectValue}
+                value={resolvedValue.district || undefined}
                 onValueChange={(next) => onChange({ ...value, district: next })}
               >
                 <SelectTrigger id={`${idPrefix}-district`}>
