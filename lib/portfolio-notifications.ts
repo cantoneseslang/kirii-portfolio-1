@@ -25,6 +25,78 @@ export type PortfolioNotification = {
   acknowledged_at: string | null
 }
 
+function payloadText(value: unknown): string {
+  if (value == null) return ""
+  return String(value).trim()
+}
+
+export function formatPortfolioNotificationDateTime(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString("zh-HK", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Hong_Kong",
+  })
+}
+
+export function getPortfolioNotificationSourceLabel(source: string): string {
+  if (source === "sales-dashboard-ar-collection") return "AR Collection / 應收"
+  if (source === "pq-form-production-order") return "Production Order / 生產依頼書"
+  if (source.includes("new-customer") || source.includes("hk-new-customer")) {
+    return "New Customer / 新客戶"
+  }
+  return source || "Notification"
+}
+
+export function getPortfolioNotificationSender(
+  notification: Pick<PortfolioNotification, "source" | "payload">,
+): string {
+  const payload = notification.payload || {}
+
+  if (notification.source === "sales-dashboard-ar-collection") {
+    return (
+      payloadText(payload.recordedBy) ||
+      payloadText(payload.salespersonName) ||
+      ""
+    )
+  }
+
+  if (notification.source === "pq-form-production-order") {
+    const header =
+      payload.header && typeof payload.header === "object"
+        ? (payload.header as Record<string, unknown>)
+        : payload
+    return (
+      payloadText(header.preparerSignature) ||
+      payloadText(header.personInCharge) ||
+      payloadText(payload.submittedBy) ||
+      ""
+    )
+  }
+
+  if (notification.source.includes("new-customer") || notification.source.includes("hk-new-customer")) {
+    return (
+      payloadText(payload.submitterName) ||
+      payloadText(payload.createdByName) ||
+      payloadText(payload.salesRepName) ||
+      ""
+    )
+  }
+
+  return payloadText(payload.submittedBy) || payloadText(payload.recordedBy) || ""
+}
+
+export function getPortfolioNotificationSenderDisplay(
+  notification: Pick<PortfolioNotification, "source" | "payload">,
+): string {
+  const sender = getPortfolioNotificationSender(notification)
+  return sender || "Unknown / 不明"
+}
+
 export async function getPendingNotificationsForUser(email: string) {
   const normalizedEmail = email.trim().toLowerCase()
   const supabase = getServiceRoleClient()

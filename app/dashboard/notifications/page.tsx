@@ -6,28 +6,12 @@ import { useAuth } from "@/context/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { PortfolioNotification } from "@/lib/portfolio-notifications"
+import {
+  formatPortfolioNotificationDateTime,
+  getPortfolioNotificationSenderDisplay,
+  getPortfolioNotificationSourceLabel,
+} from "@/lib/portfolio-notifications"
 import { NotificationReadableDetails } from "@/components/notification-readable-details"
-
-function formatDateTime(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString("zh-HK", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
-
-function sourceLabel(source: string) {
-  if (source === "sales-dashboard-ar-collection") return "AR Collection / 應收"
-  if (source === "pq-form-production-order") return "Production Order"
-  if (source.includes("new-customer") || source.includes("hk-new-customer")) {
-    return "New Customer"
-  }
-  return source || "Notification"
-}
 
 function openHref(notification: PortfolioNotification): string | null {
   const payload = notification.payload || {}
@@ -175,8 +159,17 @@ export default function NotificationsInboxPage() {
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">{sourceLabel(item.source)}</p>
-                    <p className="mt-1 text-xs text-slate-500">{formatDateTime(item.created_at)}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {getPortfolioNotificationSourceLabel(item.source)}
+                    </p>
+                    <p className="mt-2 text-xs text-slate-500">
+                      <span className="font-medium text-slate-600">Submitted by / 送信者:</span>{" "}
+                      {getPortfolioNotificationSenderDisplay(item)}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      <span className="font-medium text-slate-600">Submitted at / 送信日時:</span>{" "}
+                      {formatPortfolioNotificationDateTime(item.created_at)} (HKT)
+                    </p>
                   </button>
                 )
               })
@@ -190,11 +183,24 @@ export default function NotificationsInboxPage() {
               {selected ? selected.title : "Select a notification"}
             </CardTitle>
             {selected ? (
-              <CardDescription>
-                {sourceLabel(selected.source)} · {formatDateTime(selected.created_at)}
-                {selected.acknowledged_at
-                  ? ` · Confirmed ${formatDateTime(selected.acknowledged_at)}`
-                  : " · Unread"}
+              <CardDescription className="space-y-1">
+                <p>{getPortfolioNotificationSourceLabel(selected.source)}</p>
+                <p>
+                  <span className="font-medium text-foreground">Submitted by / 送信者:</span>{" "}
+                  {getPortfolioNotificationSenderDisplay(selected)}
+                </p>
+                <p>
+                  <span className="font-medium text-foreground">Submitted at / 送信日時:</span>{" "}
+                  {formatPortfolioNotificationDateTime(selected.created_at)} (HKT)
+                </p>
+                {selected.acknowledged_at ? (
+                  <p>
+                    <span className="font-medium text-foreground">Confirmed at / 確認日時:</span>{" "}
+                    {formatPortfolioNotificationDateTime(selected.acknowledged_at)} (HKT)
+                  </p>
+                ) : (
+                  <p>Unread / 未読</p>
+                )}
               </CardDescription>
             ) : null}
           </CardHeader>
