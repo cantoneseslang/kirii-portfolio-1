@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CollectPaymentDataNoticeDialog from "@/components/collect-payment-data-notice-dialog";
 import Format7TableViewer from "@/components/format7-table-viewer";
 import { getLatestFormat7SheetData } from "@/lib/format7-google-sheet";
 import { requireCardAccessPage, logActivityEventServer, getAuthenticatedProfile } from "@/lib/portfolio-access";
@@ -27,6 +28,7 @@ export default async function LatestFormat7Page() {
   } catch {
     return (
       <main className="max-w-6xl mx-auto p-6">
+        <CollectPaymentDataNoticeDialog />
         <h1 className="text-2xl font-bold">Collect Payment</h1>
         <p className="mt-4 text-red-600">Failed to fetch the latest data.</p>
         <Link href="/dashboard" className="text-blue-600 underline mt-4 inline-block">
@@ -39,6 +41,7 @@ export default async function LatestFormat7Page() {
   if (rows.length === 0) {
     return (
       <main className="max-w-6xl mx-auto p-6">
+        <CollectPaymentDataNoticeDialog />
         <h1 className="text-2xl font-bold">Collect Payment</h1>
         <p className="text-sm text-gray-600 mt-1">Sheet: {sheetTitle}</p>
         <p className="mt-6 text-gray-600">No data available to display.</p>
@@ -54,6 +57,7 @@ export default async function LatestFormat7Page() {
 
   return (
     <main className="max-w-6xl mx-auto p-6">
+      <CollectPaymentDataNoticeDialog />
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Collect Payment</h1>
