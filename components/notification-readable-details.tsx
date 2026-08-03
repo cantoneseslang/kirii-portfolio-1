@@ -186,8 +186,44 @@ export function NotificationReadableDetails({
   source: string
   payload: Record<string, unknown>
 }) {
-  if (source === "sales-dashboard-ar-collection") {
-    return <ArCollectionReadableDetails payload={payload} />
+  if (
+    source === "sales-dashboard-ar-collection" ||
+    source === "portfolio-ar-collection-confirmed"
+  ) {
+    return (
+      <div className="space-y-3">
+        {source === "portfolio-ar-collection-confirmed" ? (
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
+            <p className="font-semibold">Sakon confirmed</p>
+            <p className="mt-1">
+              Confirmed by:{" "}
+              {text(payload.confirmedByName) !== "-"
+                ? text(payload.confirmedByName)
+                : "Sakon"}
+            </p>
+            {payload.confirmedAt ? (
+              <p className="mt-1">
+                Confirmed at:{" "}
+                {(() => {
+                  const date = new Date(String(payload.confirmedAt))
+                  if (Number.isNaN(date.getTime())) return formatDate(payload.confirmedAt)
+                  return date.toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                    timeZone: "Asia/Hong_Kong",
+                  })
+                })()}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        <ArCollectionReadableDetails payload={payload} />
+      </div>
+    )
   }
   if (source === "pq-form-production-order") {
     return <ProductionOrderReadableDetails payload={payload} />

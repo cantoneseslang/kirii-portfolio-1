@@ -1,4 +1,9 @@
 import { createClient } from "@supabase/supabase-js"
+import {
+  AR_COLLECTION_CONFIRMED_SOURCE,
+  AR_COLLECTION_SOURCE,
+  resolveArRecordedByEmail,
+} from "@/lib/ar-collection-staff"
 
 export type { ProductionOrderFormState } from "@/lib/production-order-form-state"
 
@@ -33,21 +38,25 @@ function payloadText(value: unknown): string {
 export function formatPortfolioNotificationDateTime(value: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString("zh-HK", {
+  return date.toLocaleString("en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: true,
     timeZone: "Asia/Hong_Kong",
   })
 }
 
 export function getPortfolioNotificationSourceLabel(source: string): string {
-  if (source === "sales-dashboard-ar-collection") return "AR Collection / 應收"
-  if (source === "pq-form-production-order") return "Production Order / 生產依頼書"
+  if (source === AR_COLLECTION_SOURCE) return "AR Collection"
+  if (source === AR_COLLECTION_CONFIRMED_SOURCE) {
+    return "AR Confirmed by Sakon"
+  }
+  if (source === "pq-form-production-order") return "Production Order"
   if (source.includes("new-customer") || source.includes("hk-new-customer")) {
-    return "New Customer / 新客戶"
+    return "New Customer"
   }
   return source || "Notification"
 }
@@ -57,7 +66,17 @@ export function getPortfolioNotificationSender(
 ): string {
   const payload = notification.payload || {}
 
-  if (notification.source === "sales-dashboard-ar-collection") {
+  if (
+    notification.source === AR_COLLECTION_SOURCE ||
+    notification.source === AR_COLLECTION_CONFIRMED_SOURCE
+  ) {
+    if (notification.source === AR_COLLECTION_CONFIRMED_SOURCE) {
+      return (
+        payloadText(payload.confirmedByName) ||
+        payloadText(payload.confirmedByEmail) ||
+        "Sakon"
+      )
+    }
     return (
       payloadText(payload.recordedBy) ||
       payloadText(payload.salespersonName) ||
@@ -94,7 +113,7 @@ export function getPortfolioNotificationSenderDisplay(
   notification: Pick<PortfolioNotification, "source" | "payload">,
 ): string {
   const sender = getPortfolioNotificationSender(notification)
-  return sender || "Unknown / 不明"
+  return sender || "Unknown"
 }
 
 export async function getPendingNotificationsForUser(email: string) {
@@ -140,13 +159,63 @@ export async function getNotificationInboxForUser(
     .slice(0, limit) as PortfolioNotification[]
 }
 
+async function notifyArSenderOnAcknowledge(params: {
+  supabase: ReturnType<typeof getServiceRoleClient>
+  original: PortfolioNotification
+  confirmerEmail: string
+  acknowledgedAt: string
+}) {
+  const { supabase, original, confirmerEmail, acknowledgedAt } = params
+  if (original.source !== AR_COLLECTION_SOURCE) return
+
+  const payload = original.payload || {}
+  const senderEmail = resolveArRecordedByEmail(
+    payloadText(payload.recordedBy),
+    payloadText(payload.recordedByEmail),
+  )
+  if (!senderEmail || senderEmail === confirmerEmail.trim().toLowerCase()) return
+
+  const customerCode = payloadText(payload.customerCode) || "AR"
+  const customerEn = payloadText(payload.customerEnName)
+  const recordedBy = payloadText(payload.recordedBy) || "you"
+  const title = customerEn
+    ? `Sakon confirmed: AR ${customerCode} · ${customerEn}`
+    : `Sakon confirmed: AR ${customerCode}`
+  const body = `Sakon confirmed your AR Collection plan (Recorded by: ${recordedBy}).`
+
+  const { error } = await supabase.from("portfolio_notifications").insert({
+    recipient_email: senderEmail,
+    title,
+    body,
+    payload: {
+      ...payload,
+      originalNotificationId: original.id,
+      confirmedByEmail: confirmerEmail,
+      confirmedByName: "Sakon",
+      confirmedAt: acknowledgedAt,
+      kind: "ar-collection-confirmed",
+    },
+    source: AR_COLLECTION_CONFIRMED_SOURCE,
+    share_token:
+      typeof payload.shareToken === "string" ? payload.shareToken : undefined,
+  })
+
+  if (error) {
+    console.error("[portfolio-notifications] Failed to notify AR sender", {
+      message: error.message,
+      senderEmail,
+      originalId: original.id,
+    })
+  }
+}
+
 export async function acknowledgeNotificationForUser(notificationId: string, email: string) {
   const normalizedEmail = email.trim().toLowerCase()
   const supabase = getServiceRoleClient()
 
   const { data: existing, error: existingError } = await supabase
     .from("portfolio_notifications")
-    .select("id, recipient_email")
+    .select("id, recipient_email, title, body, payload, source, created_at, acknowledged_at")
     .eq("id", notificationId)
     .is("acknowledged_at", null)
     .maybeSingle()
@@ -174,6 +243,13 @@ export async function acknowledgeNotificationForUser(notificationId: string, ema
   if (!data) {
     throw new Error("Notification not found or already acknowledged")
   }
+
+  await notifyArSenderOnAcknowledge({
+    supabase,
+    original: existing as PortfolioNotification,
+    confirmerEmail: normalizedEmail,
+    acknowledgedAt: now,
+  })
 
   return data
 }

@@ -22,6 +22,10 @@ const PUBLIC_DATA_PREFIXES = ["/data/"]
 
 function isPublicRoute(pathname: string): boolean {
   if (PUBLIC_EXACT_PATHS.has(pathname)) return true
+  // Local UI previews under /dev/* (blocked in page via notFound in production)
+  if (process.env.NODE_ENV !== "production" && pathname.startsWith("/dev/")) {
+    return true
+  }
   if (pathname === "/api/record-login") return true
   if (PUBLIC_API_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return true
   return PUBLIC_DATA_PREFIXES.some((prefix) => pathname.startsWith(prefix))

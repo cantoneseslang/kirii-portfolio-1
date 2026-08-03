@@ -3,6 +3,7 @@
 type ArCollectionNotificationPreviewProps = {
   payload: Record<string, unknown>
   body: string | null
+  confirmed?: boolean
 }
 
 function text(value: unknown): string {
@@ -39,6 +40,7 @@ function methodLabel(method: unknown): string {
 export function ArCollectionNotificationPreview({
   payload,
   body,
+  confirmed = false,
 }: ArCollectionNotificationPreviewProps) {
   const customerCode = text(payload.customerCode)
   const customerEn = text(payload.customerEnName)
@@ -50,12 +52,44 @@ export function ArCollectionNotificationPreview({
   const chequeDate = payload.chequeDate
     ? text(payload.chequeDate).replace(/-/g, "/")
     : null
+  const confirmedBy =
+    text(payload.confirmedByName) !== "-"
+      ? text(payload.confirmedByName)
+      : "Sakon"
+  const confirmedAt = payload.confirmedAt
+    ? (() => {
+        const date = new Date(String(payload.confirmedAt))
+        if (Number.isNaN(date.getTime())) return text(payload.confirmedAt)
+        return date.toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+          timeZone: "Asia/Hong_Kong",
+        })
+      })()
+    : null
 
   return (
     <div className="flex h-full w-full items-start justify-center overflow-y-auto bg-slate-100 p-4 md:p-8">
       <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-md">
+        {confirmed ? (
+          <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+              Confirmed
+            </p>
+            <p className="mt-1 text-base font-bold text-emerald-900">
+              {confirmedBy} confirmed this AR Collection
+            </p>
+            {confirmedAt ? (
+              <p className="mt-1 text-sm text-emerald-800">Confirmed at: {confirmedAt}</p>
+            ) : null}
+          </div>
+        ) : null}
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-          AR Collection plan
+          {confirmed ? "Your AR Collection plan" : "AR Collection plan"}
         </p>
         <h3 className="mt-2 text-xl font-bold text-slate-900">
           {customerCode} · {customerEn}

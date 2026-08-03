@@ -167,7 +167,7 @@ export function PortfolioNotificationGate() {
       }
 
       if (failed > 0) {
-        setAcknowledgeError(`有 ${failed} 則通知未能確認，請再試一次`)
+        setAcknowledgeError(`${failed} notification(s) could not be confirmed. Please try again.`)
       }
 
       setNotifications((prev) => prev.filter((item) => !ids.includes(item.id)))
@@ -175,7 +175,7 @@ export function PortfolioNotificationGate() {
       return failed === 0
     } catch (error) {
       console.error("Failed to acknowledge portfolio notification", error)
-      setAcknowledgeError("確認失敗，請再試一次")
+      setAcknowledgeError("Confirmation failed. Please try again.")
       return false
     } finally {
       setAcknowledging(false)

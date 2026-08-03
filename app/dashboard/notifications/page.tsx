@@ -163,11 +163,11 @@ export default function NotificationsInboxPage() {
                       {getPortfolioNotificationSourceLabel(item.source)}
                     </p>
                     <p className="mt-2 text-xs text-slate-500">
-                      <span className="font-medium text-slate-600">Submitted by / 送信者:</span>{" "}
+                      <span className="font-medium text-slate-600">Submitted by:</span>{" "}
                       {getPortfolioNotificationSenderDisplay(item)}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
-                      <span className="font-medium text-slate-600">Submitted at / 送信日時:</span>{" "}
+                      <span className="font-medium text-slate-600">Submitted at:</span>{" "}
                       {formatPortfolioNotificationDateTime(item.created_at)} (HKT)
                     </p>
                   </button>
@@ -186,20 +186,20 @@ export default function NotificationsInboxPage() {
               <CardDescription className="space-y-1">
                 <p>{getPortfolioNotificationSourceLabel(selected.source)}</p>
                 <p>
-                  <span className="font-medium text-foreground">Submitted by / 送信者:</span>{" "}
+                  <span className="font-medium text-foreground">Submitted by:</span>{" "}
                   {getPortfolioNotificationSenderDisplay(selected)}
                 </p>
                 <p>
-                  <span className="font-medium text-foreground">Submitted at / 送信日時:</span>{" "}
+                  <span className="font-medium text-foreground">Submitted at:</span>{" "}
                   {formatPortfolioNotificationDateTime(selected.created_at)} (HKT)
                 </p>
                 {selected.acknowledged_at ? (
                   <p>
-                    <span className="font-medium text-foreground">Confirmed at / 確認日時:</span>{" "}
+                    <span className="font-medium text-foreground">Confirmed at:</span>{" "}
                     {formatPortfolioNotificationDateTime(selected.acknowledged_at)} (HKT)
                   </p>
                 ) : (
-                  <p>Unread / 未読</p>
+                  <p>Unread</p>
                 )}
               </CardDescription>
             ) : null}

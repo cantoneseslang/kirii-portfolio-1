@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useRef } from "react"
 import type { PortfolioNotification } from "@/lib/portfolio-notifications"
+import {
+  AR_COLLECTION_CONFIRMED_SOURCE,
+  AR_COLLECTION_SOURCE,
+} from "@/lib/ar-collection-staff"
 import { extractProductionOrderFormState } from "@/lib/production-order-form-state"
 import { ArCollectionNotificationPreview } from "@/components/ar-collection-notification-preview"
 
@@ -18,17 +22,18 @@ type PortfolioNotificationOverlayProps = {
 }
 
 const PQ_FORM_ORIGIN = "https://pq-form.vercel.app"
-const AR_COLLECTION_SOURCE = "sales-dashboard-ar-collection"
 
 function formatDateTime(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString("zh-HK", {
+  return date.toLocaleString("en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Hong_Kong",
   })
 }
 
@@ -62,17 +67,19 @@ export function PortfolioNotificationOverlay({
   const payload = notification.payload || {}
   const shareUrl = typeof payload.shareUrl === "string" ? payload.shareUrl : ""
   const isArCollection = notification.source === AR_COLLECTION_SOURCE
+  const isArConfirmed = notification.source === AR_COLLECTION_CONFIRMED_SOURCE
+  const isArRelated = isArCollection || isArConfirmed
   // AR: show inline details (iframe preview breaks for cross-app / old localhost URLs)
   const previewUrl =
-    !isArCollection && shareUrl
+    !isArRelated && shareUrl
       ? buildEmbeddedPreviewUrl(shareUrl, false)
-      : !isArCollection
+      : !isArRelated
         ? buildEmbeddedPreviewUrl("", false)
         : ""
   previewOriginRef.current = previewUrl ? new URL(previewUrl).origin : PQ_FORM_ORIGIN
 
   const sendPreviewState = useCallback(() => {
-    if (isArCollection) return
+    if (isArRelated) return
     const formState = extractProductionOrderFormState(notification.payload)
     const targetWindow = iframeRef.current?.contentWindow
     if (!formState || !targetWindow) return
@@ -83,10 +90,10 @@ export function PortfolioNotificationOverlay({
       },
       previewOriginRef.current,
     )
-  }, [notification.payload, isArCollection])
+  }, [notification.payload, isArRelated])
 
   useEffect(() => {
-    if (!previewUrl || isArCollection) return undefined
+    if (!previewUrl || isArRelated) return undefined
     sendPreviewState()
     const intervalId = window.setInterval(sendPreviewState, 400)
     const timeoutId = window.setTimeout(() => window.clearInterval(intervalId), 6000)
@@ -94,39 +101,53 @@ export function PortfolioNotificationOverlay({
       window.clearInterval(intervalId)
       window.clearTimeout(timeoutId)
     }
-  }, [previewUrl, sendPreviewState, isArCollection])
+  }, [previewUrl, sendPreviewState, isArRelated])
+
+  const headerClass = isArConfirmed
+    ? "border-b border-emerald-800/40 bg-[#0a6b3f] px-6 py-5 text-white md:px-8 md:py-6"
+    : "border-b border-slate-200 bg-[#02315a] px-6 py-5 text-white md:px-8 md:py-6"
+  const backdropClass = isArConfirmed
+    ? "fixed inset-0 z-[100] flex items-center justify-center bg-[#0a6b3f]/92 p-3 md:p-6"
+    : "fixed inset-0 z-[100] flex items-center justify-center bg-[#02315a]/95 p-3 md:p-6"
+  const headerLabel = isArConfirmed
+    ? "AR Confirmed by Sakon"
+    : isArCollection
+      ? "AR Collection Notification"
+      : "Portfolio Notification"
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#02315a]/95 p-3 md:p-6"
+      className={backdropClass}
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="portfolio-notification-title"
     >
       <div className="flex h-full w-full max-w-[1200px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white shadow-2xl">
         <div
-          className="border-b border-slate-200 bg-[#02315a] px-6 py-5 text-white md:px-8 md:py-6"
+          className={headerClass}
           onPointerDown={soundNeedsUnlock ? onRequestSoundUnlock : undefined}
         >
           <p className="text-xs uppercase tracking-[0.2em] text-white/70">
-            {isArCollection ? "AR Collection Notification" : "Portfolio Notification"}
+            {headerLabel}
           </p>
           <h2 id="portfolio-notification-title" className="mt-2 text-2xl font-bold md:text-3xl">
             {notification.title}
           </h2>
           <p className="mt-2 text-sm text-white/80 md:text-base">
             {formatDateTime(notification.created_at)}
-            {pendingCount > 1 ? ` ・ 尚有 ${pendingCount - 1} 則待確認通知` : ""}
+            {pendingCount > 1 ? ` · ${pendingCount - 1} more pending` : ""}
           </p>
           {notification.body ? (
             <p className="mt-2 text-sm text-white/80">{notification.body}</p>
           ) : null}
           <p className="mt-2 text-sm text-white/70">
-            通知顯示期間，下方 Dashboard 無法操作。請按「確認」或「繼續作業」關閉通知。
+            {isArConfirmed
+              ? "Sakon confirmed your AR submission. Press Confirm to dismiss, or open the case for details."
+              : "While this notification is open, the dashboard below is locked. Press Confirm or Continue to dismiss."}
           </p>
           {soundNeedsUnlock ? (
             <p className="mt-3 rounded-lg bg-amber-400/20 px-3 py-2 text-sm text-amber-100">
-              輕觸此區域以播放提示音
+              Tap this area to enable notification sound
             </p>
           ) : null}
           {acknowledgeError ? (
@@ -137,16 +158,17 @@ export function PortfolioNotificationOverlay({
         </div>
 
         <div className="relative min-h-0 flex-1 overflow-hidden bg-[#bdbdbd]">
-          {isArCollection ? (
+          {isArRelated ? (
             <ArCollectionNotificationPreview
               payload={payload}
               body={notification.body}
+              confirmed={isArConfirmed}
             />
           ) : previewUrl ? (
             <>
               <iframe
                 ref={iframeRef}
-                title="生產依頼書預覽"
+                title="Production order preview"
                 src={previewUrl}
                 onLoad={sendPreviewState}
                 className="pointer-events-none h-full w-full border-0 opacity-80"
@@ -155,7 +177,7 @@ export function PortfolioNotificationOverlay({
             </>
           ) : (
             <div className="flex h-full items-center justify-center p-8 text-center text-slate-600">
-              此通知沒有表單預覽。請重新送出，或使用「繼續作業」開啟表單。
+              No form preview for this notification. Resubmit, or use Continue to open the form.
             </div>
           )}
         </div>
@@ -173,19 +195,27 @@ export function PortfolioNotificationOverlay({
                 className="inline-flex h-14 w-full items-center justify-center rounded-xl bg-[#0a6b3f] text-lg font-semibold text-white transition hover:bg-[#0d8049] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {acknowledging
-                  ? "處理中…"
-                  : isArCollection
-                    ? "開啟案件・留言"
-                    : "繼續作業"}
+                  ? "Working…"
+                  : isArRelated
+                    ? "Open case · Comment"
+                    : "Continue"}
               </button>
             ) : null}
             <button
               type="button"
               onClick={() => void onConfirm()}
               disabled={acknowledging}
-              className="inline-flex h-14 w-full items-center justify-center rounded-xl bg-[#02315a] text-lg font-semibold text-white transition hover:bg-[#03467f] disabled:cursor-not-allowed disabled:opacity-60"
+              className={`inline-flex h-14 w-full items-center justify-center rounded-xl text-lg font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                isArConfirmed
+                  ? "bg-[#0a6b3f] hover:bg-[#0d8049]"
+                  : "bg-[#02315a] hover:bg-[#03467f]"
+              }`}
             >
-              {acknowledging ? "確認中…" : pendingCount > 1 ? `確認（${pendingCount - 1} 則待下一則）` : "確認"}
+              {acknowledging
+                ? "Confirming…"
+                : pendingCount > 1
+                  ? `Confirm (${pendingCount - 1} more)`
+                  : "Confirm"}
             </button>
             {pendingCount > 1 ? (
               <button
@@ -194,7 +224,7 @@ export function PortfolioNotificationOverlay({
                 disabled={acknowledging}
                 className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-[#02315a] bg-white text-base font-semibold text-[#02315a] transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {acknowledging ? "處理中…" : `一次確認全部（${pendingCount} 則）`}
+                {acknowledging ? "Working…" : `Confirm all (${pendingCount})`}
               </button>
             ) : null}
           </div>
