@@ -209,9 +209,6 @@ export function AdminEmployeePanel({
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
             <div className="px-6 py-4 bg-gray-50 border-b">
               <h3 className="text-lg font-semibold">Employee Access Control</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                左の Active で有効/無効、Department 列のスイッチで部門権限を変更できます（緑=ON、赤=OFF）。Used days は {monthToDate.range}（香港）のうち、実際にポートフォリオまたは午餐を使った日数です。カレンダー日数ではありません。Last action は最後に操作した時刻です。
-              </p>
             </div>
             <div className={SCROLLABLE_TABLE_WRAPPER}>
               <table className="min-w-full divide-y divide-gray-200">
