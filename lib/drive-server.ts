@@ -16,7 +16,7 @@ export type DriveFolderNode = {
   folders: DriveFolderNode[];
 };
 
-function getOAuth2Client() {
+export function getOAuth2Client() {
   const clientId = process.env.OAUTH_CLIENT_ID as string;
   const clientSecret = process.env.OAUTH_CLIENT_SECRET as string;
   const redirectUri = (process.env.OAUTH_REDIRECT_URI as string) || 'http://localhost';
