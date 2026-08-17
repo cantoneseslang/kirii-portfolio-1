@@ -179,9 +179,6 @@ export function ShippingStatusBrowser() {
         </Link>
         <h1 className="text-3xl font-bold">Auto-save shipping status</h1>
         <p className="text-muted-foreground mt-2">出貨情況自動紀錄</p>
-        <p className="mt-2 text-sm text-gray-600">
-          Total Files: {files.length + folders.reduce((sum, folder) => sum + (folder.contents?.files.length || 0), 0)} files
-        </p>
       </div>
 
       {isLoading && (
