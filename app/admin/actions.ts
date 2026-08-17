@@ -9,8 +9,7 @@ import {
   type DepartmentPermissionKey,
 } from "@/lib/card-permissions"
 import type { Profile } from "@/types/profile"
-import { fetchLunchOrderActivity, fetchLunchOrderEngagementByMemberId, type LunchOrderActivityRow } from "@/lib/lunch-order-admin"
-import { resolveLunchMemberId } from "@/lib/lunch-member"
+import { fetchLunchOrderActivity, type LunchOrderActivityRow } from "@/lib/lunch-order-admin"
 import { createServerSupabaseClient } from "@/utils/supabase/server"
 
 export async function createUser(
@@ -466,10 +465,6 @@ export async function getAdminEmployeeData(): Promise<{
 
     const { data: authUsers } = await supabase.auth.admin.listUsers({ page: 1, perPage: 2000 })
     const emailById = new Map((authUsers?.users || []).map((user) => [user.id, user.email || ""]))
-    const lunchEngagement = await fetchLunchOrderEngagementByMemberId(
-      startOfMonth.toISOString(),
-      endOfMonth.toISOString(),
-    )
     const lastSignInById = new Map(
       (authUsers?.users || []).map((user) => [
         user.id,
@@ -488,16 +483,10 @@ export async function getAdminEmployeeData(): Promise<{
 
       const userActivities = monthActivity?.filter((a) => a.user_id === profile.id) || []
       const email = emailById.get(profile.id) || ""
-      const lunchMemberId = resolveLunchMemberId(profile.full_name, email)
-      const lunch = lunchMemberId ? lunchEngagement.get(lunchMemberId) : undefined
-      const cardActivityCount = userActivities.length + (lunch?.count || 0)
-      const activityDates = [
-        ...userActivities.map((a) => new Date(a.created_at)),
-        ...(lunch ? [lunch.lastAt] : []),
-      ]
+      const cardActivityCount = userActivities.length
       const lastActivity =
-        activityDates.length > 0
-          ? new Date(Math.max(...activityDates.map((d) => d.getTime())))
+        userActivities.length > 0
+          ? new Date(Math.max(...userActivities.map((a) => new Date(a.created_at).getTime())))
           : null
 
       const engagementDates = [lastLogin, lastActivity].filter((d): d is Date => d !== null)
