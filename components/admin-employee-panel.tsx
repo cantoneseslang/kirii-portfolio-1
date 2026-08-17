@@ -220,7 +220,7 @@ export function AdminEmployeePanel({
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Email</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Position</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50 whitespace-nowrap">
-                      Used ({monthToDate.range})
+                      Used (7 days)
                     </th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last action (HK)</th>
                     {DEPARTMENT_SWITCH_KEYS.map((token) => (

@@ -6,6 +6,7 @@ import { resolveDisplayTitle } from "@/lib/display-title"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
+export const maxDuration = 60
 
 export default async function AdminPage() {
   const isAdmin = await checkIsAdmin()

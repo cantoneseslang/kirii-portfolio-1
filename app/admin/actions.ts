@@ -9,7 +9,7 @@ import {
   type DepartmentPermissionKey,
 } from "@/lib/card-permissions"
 import type { Profile } from "@/types/profile"
-import { fetchLunchOrderActivity, fetchLunchOrderEngagementByMemberId, type LunchOrderActivityRow } from "@/lib/lunch-order-admin"
+import { fetchLunchOrderActivity, type LunchOrderActivityRow } from "@/lib/lunch-order-admin"
 import { resolveLunchMemberId } from "@/lib/lunch-member"
 import { getHongKongMonthToDateRange } from "@/lib/hong-kong-date"
 import { createServerSupabaseClient } from "@/utils/supabase/server"
@@ -448,35 +448,80 @@ export async function getAdminEmployeeData(): Promise<{
     const currentDate = new Date()
     const monthToDate = getHongKongMonthToDateRange(currentDate)
 
-    const { data: loginHistory } = await supabase
-      .from("login_history")
-      .select("user_id, login_timestamp, login_success")
-      .gte("login_timestamp", monthToDate.from)
-      .lt("login_timestamp", monthToDate.to)
-      .eq("login_success", true)
+    const [
+      { data: loginHistory },
+      { data: monthActivity },
+      { data: authUsers },
+      { data: activityEvents, error: activityError },
+      lunchResult,
+    ] = await Promise.all([
+      supabase
+        .from("login_history")
+        .select("user_id, login_timestamp, login_success")
+        .gte("login_timestamp", monthToDate.from)
+        .lt("login_timestamp", monthToDate.to)
+        .eq("login_success", true)
+        .limit(2000),
+      supabase
+        .from("activity_events")
+        .select("user_id, created_at, event_type, resource_path")
+        .gte("created_at", monthToDate.from)
+        .lt("created_at", monthToDate.to)
+        .in("event_type", ["card_click", "portal_open", "page_view"])
+        .order("created_at", { ascending: false })
+        .limit(2000),
+      supabase.auth.admin.listUsers({ page: 1, perPage: 2000 }),
+      supabase
+        .from("activity_events")
+        .select("id, user_id, event_type, resource_key, resource_label, resource_path, metadata, created_at")
+        .order("created_at", { ascending: false })
+        .limit(300),
+      fetchLunchOrderActivity(7, 300),
+    ])
 
-    const { data: monthActivity } = await supabase
-      .from("activity_events")
-      .select("user_id, created_at, event_type, resource_path")
-      .gte("created_at", monthToDate.from)
-      .lt("created_at", monthToDate.to)
-      .in("event_type", ["card_click", "portal_open", "page_view"])
-
-    const { data: authUsers } = await supabase.auth.admin.listUsers({ page: 1, perPage: 2000 })
     const emailById = new Map((authUsers?.users || []).map((user) => [user.id, user.email || ""]))
-    const lunchEngagement = await fetchLunchOrderEngagementByMemberId(
-      monthToDate.from,
-      monthToDate.to,
-    )
     const lastSignInById = new Map(
       (authUsers?.users || []).map((user) => [
         user.id,
         user.last_sign_in_at ? new Date(user.last_sign_in_at) : null,
       ]),
     )
+    const lunchOrderActivity = lunchResult.rows
+    const lunchOrderError = lunchResult.error
+    const lunchEngagement = new Map<string, { count: number; lastAt: Date }>()
+    for (const row of lunchOrderActivity) {
+      const stamp = new Date(row.timestamp)
+      const add = (memberId: string | null) => {
+        if (!memberId) return
+        const current = lunchEngagement.get(memberId)
+        if (!current) {
+          lunchEngagement.set(memberId, { count: 1, lastAt: stamp })
+          return
+        }
+        current.count += 1
+        if (stamp > current.lastAt) current.lastAt = stamp
+      }
+      add(row.memberId)
+      if (row.operatorMemberId && row.operatorMemberId !== row.memberId) {
+        add(row.operatorMemberId)
+      }
+    }
+
+    const loginsByUser = new Map<string, NonNullable<typeof loginHistory>[number][]>()
+    for (const row of loginHistory || []) {
+      const list = loginsByUser.get(row.user_id) || []
+      list.push(row)
+      loginsByUser.set(row.user_id, list)
+    }
+    const activitiesByUser = new Map<string, NonNullable<typeof monthActivity>[number][]>()
+    for (const row of monthActivity || []) {
+      const list = activitiesByUser.get(row.user_id) || []
+      list.push(row)
+      activitiesByUser.set(row.user_id, list)
+    }
 
     const employees: AdminEmployeeRow[] = (profiles || []).map((profile) => {
-      const userLogins = loginHistory?.filter((h) => h.user_id === profile.id) || []
+      const userLogins = loginsByUser.get(profile.id) || []
       const loginCount = userLogins.length
       const lastHistoryLogin =
         userLogins.length > 0
@@ -484,7 +529,7 @@ export async function getAdminEmployeeData(): Promise<{
           : null
       const lastLogin = lastSignInById.get(profile.id) || lastHistoryLogin
 
-      const userActivities = monthActivity?.filter((a) => a.user_id === profile.id) || []
+      const userActivities = activitiesByUser.get(profile.id) || []
       const email = emailById.get(profile.id) || ""
       const enteredCount = userActivities.filter(
         (a) =>
@@ -550,23 +595,15 @@ export async function getAdminEmployeeData(): Promise<{
       }
     })
 
-    const { data: activityEvents, error: activityError } = await supabase
-      .from("activity_events")
-      .select("id, user_id, event_type, resource_key, resource_label, resource_path, metadata, created_at")
-      .order("created_at", { ascending: false })
-      .limit(300)
-
     if (activityError) {
       return {
         employees,
         activityEvents: [],
-        lunchOrderActivity: [],
-        lunchOrderError: null,
+        lunchOrderActivity,
+        lunchOrderError,
         error: activityError.message,
       }
     }
-
-    const { rows: lunchOrderActivity, error: lunchOrderError } = await fetchLunchOrderActivity(7, 300)
 
     return {
       employees,
