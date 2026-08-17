@@ -458,7 +458,7 @@ export async function getAdminEmployeeData(): Promise<{
 
     const { data: monthActivity } = await supabase
       .from("activity_events")
-      .select("user_id, created_at, event_type")
+      .select("user_id, created_at, event_type, resource_path")
       .gte("created_at", startOfMonth.toISOString())
       .lte("created_at", endOfMonth.toISOString())
       .in("event_type", ["card_click", "portal_open", "page_view"])
@@ -483,15 +483,27 @@ export async function getAdminEmployeeData(): Promise<{
 
       const userActivities = monthActivity?.filter((a) => a.user_id === profile.id) || []
       const email = emailById.get(profile.id) || ""
-      const cardActivityCount = userActivities.length
-      const lastCardActivity =
+      const enteredCount = userActivities.filter(
+        (a) =>
+          a.event_type === "page_view" &&
+          (a.resource_path === "/dashboard" || (a.resource_path || "").startsWith("/dashboard")),
+      ).length
+      const cardOps = userActivities.filter(
+        (a) => a.event_type === "card_click" || a.event_type === "portal_open",
+      )
+      const cardActivityCount = Math.max(loginCount, enteredCount)
+      const lastCardOp =
+        cardOps.length > 0
+          ? new Date(Math.max(...cardOps.map((a) => new Date(a.created_at).getTime())))
+          : null
+      const lastVisit =
         userActivities.length > 0
           ? new Date(Math.max(...userActivities.map((a) => new Date(a.created_at).getTime())))
           : null
-      const usedDates = [lastLogin, lastCardActivity].filter((d): d is Date => d !== null)
+      const lastActivityDates = [lastCardOp, lastVisit, lastLogin].filter((d): d is Date => d !== null)
       const lastActivity =
-        usedDates.length > 0
-          ? new Date(Math.max(...usedDates.map((d) => d.getTime())))
+        lastActivityDates.length > 0
+          ? new Date(Math.max(...lastActivityDates.map((d) => d.getTime())))
           : null
 
       const engagementDates = [lastLogin, lastActivity].filter((d): d is Date => d !== null)

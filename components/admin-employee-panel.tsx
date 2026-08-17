@@ -194,7 +194,7 @@ export function AdminEmployeePanel({
             <div className="px-6 py-4 bg-gray-50 border-b">
               <h3 className="text-lg font-semibold">Employee Access Control</h3>
               <p className="text-sm text-gray-600 mt-1">
-                左の Active で有効/無効、Department 列のスイッチで部門権限を変更できます（緑=ON、赤=OFF）。Dashboard clicks は今月このサイトのカードをクリックした回数。Last used は最後にこのサイトへログイン、またはカードを押した時刻です。午餐サイトだけの利用は含みません。
+                左の Active で有効/無効、Department 列のスイッチで部門権限を変更できます（緑=ON、赤=OFF）。Entered は今月ポートフォリオに入った回数。Last action はどのカードでも最後に操作した時刻です。
               </p>
             </div>
             <div className={SCROLLABLE_TABLE_WRAPPER}>
@@ -206,8 +206,8 @@ export function AdminEmployeePanel({
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Name</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Email</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Position</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Dashboard clicks</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last used (HK)</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Entered</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last action (HK)</th>
                     {DEPARTMENT_SWITCH_KEYS.map((token) => (
                       <th
                         key={token}
