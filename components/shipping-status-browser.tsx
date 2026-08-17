@@ -131,22 +131,20 @@ export function ShippingStatusBrowser() {
     return (
       <div className="space-y-4">
         {images.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="flex flex-wrap gap-3">
             {images.map((file) => (
               <button
                 key={file.id}
                 type="button"
                 onClick={() => setPreview({ fileId: file.id, fileName: file.name, image: true })}
-                className="overflow-hidden rounded-lg border border-gray-200 bg-white text-left hover:shadow-md transition-shadow"
+                className="w-[calc(25%-0.6rem)] min-w-[120px] overflow-hidden rounded-lg border border-gray-200 bg-white text-left hover:shadow-md transition-shadow"
               >
-                <div className="aspect-square bg-gray-100">
-                  <img
-                    src={`/api/shipping-status/file?id=${encodeURIComponent(file.id)}&thumb=1`}
-                    alt={file.name}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <p className="truncate px-2 py-2 text-xs text-gray-700">{file.name}</p>
+                <img
+                  src={`/api/shipping-status/file?id=${encodeURIComponent(file.id)}&thumb=1`}
+                  alt={file.name}
+                  className="w-full h-auto object-contain bg-gray-100"
+                />
+                <p className="truncate px-2 py-1.5 text-[11px] text-gray-700">{file.name}</p>
               </button>
             ))}
           </div>
@@ -221,7 +219,7 @@ export function ShippingStatusBrowser() {
           <img
             src={`/api/shipping-status/file?id=${encodeURIComponent(preview.fileId)}`}
             alt={preview.fileName}
-            className="max-h-[90vh] max-w-full rounded-lg object-contain"
+            className="max-h-[70vh] max-w-[50vw] rounded-lg object-contain"
           />
         </div>
       ) : (
