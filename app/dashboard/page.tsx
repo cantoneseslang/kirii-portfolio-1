@@ -23,6 +23,7 @@ import ProductManualCard from "@/components/product-manual-card";
 import PQFormCard from "@/components/pq-form-card";
 import ManufacturingOrderCard from "@/components/manufacturing-order-card";
 import MaterialStockCard from "@/components/material-stock-card";
+import InventorySummaryCard from "@/components/inventory-summary-card";
 import MillCertificationCard from "@/components/mill-certification-card";
 import CertificateCard from "@/components/certificate-card";
 import CollectPaymentCardWrapper from "@/components/collect-payment-card-wrapper";
@@ -293,6 +294,7 @@ export default function DashboardPage() {
         {(hasCardPermission(profile, "pq_form") ||
           hasCardPermission(profile, "manufacturing_order") ||
           hasCardPermission(profile, "material_stock") ||
+          hasCardPermission(profile, "inventory_summary") ||
           hasCardPermission(profile, "mill_certification")) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Factory-ERP</h3>
@@ -310,6 +312,11 @@ export default function DashboardPage() {
               {hasCardPermission(profile, "material_stock") && (
                 <TrackedCardShell cardKey="material_stock">
                   <MaterialStockCard />
+                </TrackedCardShell>
+              )}
+              {hasCardPermission(profile, "inventory_summary") && (
+                <TrackedCardShell cardKey="inventory_summary">
+                  <InventorySummaryCard />
                 </TrackedCardShell>
               )}
               {hasCardPermission(profile, "mill_certification") && (

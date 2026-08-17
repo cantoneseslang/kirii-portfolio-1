@@ -16,6 +16,7 @@ export type CardPermissionKey =
   | "pq_form"
   | "manufacturing_order"
   | "material_stock"
+  | "inventory_summary"
   | "mill_certification"
   | "supplier_info"
   | "form_master"
@@ -58,6 +59,12 @@ export const CARD_PERMISSIONS: CardPermissionDefinition[] = [
     key: "material_stock",
     label: "MaterialStock",
     labelZh: "原材料庫存",
+    section: "factory",
+  },
+  {
+    key: "inventory_summary",
+    label: "Inventory Summary Report",
+    labelZh: "製品庫存盤點表",
     section: "factory",
   },
   {
