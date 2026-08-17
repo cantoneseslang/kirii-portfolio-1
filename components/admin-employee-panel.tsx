@@ -83,6 +83,15 @@ export function AdminEmployeePanel({
     return { total, proxy, operators }
   }, [lunchOrderActivity])
 
+  const sortedEmployees = useMemo(() => {
+    return [...employees].sort((a, b) => {
+      const aEnabled = a.is_active !== false
+      const bEnabled = b.is_active !== false
+      if (aEnabled === bEnabled) return 0
+      return aEnabled ? -1 : 1
+    })
+  }, [employees])
+
   const summary = useMemo(() => {
     const totalUsers = employees.length
     const enabledUsers = employees.filter((e) => e.is_active !== false).length
@@ -192,18 +201,17 @@ export function AdminEmployeePanel({
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Active</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Display Title</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Email</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Position</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last Login (HK)</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Card Activity</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last Activity (HK)</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Active</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Display Title</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Name</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Email</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Position</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Card Activity</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last Activity (HK)</th>
                     {DEPARTMENT_SWITCH_KEYS.map((token) => (
                       <th
                         key={token}
-                        className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50"
+                        className="px-1.5 py-2 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50"
                       >
                         {token}
                       </th>
@@ -211,7 +219,7 @@ export function AdminEmployeePanel({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {employees.map((employee) => {
+                  {sortedEmployees.map((employee) => {
                     const accountEnabled = employee.is_active !== false
                     const chineseName = resolveChineseName(employee.full_name, employee.email)
                     return (
@@ -219,7 +227,7 @@ export function AdminEmployeePanel({
                         key={employee.id}
                         className={!accountEnabled ? "bg-red-50" : employee.usageStatus === "Inactive" ? "bg-yellow-50" : ""}
                       >
-                        <td className="px-4 py-4 whitespace-nowrap">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <AdminPermissionSwitch
                             checked={accountEnabled}
                             disabled={pendingKey === `active-${employee.id}`}
@@ -227,10 +235,10 @@ export function AdminEmployeePanel({
                             aria-label={`Toggle active for ${employee.full_name}`}
                           />
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-[#02315a]">
+                        <td className="px-2 py-2 whitespace-nowrap text-sm font-semibold text-[#02315a]">
                           {resolveDisplayTitle(employee)}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                           <div>
                             {employee.full_name}
                             {!accountEnabled && (
@@ -238,24 +246,21 @@ export function AdminEmployeePanel({
                             )}
                           </div>
                           {chineseName && (
-                            <div className="text-sm font-normal text-gray-600">{chineseName}</div>
+                            <div className="text-xs font-normal text-gray-600">{chineseName}</div>
                           )}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{employee.email || "N/A"}</td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{employee.position || "—"}</td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatHongKongTime(employee.lastLogin)}
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-2 py-2 text-sm text-gray-500 max-w-[140px] truncate">{employee.email || "N/A"}</td>
+                        <td className="px-2 py-2 text-sm text-gray-500 max-w-[110px] truncate">{employee.position || "—"}</td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
                           {employee.cardActivityCount}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-500">
                           {formatHongKongTime(employee.lastActivity, "No activity")}
                         </td>
                         {DEPARTMENT_SWITCH_KEYS.map((token) => {
                           const enabled = hasDepartmentToken(employee.department, token)
                           return (
-                            <td key={`${employee.id}-${token}`} className="px-3 py-4 whitespace-nowrap text-center">
+                            <td key={`${employee.id}-${token}`} className="px-1.5 py-2 whitespace-nowrap text-center">
                               <AdminPermissionSwitch
                                 checked={enabled}
                                 disabled={pendingKey === `dept-${employee.id}-${token}`}
