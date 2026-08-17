@@ -42,6 +42,7 @@ type IntakeFieldDef = {
   key: string
   label: string
   hint?: string
+  required?: boolean
 }
 
 type IntakeSection = {
@@ -137,7 +138,10 @@ const INTAKE_SECTIONS: IntakeSection[] = [
     title: "Part 3: Contact Information / 聯絡資料",
     fields: [
       ...Array.from({ length: INTAKE_CONTACT_COUNT }, (_, index) =>
-        contactFieldDefs(index, `Contact ${index + 1} / 聯絡人 ${index + 1}`, { includeIdNumber: true }),
+        contactFieldDefs(index, `Contact ${index + 1} / 聯絡人 ${index + 1}`, {
+          includeIdNumber: true,
+          idNumberRequired: index === 0,
+        }),
       ).flat(),
       ...contactFieldDefs("apContact", "Accounts Payable Contact / 應付賬款聯絡人"),
       { key: "apEmail", label: "A/P Email / 應付賬款電郵" },
@@ -234,7 +238,7 @@ function directorFieldDefs(index: number): IntakeFieldDef[] {
 function contactFieldDefs(
   indexOrPrefix: number | string,
   labelPrefix: string,
-  options?: { includeIdNumber?: boolean },
+  options?: { includeIdNumber?: boolean; idNumberRequired?: boolean },
 ): IntakeFieldDef[] {
   const prefix = typeof indexOrPrefix === "number" ? `contacts.${indexOrPrefix}` : indexOrPrefix
   const fields: IntakeFieldDef[] = [
@@ -258,8 +262,11 @@ function contactFieldDefs(
   if (options?.includeIdNumber) {
     fields.push({
       key: `${prefix}.idNumber`,
-      label: `${labelPrefix} - ID Number / 身分證號碼`,
-      hint: "As shown on ID copy / 與身分證副本一致",
+      label: `${labelPrefix} - ID Number / 身分證號碼${options.idNumberRequired ? " *" : ""}`,
+      hint: options.idNumberRequired
+        ? "Required. As shown on ID copy / 必須。與身分證副本一致"
+        : "As shown on ID copy / 與身分證副本一致",
+      required: Boolean(options.idNumberRequired),
     })
   }
   fields.push(
@@ -521,6 +528,21 @@ function applyDropdownValidation(cell: ExcelJS.Cell, fieldKey: string) {
   }
 }
 
+function applyRequiredValidation(cell: ExcelJS.Cell, label: string) {
+  if (cell.dataValidation) return
+  cell.dataValidation = {
+    type: "custom",
+    allowBlank: false,
+    formulae: [`LEN(TRIM(${cell.address}))>0`],
+    showErrorMessage: true,
+    errorTitle: "Required / 必須",
+    error: `${label} is required. / 此欄必須填寫。`,
+    showInputMessage: true,
+    promptTitle: "Required / 必須",
+    prompt: "This field is required. / 此欄必須填寫。",
+  }
+}
+
 function populateListsSheet(sheet: ExcelJS.Worksheet) {
   sheet.getCell("A1").value = "HK District / 香港分區"
   sheet.getCell("B1").value = "Region / 地區"
@@ -588,6 +610,9 @@ function populateFillInSheet(sheet: ExcelJS.Worksheet) {
       const row = sheet.getRow(rowNumber)
       row.values = [field.key, field.label, "", field.hint || ""]
       applyDropdownValidation(sheet.getCell(`C${rowNumber}`), field.key)
+      if (field.required) {
+        applyRequiredValidation(sheet.getCell(`C${rowNumber}`), field.label)
+      }
       rowNumber += 1
     }
   }
@@ -766,6 +791,12 @@ export function parseIntakeWorkbook(workbook: XLSX.WorkBook): HkNewCustomerIntak
 
   if (!hasAnyAnswer) {
     warnings.push("No answers found in Parts 2–4. Check that answers are in column C.")
+  }
+
+  if (!String(contacts[0]?.idNumber || "").trim()) {
+    warnings.push(
+      "Contact 1 ID Number is required. / 聯絡人 1 身分證號碼為必須。",
+    )
   }
 
   return {

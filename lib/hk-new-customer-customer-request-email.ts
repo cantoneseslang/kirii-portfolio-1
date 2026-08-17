@@ -64,30 +64,24 @@ const HK_MANDATORY_DOCS = `─────────────────�
 
 1. Business Registration Certificate (BR) / 有效商業登記證副本
    · Must be valid (show commencement & expiry dates) / 須為有效版本，並顯示生效及屆滿日期
-   · 8-digit main BR number only / 只需8位主號碼
-
-2. Certificate of Incorporation (CI) / 公司註冊證明書副本
-   · Show certificate No. (編號) and issue date / 須顯示編號及簽發日期
-
-3. Latest Annual Return (Form NAR1) / 最新周年申報表副本
-   · Made-up-to date within the last 12 months / 備忘日期須為過去12個月內`
+   · 8-digit main BR number only / 只需8位主號碼`
 
 const MACAU_MANDATORY_DOCS = `────────────────────────────────────────
 【Mandatory Documents / 必須提交】
 ────────────────────────────────────────
 
 1. Business Registration Certificate (BR) / 有效商業登記證副本
-   · Must be valid (show commencement & expiry dates) / 須為有效版本，並顯示生效及屆滿日期
-
-2. Certificate of Incorporation (CI) / 公司註冊證明書副本
-   · Show certificate No. and issue date / 須顯示編號及簽發日期
-
-3. Latest Annual Return (Form NAR1) / 最新周年申報表副本
-   · Made-up-to date within the last 12 months / 備忘日期須為過去12個月內`
+   · Must be valid (show commencement & expiry dates) / 須為有效版本，並顯示生效及屆滿日期`
 
 const OPTIONAL_DOCS = `────────────────────────────────────────
 【Optional / 可選（建議提供）】
 ────────────────────────────────────────
+
+2. Certificate of Incorporation (CI) / 公司註冊證明書副本
+   · Show certificate No. (編號) and issue date / 須顯示編號及簽發日期
+
+3. Latest Annual Return (Form NAR1) / 最新周年申報表副本
+   · Made-up-to date within the last 12 months / 備忘日期須為過去12個月內
 
 4. Bank Proof / 銀行戶口證明
    · e.g. bank statement header or cancelled cheque / 例如：月結單表頭或空白支票

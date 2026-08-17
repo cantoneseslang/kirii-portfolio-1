@@ -246,19 +246,23 @@ export function getRegionVerificationDocument(region: AddressRegion) {
   return null
 }
 
-export function getMandatoryAttachmentKeys(region: AddressRegion): string[] {
-  const keys = DOCUMENT_TYPES.filter((doc) => doc.key !== "bank_proof").map((doc) => doc.key)
-  const verification = getRegionVerificationDocument(region)
-  if (verification) keys.push(verification.key)
-  return keys
+export function getMandatoryAttachmentKeys(_region: AddressRegion): string[] {
+  return ["br"]
 }
 
-/** @deprecated Use getMandatoryAttachmentKeys. Bank proof is optional and excluded. */
+/** @deprecated Use getMandatoryAttachmentKeys. CI, NAR1, registry extracts and bank proof are optional. */
 export function getRequiredAttachmentKeys(region: AddressRegion): string[] {
   return getMandatoryAttachmentKeys(region)
 }
 
-export const OPTIONAL_ATTACHMENT_KEYS = ["bank_proof", "other"] as const
+export const OPTIONAL_ATTACHMENT_KEYS = [
+  "ci",
+  "nar1",
+  "bank_proof",
+  "cr_company_particulars",
+  "macau_commercial_registration",
+  "other",
+] as const
 
 export function getAttachmentTypeLabel(documentType: string): string {
   const base = DOCUMENT_TYPES.find((doc) => doc.key === documentType)

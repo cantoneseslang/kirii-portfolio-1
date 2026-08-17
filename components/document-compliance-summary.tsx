@@ -239,6 +239,24 @@ export function DocumentComplianceSummary({
           )
         })}
         <li className="rounded-md border border-dashed p-2 text-muted-foreground">
+          Certificate of Incorporation (CI) / 公司註冊證明書 — Optional / 可選
+          {" · "}
+          {uploadedTypes.includes("ci") ? "Uploaded / 已上載" : "Not provided / 未提供"}
+        </li>
+        <li className="rounded-md border border-dashed p-2 text-muted-foreground">
+          Annual Return (NAR1) / 最新周年申報表 — Optional / 可選
+          {" · "}
+          {uploadedTypes.includes("nar1") ? "Uploaded / 已上載" : "Not provided / 未提供"}
+        </li>
+        <li className="rounded-md border border-dashed p-2 text-muted-foreground">
+          Companies Registry / Commercial Registration — Optional / 可選
+          {" · "}
+          {uploadedTypes.includes("cr_company_particulars") ||
+          uploadedTypes.includes("macau_commercial_registration")
+            ? "Uploaded / 已上載"
+            : "Not provided / 未提供"}
+        </li>
+        <li className="rounded-md border border-dashed p-2 text-muted-foreground">
           Bank Proof / 銀行戶口證明 — Optional / 可選
           {" · "}
           {uploadedTypes.includes("bank_proof") ? "Uploaded / 已上載" : "Not provided / 未提供"}

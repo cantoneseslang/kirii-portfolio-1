@@ -49,9 +49,9 @@ export function CustomerIntakeExcelImport({
           Customer Excel (Parts 2–4) / 客戶問卷（Part 2–4）
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Download the questionnaire, then upload the filled Excel together with BR / CI / NAR1 scans (PDF or
-          photos). The form auto-fills from both. /
-          下載問卷後，可一次上載填好的 Excel 及 BR / CI / NAR1 掃描件（PDF 或照片），系統會自動填入表格。
+          Download the questionnaire, then upload the filled Excel together with the BR scan (PDF or photo).
+          CI / NAR1 are optional. The form auto-fills from both. /
+          下載問卷後，可一次上載填好的 Excel 及 BR 掃描件（PDF 或照片）。CI / NAR1 為可選。系統會自動填入表格。
         </p>
       </div>
 

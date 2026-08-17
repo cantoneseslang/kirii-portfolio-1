@@ -22,18 +22,15 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   DOCUMENT_TYPES,
   getAttachmentTypeLabel,
-  getMandatoryAttachmentKeys,
   getRegionVerificationDocument,
 } from "@/types/hk-new-customer"
 import { ContactNameFields } from "@/components/contact-name-fields"
-import { LegalNameInput } from "@/components/legal-name-input"
 import { DocumentFileInput } from "@/components/document-file-input"
 import {
   collectContactNameIssues,
   emptyContactName,
   formatContactNameFull,
 } from "@/lib/hk-new-customer-contact-name"
-import { collectLegalNameIssues } from "@/lib/hk-new-customer-name-validation"
 import { getApprovalStatusLabel, getApproverRole } from "@/lib/hk-new-customer-approval"
 import {
   emptyStructuredAddress,
@@ -59,6 +56,7 @@ import { SalesForecastFields, calculateSalesForecastTotals } from "@/components/
 import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
 import {
   emptySalesForecast,
+  hasSalesForecastPlan,
   validateSalesForecastForSubmit,
 } from "@/lib/hk-new-customer-sales-forecast"
 import {
@@ -240,7 +238,6 @@ export default function NewCustomerSettingPage() {
   const [attachmentFiles, setAttachmentFiles] = useState<AttachmentFiles>({})
   const [documentValidityDates, setDocumentValidityDates] = useState<DocumentValidityDates>({})
   const [showDocumentValidation, setShowDocumentValidation] = useState(false)
-  const [authorizedSignature, setAuthorizedSignature] = useState("")
   const [declarationDate, setDeclarationDate] = useState("")
   const [signerNameTitle, setSignerNameTitle] = useState("")
   const [salesDepartment, setSalesDepartment] = useState("Sales")
@@ -290,7 +287,6 @@ export default function NewCustomerSettingPage() {
 
     if (isSalesUser && staffDisplayName) {
       const salesRep = resolveSalesRep(user?.email, staffDisplayName)
-      setAuthorizedSignature((current) => current || staffDisplayName)
       setSignerNameTitle(
         (current) =>
           current ||
@@ -333,19 +329,8 @@ export default function NewCustomerSettingPage() {
     [registeredAddressDetail.region],
   )
 
-  const mandatoryAttachmentKeys = useMemo(
-    () => getMandatoryAttachmentKeys(registeredAddressDetail.region),
-    [registeredAddressDetail.region],
-  )
-
   const mandatoryDocumentSlots = useMemo(() => {
-    const slots = DOCUMENT_TYPES.filter(
-      (doc) => doc.key !== "bank_proof" && doc.key !== "br" && doc.key !== "ci" && doc.key !== "nar1",
-    ).map((doc) => ({
-      key: doc.key,
-      labelEn: doc.labelEn,
-      labelZh: doc.labelZh,
-    }))
+    const slots: { key: string; labelEn: string; labelZh: string }[] = []
     if (regionVerificationDocument) {
       slots.push({
         key: regionVerificationDocument.key,
@@ -635,20 +620,8 @@ export default function NewCustomerSettingPage() {
           contact: apContactNameDetail,
         },
       ]),
-      ...collectLegalNameIssues([
-        {
-          key: "authorized-signature",
-          label: "Authorized Signature / 獲授權人簽署",
-          value: authorizedSignature,
-        },
-        {
-          key: "signer-name-title",
-          label: "Name & Title / 姓名及職位",
-          value: signerNameTitle,
-        },
-      ]),
     ],
-    [contacts, apContactNameDetail, authorizedSignature, signerNameTitle],
+    [contacts, apContactNameDetail],
   )
 
   const buildFormData = (status: "draft" | "submitted") => {
@@ -689,7 +662,7 @@ export default function NewCustomerSettingPage() {
     formData.append("paymentTermsOther", paymentTermsOther)
     formData.append("documentsChecklistJson", JSON.stringify(checklistFromAttachments(attachmentFiles)))
     formData.append("documentValidityDatesJson", JSON.stringify(documentValidityDates))
-    formData.append("authorizedSignature", authorizedSignature)
+    formData.append("authorizedSignature", signerNameTitle)
     formData.append("declarationDate", declarationDate)
     formData.append("signerNameTitle", signerNameTitle)
     formData.append("salesDepartment", salesDepartment)
@@ -753,7 +726,27 @@ export default function NewCustomerSettingPage() {
         return
       }
 
+      if (!String(contacts[0]?.idNumber || "").trim()) {
+        setError(
+          "Please enter Contact 1 ID Number. / 請填寫聯絡人 1 身分證號碼。",
+        )
+        return
+      }
+
+      if (!bankName.trim() || !accountName.trim() || !accountNumber.trim()) {
+        setError(
+          "Please complete Part 4 bank account details (bank name, account name, and account number). / 請完成 Part 4 銀行戶口資料（銀行名稱、戶口名稱及戶口號碼）。",
+        )
+        return
+      }
+
       const salesForecastValidation = validateSalesForecastForSubmit(salesForecast)
+      if (salesForecastValidation.missingPlan || !hasSalesForecastPlan(salesForecast)) {
+        setError(
+          "Please enter the sales plan in Part 5 (select a market and monthly forecast) before submitting. / 請先於 Part 5 填寫銷售計劃（選擇市場並輸入每月預計額）再提交。",
+        )
+        return
+      }
       if (!salesForecastValidation.ok) {
         setError(
           `Please describe purchase items for "Other" where share or amount is entered. / 請為「其他」品項填寫購買說明：${salesForecastValidation.issues
@@ -791,10 +784,10 @@ export default function NewCustomerSettingPage() {
         SALES_REP_OPTIONS.find((option) => option.display_label === signerNameTitle.trim())?.short_name ||
         ""
 
-      if (!authorizedSignature.trim() || !declarationDate.trim() || !signerNameTitle.trim()) {
+      if (!declarationDate.trim() || !signerNameTitle.trim()) {
         setError(
           isSalesUser
-            ? "Please complete Part 6 declaration fields. / 請完成 Part 6 聲明及簽署欄位。"
+            ? "Please complete Part 6 declaration fields. / 請完成 Part 6 聲明欄位。"
             : "Please complete Part 6 and select a Sales colleague in Name & Title. / 請完成 Part 6，並於「姓名及職位」選擇 Sales 同事。",
         )
         return
@@ -925,10 +918,10 @@ export default function NewCustomerSettingPage() {
         <CardContent className="space-y-4 text-sm text-muted-foreground">
           <ol className="list-decimal space-y-2 pl-5 text-foreground">
             <li>Business Registration (BR) * / 有效商業登記證副本</li>
-            <li>Certificate of Incorporation (CI) * / 公司註冊證明書副本</li>
-            <li>Annual Return (NAR1) * / 最新周年申報表副本</li>
+            <li>Certificate of Incorporation (CI) / 公司註冊證明書副本（Optional / 可選）</li>
+            <li>Annual Return (NAR1) / 最新周年申報表副本（Optional / 可選）</li>
             <li>
-              Companies Registry Company Particulars * / 公司註冊處公司資料
+              Companies Registry Company Particulars / 公司註冊處公司資料（Optional / 可選）
               <div className="mt-2 space-y-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-muted-foreground">
                 <p>
                   Please complete the paid application process and submit the incurred fees to the company for
@@ -1041,11 +1034,12 @@ export default function NewCustomerSettingPage() {
           <form className="space-y-6" onSubmit={(event) => handleSubmit(event, "submitted")}>
             <Card>
               <CardHeader>
-                <CardTitle>Part 1: Required Documents / 必須附帶文件</CardTitle>
+                <CardTitle>Part 1: Documents / 附帶文件</CardTitle>
                 <CardDescription>
-                  Upload mandatory documents first — scanning will auto-fill company details, registered address,
-                  and director contacts below when those fields are still empty. Bank proof is optional. /
-                  請先上載必須文件；掃描後會自動填入下方空白的公司資料、註冊地址及董事聯絡人。銀行戶口證明為可選。
+                  BR is required. CI, NAR1, and Companies Registry particulars are optional — scanning will
+                  auto-fill empty company details, registered address, and director contacts. Bank proof is
+                  optional. /
+                  必須上載 BR。CI、周年申報表及公司註冊處資料為可選；掃描後會自動填入下方空白的公司資料、註冊地址及董事聯絡人。銀行戶口證明為可選。
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1303,9 +1297,10 @@ export default function NewCustomerSettingPage() {
                 <CardTitle>Part 3: Contact Information / 聯絡資料</CardTitle>
                 <CardDescription>
                   Primary contacts must use legal names. Provide English given name and surname, or a full
-                  Chinese name. Middle name is optional. Nicknames are not allowed. Directors from NAR1 scan
-                  auto-fill the first contacts; add or edit remaining contacts manually. /
-                  聯絡人須填寫法定姓名：英文名字及姓氏，或中文姓名全名擇一即可；英文中間名可留空，嚴禁使用花名。周年申報表掃描後會自動填入董事至首選聯絡人，其餘請手動填寫。
+                  Chinese name. Middle name is optional. Nicknames are not allowed. Contact 1 ID Number is
+                  required. Directors from NAR1 scan auto-fill the first contacts; add or edit remaining
+                  contacts manually. /
+                  聯絡人須填寫法定姓名：英文名字及姓氏，或中文姓名全名擇一即可；英文中間名可留空，嚴禁使用花名。聯絡人 1 身分證號碼為必須。周年申報表掃描後會自動填入董事至首選聯絡人，其餘請手動填寫。
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -1348,12 +1343,21 @@ export default function NewCustomerSettingPage() {
                       <Input type="email" value={contact.email} onChange={(e) => updateContact(index, "email", e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`contact-${index}-id-number`}>ID Number / 身分證號碼</Label>
+                      <Label htmlFor={`contact-${index}-id-number`}>
+                        ID Number / 身分證號碼{index === 0 ? " *" : ""}
+                      </Label>
                       <Input
                         id={`contact-${index}-id-number`}
                         value={contact.idNumber || ""}
                         onChange={(e) => updateContact(index, "idNumber", e.target.value)}
+                        required={index === 0}
+                        placeholder={index === 0 ? "Required / 必須" : undefined}
                       />
+                      {index === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Required. As shown on ID copy / 必須。與身分證副本一致
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <PhoneWithCountryCodeInput
@@ -1410,11 +1414,15 @@ export default function NewCustomerSettingPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Part 4: Bank Account Details / 銀行戶口資料</CardTitle>
+                <CardDescription>
+                  Required. Imported from the customer Excel when provided. /
+                  必須填寫。客戶 Excel 已填寫時會自動匯入。
+                </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="bankName">Bank Name / 銀行名稱</Label>
-                  <Input id="bankName" value={bankName} onChange={(e) => setBankName(e.target.value)} />
+                  <Label htmlFor="bankName">Bank Name / 銀行名稱 *</Label>
+                  <Input id="bankName" value={bankName} onChange={(e) => setBankName(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bankBranchName">Branch Name / 分店名稱</Label>
@@ -1434,17 +1442,18 @@ export default function NewCustomerSettingPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="accountName">Account Name / 戶口名稱</Label>
+                  <Label htmlFor="accountName">Account Name / 戶口名稱 *</Label>
                   <Input
                     id="accountName"
                     value={accountName}
                     onChange={(e) => setAccountName(e.target.value)}
                     placeholder="Must match company name / 須與公司名稱一致"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="accountNumber">Account Number / 戶口號碼</Label>
-                  <Input id="accountNumber" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} />
+                  <Label htmlFor="accountNumber">Account Number / 戶口號碼 *</Label>
+                  <Input id="accountNumber" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bankCode">Bank Code / SWIFT Code / 銀行代碼</Label>
@@ -1456,6 +1465,10 @@ export default function NewCustomerSettingPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Part 5: Requested Terms / 擬定交易條件</CardTitle>
+                <CardDescription>
+                  Enter the sales plan to submit the application. /
+                  填寫銷售計劃後即可提交申請。
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <SalesForecastFields value={salesForecast} onChange={setSalesForecast} />
@@ -1501,20 +1514,6 @@ export default function NewCustomerSettingPage() {
                   background checks via official channels. / 我們特此聲明所填資料真實、準確及完整，並授權進行信貸背景審查。
                 </div>
                 <div className="space-y-2">
-                  <LegalNameInput
-                    id="authorizedSignature"
-                    label="Authorized Signature (typed name) / 獲授權人簽署"
-                    value={authorizedSignature}
-                    onChange={setAuthorizedSignature}
-                    readOnly={isSalesUser}
-                    helperText={
-                      isSalesUser
-                        ? "Auto-filled from your login profile / 已按登入資料自動填入"
-                        : "Enter full legal name manually / 請手動輸入全名"
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="declarationDate">Date / 日期</Label>
                   <Input
                     id="declarationDate"
@@ -1530,14 +1529,18 @@ export default function NewCustomerSettingPage() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   {isSalesUser ? (
-                    <LegalNameInput
-                      id="signerNameTitle"
-                      label="Name & Title / 姓名及職位"
-                      value={signerNameTitle}
-                      onChange={setSignerNameTitle}
-                      readOnly
-                      helperText="Auto-filled from your login profile / 已按登入資料自動填入"
-                    />
+                    <>
+                      <Label htmlFor="signerNameTitle">Name & Title / 姓名及職位</Label>
+                      <Input
+                        id="signerNameTitle"
+                        value={signerNameTitle}
+                        readOnly
+                        className="bg-slate-50"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Auto-filled from your login profile / 已按登入資料自動填入
+                      </p>
+                    </>
                   ) : (
                     <>
                       <Label htmlFor="signerNameTitle">Name & Title / 姓名及職位</Label>

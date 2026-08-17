@@ -158,17 +158,16 @@ export function Nar1DocumentSlot({
     <div className="space-y-3 rounded-lg border border-[#02315a]/20 bg-slate-50/50 p-4">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <div className="font-medium text-[#02315a]">
-            {labelEn} <span className="text-red-600">*</span>
-          </div>
+          <div className="font-medium text-[#02315a]">{labelEn}</div>
           <div className="text-sm text-muted-foreground">{labelZh}</div>
+          <div className="text-xs text-muted-foreground mt-1">Optional / 可選</div>
         </div>
         <span
           className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            file ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-900"
+            file ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-700"
           }`}
         >
-          {file ? "Uploaded / 已上載" : "Required / 必須上載"}
+          {file ? "Uploaded / 已上載" : "Optional / 可選"}
         </span>
       </div>
 
@@ -198,12 +197,12 @@ export function Nar1DocumentSlot({
       <div className="grid gap-3 md:grid-cols-2 max-w-3xl">
         <div className="space-y-2">
           <Label htmlFor="nar1-br-number">
-            Business Registration No. / 商業登記號碼 <span className="text-red-600">*</span>
+            Business Registration No. / 商業登記號碼
           </Label>
           <Input
             id="nar1-br-number"
             value={validity.businessRegistrationNumber}
-            placeholder="74804319"
+            placeholder="10955344"
             onChange={(event) =>
               onValidityChange({
                 ...validity,
@@ -229,7 +228,7 @@ export function Nar1DocumentSlot({
         </div>
         <div className="space-y-2">
           <Label htmlFor="nar1-made-up-to">
-            {formatDocumentDateLabel("nar1")} <span className="text-red-600">*</span>
+            {formatDocumentDateLabel("nar1")}
           </Label>
           <Input
             id="nar1-made-up-to"
@@ -245,7 +244,7 @@ export function Nar1DocumentSlot({
         </div>
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="nar1-company-name">
-            Company Name / 公司名稱 <span className="text-red-600">*</span>
+            Company Name / 公司名稱
           </Label>
           <Input
             id="nar1-company-name"
@@ -255,7 +254,7 @@ export function Nar1DocumentSlot({
         </div>
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="nar1-share-capital">
-            Share Capital / 股本 <span className="text-red-600">*</span>
+            Share Capital / 股本
           </Label>
           <Input
             id="nar1-share-capital"
@@ -341,7 +340,7 @@ export function Nar1DocumentSlot({
           {validation.messageEn} / {validation.messageZh}
         </p>
       )}
-      {showValidation && !hasCoreFields && (
+      {showValidation && Boolean(file) && !hasCoreFields && (
         <p className="text-xs text-red-700">
           Please complete all NAR1 fields. / 請填寫周年申報表上的全部資料。
         </p>

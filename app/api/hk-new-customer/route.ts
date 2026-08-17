@@ -7,7 +7,6 @@ import type {
 } from "@/types/hk-new-customer"
 import { validateMandatoryDocumentsForSubmit, parseDocumentValidityDates } from "@/lib/hk-new-customer-document-validity"
 import { normalizeContactEntry } from "@/lib/phone-country-codes"
-import { collectLegalNameIssues } from "@/lib/hk-new-customer-name-validation"
 import { collectContactNameIssues } from "@/lib/hk-new-customer-contact-name"
 import { notifyApproversForStatus } from "@/lib/hk-new-customer-approval-notify"
 import {
@@ -22,7 +21,7 @@ import {
   searchRegistrations,
   uploadAttachmentFile,
 } from "@/lib/hk-new-customer-storage"
-import { normalizeSalesForecast } from "@/lib/hk-new-customer-sales-forecast"
+import { normalizeSalesForecast, validateSalesForecastForSubmit } from "@/lib/hk-new-customer-sales-forecast"
 
 export const runtime = "nodejs"
 
@@ -141,18 +140,6 @@ export async function POST(request: Request) {
           key: "ap-contact",
           label: "Accounts Payable Contact Name",
           contact: apContactDetail,
-        },
-      ]),
-      ...collectLegalNameIssues([
-        {
-          key: "authorized-signature",
-          label: "Authorized Signature",
-          value: String(formData.get("authorizedSignature") || ""),
-        },
-        {
-          key: "signer-name-title",
-          label: "Name & Title",
-          value: String(formData.get("signerNameTitle") || ""),
         },
       ]),
     ]
@@ -304,6 +291,55 @@ export async function POST(request: Request) {
             message: `Document validation failed: ${documentValidation.issues
               .map((issue) => `${issue.documentType}: ${issue.messageEn}`)
               .join("; ")}`,
+          },
+          { status: 400 },
+        )
+      }
+
+      if (!String(registration.contacts[0]?.idNumber || "").trim()) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Contact 1 ID Number is required. / 聯絡人 1 身分證號碼為必須。",
+          },
+          { status: 400 },
+        )
+      }
+
+      if (!registration.bankName || !registration.accountName || !registration.accountNumber) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Bank name, account name, and account number are required. / 請填寫銀行名稱、戶口名稱及戶口號碼。",
+          },
+          { status: 400 },
+        )
+      }
+
+      const salesForecastValidation = validateSalesForecastForSubmit(
+        registration.salesForecast || normalizeSalesForecast(null),
+      )
+      if (!salesForecastValidation.ok) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: salesForecastValidation.missingPlan
+              ? "Please enter the sales plan in Part 5 before submitting. / 請先於 Part 5 填寫銷售計劃再提交。"
+              : `Please describe purchase items for Other: ${salesForecastValidation.issues
+                  .map((issue) => issue.labelEn)
+                  .join(", ")}`,
+          },
+          { status: 400 },
+        )
+      }
+
+      if (!registration.declarationDate || !registration.signerNameTitle || !registration.salesRepName) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Please select the responsible Sales colleague in Name & Title. / 請於「姓名及職位」選擇負責 Sales 同事。",
           },
           { status: 400 },
         )

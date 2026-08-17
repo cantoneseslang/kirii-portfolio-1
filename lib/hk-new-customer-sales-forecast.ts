@@ -117,11 +117,18 @@ export function formatHkdAmount(value: number): string {
   })
 }
 
+export function hasSalesForecastPlan(forecast: SalesForecast): boolean {
+  const anyEnabled = SALES_MARKET_REGIONS.some((region) => forecast.regions[region.value].enabled)
+  return anyEnabled && calculateSalesForecastTotals(forecast).monthlyTotal > 0
+}
+
 export function validateSalesForecastForSubmit(forecast: SalesForecast): {
   ok: boolean
+  missingPlan: boolean
   issues: { region: SalesMarketRegion; labelEn: string; labelZh: string }[]
 } {
   const issues: { region: SalesMarketRegion; labelEn: string; labelZh: string }[] = []
+  const missingPlan = !hasSalesForecastPlan(forecast)
 
   for (const region of SALES_MARKET_REGIONS) {
     const regionData = forecast.regions[region.value]
@@ -139,5 +146,5 @@ export function validateSalesForecastForSubmit(forecast: SalesForecast): {
     }
   }
 
-  return { ok: issues.length === 0, issues }
+  return { ok: !missingPlan && issues.length === 0, missingPlan, issues }
 }
