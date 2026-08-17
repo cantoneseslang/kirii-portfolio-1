@@ -484,9 +484,14 @@ export async function getAdminEmployeeData(): Promise<{
       const userActivities = monthActivity?.filter((a) => a.user_id === profile.id) || []
       const email = emailById.get(profile.id) || ""
       const cardActivityCount = userActivities.length
-      const lastActivity =
+      const lastCardActivity =
         userActivities.length > 0
           ? new Date(Math.max(...userActivities.map((a) => new Date(a.created_at).getTime())))
+          : null
+      const usedDates = [lastLogin, lastCardActivity].filter((d): d is Date => d !== null)
+      const lastActivity =
+        usedDates.length > 0
+          ? new Date(Math.max(...usedDates.map((d) => d.getTime())))
           : null
 
       const engagementDates = [lastLogin, lastActivity].filter((d): d is Date => d !== null)
