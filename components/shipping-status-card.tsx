@@ -2,13 +2,13 @@
 
 import { FactoryErpCardShell } from "@/components/factory-erp-card-shell"
 
-/** Google Drive folder link will be wired when the shared URL is provided. */
 const ShippingStatusCard = () => (
   <FactoryErpCardShell
-    href="#"
+    href="https://drive.google.com/drive/folders/1gSi0LB532lEf_d97UL-KpVL02Bmuber4?usp=drive_link"
     title="Auto-save shipping status"
     subtitle="出貨情況自動紀錄"
     showNewBadge
+    external
   />
 )
 
