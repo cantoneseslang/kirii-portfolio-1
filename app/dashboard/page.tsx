@@ -24,6 +24,7 @@ import PQFormCard from "@/components/pq-form-card";
 import ManufacturingOrderCard from "@/components/manufacturing-order-card";
 import MaterialStockCard from "@/components/material-stock-card";
 import InventorySummaryCard from "@/components/inventory-summary-card";
+import ShippingStatusCard from "@/components/shipping-status-card";
 import MillCertificationCard from "@/components/mill-certification-card";
 import CertificateCard from "@/components/certificate-card";
 import CollectPaymentCardWrapper from "@/components/collect-payment-card-wrapper";
@@ -322,13 +323,21 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {hasCardPermission(profile, "inventory_summary") && (
+        {(hasCardPermission(profile, "inventory_summary") ||
+          hasCardPermission(profile, "shipping_status")) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: warehouse</h3>
-            <div className={DASHBOARD_CARD_GRID_SINGLE}>
-              <TrackedCardShell cardKey="inventory_summary">
-                <InventorySummaryCard />
-              </TrackedCardShell>
+            <div className={DASHBOARD_CARD_GRID}>
+              {hasCardPermission(profile, "inventory_summary") && (
+                <TrackedCardShell cardKey="inventory_summary">
+                  <InventorySummaryCard />
+                </TrackedCardShell>
+              )}
+              {hasCardPermission(profile, "shipping_status") && (
+                <TrackedCardShell cardKey="shipping_status">
+                  <ShippingStatusCard />
+                </TrackedCardShell>
+              )}
             </div>
           </div>
         )}

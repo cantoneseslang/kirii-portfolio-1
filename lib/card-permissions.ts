@@ -17,6 +17,7 @@ export type CardPermissionKey =
   | "manufacturing_order"
   | "material_stock"
   | "inventory_summary"
+  | "shipping_status"
   | "mill_certification"
   | "supplier_info"
   | "form_master"
@@ -66,6 +67,12 @@ export const CARD_PERMISSIONS: CardPermissionDefinition[] = [
     key: "inventory_summary",
     label: "Inventory Summary Report",
     labelZh: "製品庫存盤點表",
+    section: "warehouse",
+  },
+  {
+    key: "shipping_status",
+    label: "Auto-save shipping status",
+    labelZh: "出貨情況自動紀錄",
     section: "warehouse",
   },
   {
