@@ -194,7 +194,7 @@ export function AdminEmployeePanel({
             <div className="px-6 py-4 bg-gray-50 border-b">
               <h3 className="text-lg font-semibold">Employee Access Control</h3>
               <p className="text-sm text-gray-600 mt-1">
-                左の Active で有効/無効、Department 列のスイッチで部門権限を変更できます（緑=ON、赤=OFF）。Entered は今月ポートフォリオに入った回数。Last action はどのカードでも最後に操作した時刻です。
+                左の Active で有効/無効、Department 列のスイッチで部門権限を変更できます（緑=ON、赤=OFF）。Entered は今月ポートフォリオに入った回数（午餐カードの操作日も含む）。Last action はどのカードでも最後に操作した時刻です。
               </p>
             </div>
             <div className={SCROLLABLE_TABLE_WRAPPER}>
