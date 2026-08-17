@@ -25,6 +25,7 @@ export type CardPermissionSection =
   | "all"
   | "sales"
   | "factory"
+  | "warehouse"
   | "purchasing"
   | "admin"
 
@@ -65,7 +66,7 @@ export const CARD_PERMISSIONS: CardPermissionDefinition[] = [
     key: "inventory_summary",
     label: "Inventory Summary Report",
     labelZh: "製品庫存盤點表",
-    section: "factory",
+    section: "warehouse",
   },
   {
     key: "mill_certification",
@@ -83,6 +84,7 @@ export const DEPARTMENT_PERMISSION_KEYS = [
   "Sales",
   "Purchasing",
   "Factory",
+  "Warehouse",
 ] as const
 
 export type DepartmentPermissionKey = (typeof DEPARTMENT_PERMISSION_KEYS)[number]
@@ -127,6 +129,8 @@ function sectionAllowed(profile: Profile, section: CardPermissionSection): boole
       return department.includes("Sales")
     case "factory":
       return department.includes("Factory")
+    case "warehouse":
+      return department.includes("Warehouse")
     case "purchasing":
       return department.includes("Purchasing")
     case "admin":

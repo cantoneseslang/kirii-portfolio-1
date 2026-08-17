@@ -294,7 +294,6 @@ export default function DashboardPage() {
         {(hasCardPermission(profile, "pq_form") ||
           hasCardPermission(profile, "manufacturing_order") ||
           hasCardPermission(profile, "material_stock") ||
-          hasCardPermission(profile, "inventory_summary") ||
           hasCardPermission(profile, "mill_certification")) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: Factory-ERP</h3>
@@ -314,16 +313,22 @@ export default function DashboardPage() {
                   <MaterialStockCard />
                 </TrackedCardShell>
               )}
-              {hasCardPermission(profile, "inventory_summary") && (
-                <TrackedCardShell cardKey="inventory_summary">
-                  <InventorySummaryCard />
-                </TrackedCardShell>
-              )}
               {hasCardPermission(profile, "mill_certification") && (
                 <TrackedCardShell cardKey="mill_certification">
                   <MillCertificationCard />
                 </TrackedCardShell>
               )}
+            </div>
+          </div>
+        )}
+
+        {hasCardPermission(profile, "inventory_summary") && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Department: warehouse</h3>
+            <div className={DASHBOARD_CARD_GRID_SINGLE}>
+              <TrackedCardShell cardKey="inventory_summary">
+                <InventorySummaryCard />
+              </TrackedCardShell>
             </div>
           </div>
         )}

@@ -24,6 +24,7 @@ const DEPARTMENT_SWITCH_KEYS = [
   "Sales",
   "Purchasing",
   "Factory",
+  "Warehouse",
 ] as const satisfies readonly DepartmentPermissionKey[]
 
 const SCROLLABLE_TABLE_WRAPPER =
