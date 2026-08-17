@@ -72,7 +72,7 @@ export const CARD_PERMISSIONS: CardPermissionDefinition[] = [
   {
     key: "shipping_status",
     label: "Auto-save shipping status",
-    labelZh: "出貨情況自動紀錄",
+    labelZh: "出貨自動監控紀錄",
     section: "warehouse",
   },
   {

@@ -178,7 +178,7 @@ export function ShippingStatusBrowser() {
           </Button>
         </Link>
         <h1 className="text-3xl font-bold">Auto-save shipping status</h1>
-        <p className="text-muted-foreground mt-2">出貨情況自動紀錄</p>
+        <p className="text-muted-foreground mt-2">出貨自動監控紀錄</p>
       </div>
 
       {isLoading && (
