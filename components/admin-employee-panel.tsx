@@ -5,6 +5,7 @@ import { AdminPermissionSwitch } from "@/components/admin-permission-switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { resolveDisplayTitle } from "@/lib/display-title"
+import { resolveChineseName } from "@/lib/lunch-member"
 import {
   updateUserActive,
   updateUserDepartmentPermission,
@@ -214,6 +215,7 @@ export function AdminEmployeePanel({
                 <tbody className="bg-white divide-y divide-gray-200">
                   {employees.map((employee) => {
                     const accountEnabled = employee.is_active !== false
+                    const chineseName = resolveChineseName(employee.full_name, employee.email)
                     return (
                       <tr
                         key={employee.id}
@@ -231,9 +233,14 @@ export function AdminEmployeePanel({
                           {resolveDisplayTitle(employee)}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {employee.full_name}
-                          {!accountEnabled && (
-                            <span className="ml-2 text-xs text-red-600 font-semibold">DISABLED</span>
+                          <div>
+                            {employee.full_name}
+                            {!accountEnabled && (
+                              <span className="ml-2 text-xs text-red-600 font-semibold">DISABLED</span>
+                            )}
+                          </div>
+                          {chineseName && (
+                            <div className="text-sm font-normal text-gray-600">{chineseName}</div>
                           )}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{employee.email || "N/A"}</td>
