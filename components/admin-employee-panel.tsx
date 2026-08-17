@@ -220,7 +220,7 @@ export function AdminEmployeePanel({
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Email</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Position</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50 whitespace-nowrap">
-                      Used days ({monthToDate.range})
+                      Used ({monthToDate.range})
                     </th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last action (HK)</th>
                     {DEPARTMENT_SWITCH_KEYS.map((token) => (
@@ -267,7 +267,7 @@ export function AdminEmployeePanel({
                         <td className="px-2 py-2 text-sm text-gray-500 max-w-[140px] truncate">{employee.email || "N/A"}</td>
                         <td className="px-2 py-2 text-sm text-gray-500 max-w-[110px] truncate">{employee.position || "—"}</td>
                         <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
-                          {employee.cardActivityCount}/{monthToDate.days}
+                          {employee.cardActivityCount}
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-500">
                           {formatHongKongTime(employee.lastActivity, "No activity")}

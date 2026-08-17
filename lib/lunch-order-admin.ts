@@ -154,7 +154,7 @@ export async function fetchLunchOrderActivity(
 }
 
 export type LunchOrderEngagement = {
-  days: number
+  count: number
   lastAt: Date
 }
 
@@ -170,39 +170,31 @@ export async function fetchLunchOrderEngagementByMemberId(
     .from("orders")
     .select("member_id, drink, timestamp, operator_member_id")
     .gte("timestamp", fromIso)
-    .lte("timestamp", toIso)
+    .lt("timestamp", toIso)
     .order("timestamp", { ascending: false })
     .limit(5000)
 
   if (error || !data) return engagement
 
-  const daysByMember = new Map<string, Set<string>>()
-
   const add = (memberId: string | null | undefined, timestamp: string) => {
     const id = String(memberId || "").trim()
     if (!id) return
     const at = new Date(timestamp)
-    const dateKey = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Hong_Kong",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(at)
-    const days = daysByMember.get(id) ?? new Set<string>()
-    days.add(dateKey)
-    daysByMember.set(id, days)
     const current = engagement.get(id)
-    if (!current || at > current.lastAt) {
-      engagement.set(id, { days: days.size, lastAt: at })
-    } else {
-      current.days = days.size
+    if (!current) {
+      engagement.set(id, { count: 1, lastAt: at })
+      return
     }
+    current.count += 1
+    if (at > current.lastAt) current.lastAt = at
   }
 
   for (const row of data) {
     if (isMetaRow(row.member_id, row.drink)) continue
-    add(row.member_id, row.timestamp)
-    if (row.operator_member_id) add(row.operator_member_id, row.timestamp)
+    const memberId = String(row.member_id || "").trim()
+    const operatorId = String(row.operator_member_id || "").trim()
+    add(memberId, row.timestamp)
+    if (operatorId && operatorId !== memberId) add(operatorId, row.timestamp)
   }
 
   return engagement

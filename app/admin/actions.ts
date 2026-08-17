@@ -496,7 +496,7 @@ export async function getAdminEmployeeData(): Promise<{
       )
       const lunchMemberId = resolveLunchMemberId(profile.full_name, email)
       const lunch = lunchMemberId ? lunchEngagement.get(lunchMemberId) : undefined
-      const cardActivityCount = Math.max(loginCount, enteredCount, lunch?.days || 0)
+      const cardActivityCount = (lunch?.count || 0) + enteredCount
       const lastCardOp =
         cardOps.length > 0
           ? new Date(Math.max(...cardOps.map((a) => new Date(a.created_at).getTime())))
