@@ -465,14 +465,21 @@ export async function getAdminEmployeeData(): Promise<{
 
     const { data: authUsers } = await supabase.auth.admin.listUsers({ page: 1, perPage: 2000 })
     const emailById = new Map((authUsers?.users || []).map((user) => [user.id, user.email || ""]))
+    const lastSignInById = new Map(
+      (authUsers?.users || []).map((user) => [
+        user.id,
+        user.last_sign_in_at ? new Date(user.last_sign_in_at) : null,
+      ]),
+    )
 
     const employees: AdminEmployeeRow[] = (profiles || []).map((profile) => {
       const userLogins = loginHistory?.filter((h) => h.user_id === profile.id) || []
       const loginCount = userLogins.length
-      const lastLogin =
+      const lastHistoryLogin =
         userLogins.length > 0
           ? new Date(Math.max(...userLogins.map((l) => new Date(l.login_timestamp).getTime())))
           : null
+      const lastLogin = lastSignInById.get(profile.id) || lastHistoryLogin
 
       const userActivities = monthActivity?.filter((a) => a.user_id === profile.id) || []
       const cardActivityCount = userActivities.length

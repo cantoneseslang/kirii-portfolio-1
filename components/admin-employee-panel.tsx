@@ -197,11 +197,9 @@ export function AdminEmployeePanel({
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Name</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Email</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Position</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Login Count</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last Login (HK)</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Card Activity</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last Activity (HK)</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Usage</th>
                     {DEPARTMENT_SWITCH_KEYS.map((token) => (
                       <th
                         key={token}
@@ -245,7 +243,6 @@ export function AdminEmployeePanel({
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{employee.email || "N/A"}</td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{employee.position || "—"}</td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{employee.loginCount}</td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatHongKongTime(employee.lastLogin)}
                         </td>
@@ -254,11 +251,6 @@ export function AdminEmployeePanel({
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatHongKongTime(employee.lastActivity, "No activity")}
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${employee.usageStatusColor}`}>
-                            {employee.usageStatus}
-                          </span>
                         </td>
                         {DEPARTMENT_SWITCH_KEYS.map((token) => {
                           const enabled = hasDepartmentToken(employee.department, token)
