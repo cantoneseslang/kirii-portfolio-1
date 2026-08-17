@@ -39,6 +39,20 @@ interface AdminEmployeePanelProps {
   nameByUserId: Record<string, string>
 }
 
+function getHongKongMonthToDateLabel() {
+  const todayKey = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Hong_Kong",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date())
+  const [, month, day] = todayKey.split("-")
+  return {
+    range: `${Number(month)}/1–${Number(month)}/${Number(day)}`,
+    days: Number(day),
+  }
+}
+
 function formatHongKongTime(date: Date | null, emptyLabel = "Not logged in"): string {
   if (!date) return emptyLabel
   return date.toLocaleString("en-US", {
@@ -71,6 +85,8 @@ export function AdminEmployeePanel({
   const [pendingKey, setPendingKey] = useState<string | null>(null)
   const [, startTransition] = useTransition()
   const { toast } = useToast()
+
+  const monthToDate = useMemo(() => getHongKongMonthToDateLabel(), [])
 
   const lunchSummary = useMemo(() => {
     const total = lunchOrderActivity.length
@@ -194,7 +210,7 @@ export function AdminEmployeePanel({
             <div className="px-6 py-4 bg-gray-50 border-b">
               <h3 className="text-lg font-semibold">Employee Access Control</h3>
               <p className="text-sm text-gray-600 mt-1">
-                左の Active で有効/無効、Department 列のスイッチで部門権限を変更できます（緑=ON、赤=OFF）。Entered は今月ポートフォリオに入った回数（午餐カードの操作日も含む）。Last action はどのカードでも最後に操作した時刻です。
+                左の Active で有効/無効、Department 列のスイッチで部門権限を変更できます（緑=ON、赤=OFF）。Used days は {monthToDate.range}（香港）のうち、実際にポートフォリオまたは午餐を使った日数です。カレンダー日数ではありません。Last action は最後に操作した時刻です。
               </p>
             </div>
             <div className={SCROLLABLE_TABLE_WRAPPER}>
@@ -206,7 +222,9 @@ export function AdminEmployeePanel({
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Name</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Email</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Position</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Entered</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50 whitespace-nowrap">
+                      Used days ({monthToDate.range})
+                    </th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Last action (HK)</th>
                     {DEPARTMENT_SWITCH_KEYS.map((token) => (
                       <th
@@ -252,7 +270,7 @@ export function AdminEmployeePanel({
                         <td className="px-2 py-2 text-sm text-gray-500 max-w-[140px] truncate">{employee.email || "N/A"}</td>
                         <td className="px-2 py-2 text-sm text-gray-500 max-w-[110px] truncate">{employee.position || "—"}</td>
                         <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
-                          {employee.cardActivityCount}
+                          {employee.cardActivityCount}/{monthToDate.days}
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-500">
                           {formatHongKongTime(employee.lastActivity, "No activity")}

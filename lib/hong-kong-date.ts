@@ -16,6 +16,27 @@ export function getHongKongDayRange(dateKey: string): { from: string; to: string
   return { from: from.toISOString(), to: to.toISOString() }
 }
 
+export function getHongKongMonthToDateRange(ref: Date = new Date()): {
+  from: string
+  to: string
+  startKey: string
+  todayKey: string
+  dayOfMonth: number
+} {
+  const todayKey = getHongKongDateKey(ref)
+  const [year, month] = todayKey.split("-")
+  const startKey = `${year}-${month}-01`
+  const { from } = getHongKongDayRange(startKey)
+  const { to } = getHongKongDayRange(todayKey)
+  return {
+    from,
+    to,
+    startKey,
+    todayKey,
+    dayOfMonth: Number(todayKey.slice(-2)),
+  }
+}
+
 export function listRecentHongKongDateKeys(days: number, ref: Date = new Date()): string[] {
   const keys: string[] = []
   for (let i = 0; i < days; i++) {

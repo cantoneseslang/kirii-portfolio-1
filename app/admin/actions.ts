@@ -11,6 +11,7 @@ import {
 import type { Profile } from "@/types/profile"
 import { fetchLunchOrderActivity, fetchLunchOrderEngagementByMemberId, type LunchOrderActivityRow } from "@/lib/lunch-order-admin"
 import { resolveLunchMemberId } from "@/lib/lunch-member"
+import { getHongKongMonthToDateRange } from "@/lib/hong-kong-date"
 import { createServerSupabaseClient } from "@/utils/supabase/server"
 
 export async function createUser(
@@ -445,30 +446,27 @@ export async function getAdminEmployeeData(): Promise<{
     }
 
     const currentDate = new Date()
-    const currentMonth = currentDate.getMonth() + 1
-    const currentYear = currentDate.getFullYear()
-    const startOfMonth = new Date(currentYear, currentMonth - 1, 1)
-    const endOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59)
+    const monthToDate = getHongKongMonthToDateRange(currentDate)
 
     const { data: loginHistory } = await supabase
       .from("login_history")
       .select("user_id, login_timestamp, login_success")
-      .gte("login_timestamp", startOfMonth.toISOString())
-      .lte("login_timestamp", endOfMonth.toISOString())
+      .gte("login_timestamp", monthToDate.from)
+      .lt("login_timestamp", monthToDate.to)
       .eq("login_success", true)
 
     const { data: monthActivity } = await supabase
       .from("activity_events")
       .select("user_id, created_at, event_type, resource_path")
-      .gte("created_at", startOfMonth.toISOString())
-      .lte("created_at", endOfMonth.toISOString())
+      .gte("created_at", monthToDate.from)
+      .lt("created_at", monthToDate.to)
       .in("event_type", ["card_click", "portal_open", "page_view"])
 
     const { data: authUsers } = await supabase.auth.admin.listUsers({ page: 1, perPage: 2000 })
     const emailById = new Map((authUsers?.users || []).map((user) => [user.id, user.email || ""]))
     const lunchEngagement = await fetchLunchOrderEngagementByMemberId(
-      startOfMonth.toISOString(),
-      endOfMonth.toISOString(),
+      monthToDate.from,
+      monthToDate.to,
     )
     const lastSignInById = new Map(
       (authUsers?.users || []).map((user) => [
