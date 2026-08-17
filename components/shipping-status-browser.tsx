@@ -5,7 +5,7 @@ import Link from "next/link"
 import { ArrowLeft, ChevronDown, ChevronRight, Eye, FolderOpen, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PDFPreviewModal } from "@/components/pdf-preview-modal"
-import { isImageFile } from "@/lib/shipping-status"
+import { isImageFile, sortFoldersNewestFirst } from "@/lib/shipping-status"
 
 type PreviewState = { fileId: string; fileName: string; image: boolean } | null
 
@@ -38,7 +38,7 @@ export function ShippingStatusBrowser() {
     const data = await res.json()
     if (!data.success) throw new Error(data.message || "Failed to load")
     return {
-      folders: (data.folders || []) as DriveItem[],
+      folders: sortFoldersNewestFirst((data.folders || []) as DriveItem[]),
       files: (data.files || []) as DriveItem[],
     }
   }
@@ -96,7 +96,7 @@ export function ShippingStatusBrowser() {
 
   const renderFolders = (items: FolderNode[]) => (
     <div className="space-y-4">
-      {items.map((folder) => (
+      {sortFoldersNewestFirst(items).map((folder) => (
         <div key={folder.id} className="p-3 sm:p-4 bg-gray-50 rounded-lg">
           <button
             type="button"
