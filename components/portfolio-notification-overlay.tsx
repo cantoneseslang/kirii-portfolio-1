@@ -8,6 +8,7 @@ import {
 } from "@/lib/ar-collection-staff"
 import { extractProductionOrderFormState } from "@/lib/production-order-form-state"
 import { ArCollectionNotificationPreview } from "@/components/ar-collection-notification-preview"
+import { NotificationReadableDetails } from "@/components/notification-readable-details"
 
 type PortfolioNotificationOverlayProps = {
   notification: PortfolioNotification
@@ -69,17 +70,19 @@ export function PortfolioNotificationOverlay({
   const isArCollection = notification.source === AR_COLLECTION_SOURCE
   const isArConfirmed = notification.source === AR_COLLECTION_CONFIRMED_SOURCE
   const isArRelated = isArCollection || isArConfirmed
-  // AR: show inline details (iframe preview breaks for cross-app / old localhost URLs)
+  const isNewCustomer = notification.source.includes("new-customer")
+  const useInlinePreview = isArRelated || isNewCustomer
+  // AR / New Customer: show inline details (iframe preview is for PQ forms)
   const previewUrl =
-    !isArRelated && shareUrl
+    !useInlinePreview && shareUrl
       ? buildEmbeddedPreviewUrl(shareUrl, false)
-      : !isArRelated
+      : !useInlinePreview
         ? buildEmbeddedPreviewUrl("", false)
         : ""
   previewOriginRef.current = previewUrl ? new URL(previewUrl).origin : PQ_FORM_ORIGIN
 
   const sendPreviewState = useCallback(() => {
-    if (isArRelated) return
+    if (useInlinePreview) return
     const formState = extractProductionOrderFormState(notification.payload)
     const targetWindow = iframeRef.current?.contentWindow
     if (!formState || !targetWindow) return
@@ -90,10 +93,10 @@ export function PortfolioNotificationOverlay({
       },
       previewOriginRef.current,
     )
-  }, [notification.payload, isArRelated])
+  }, [notification.payload, useInlinePreview])
 
   useEffect(() => {
-    if (!previewUrl || isArRelated) return undefined
+    if (!previewUrl || useInlinePreview) return undefined
     sendPreviewState()
     const intervalId = window.setInterval(sendPreviewState, 400)
     const timeoutId = window.setTimeout(() => window.clearInterval(intervalId), 6000)
@@ -101,7 +104,7 @@ export function PortfolioNotificationOverlay({
       window.clearInterval(intervalId)
       window.clearTimeout(timeoutId)
     }
-  }, [previewUrl, sendPreviewState, isArRelated])
+  }, [previewUrl, sendPreviewState, useInlinePreview])
 
   const headerClass = isArConfirmed
     ? "border-b border-emerald-800/40 bg-[#0a6b3f] px-6 py-5 text-white md:px-8 md:py-6"
@@ -113,7 +116,9 @@ export function PortfolioNotificationOverlay({
     ? "AR Confirmed by Sakon"
     : isArCollection
       ? "AR Collection Notification"
-      : "Portfolio Notification"
+      : isNewCustomer
+        ? "New Customer Registration"
+        : "Portfolio Notification"
 
   return (
     <div
@@ -158,7 +163,11 @@ export function PortfolioNotificationOverlay({
         </div>
 
         <div className="relative min-h-0 flex-1 overflow-hidden bg-[#bdbdbd]">
-          {isArRelated ? (
+          {isNewCustomer ? (
+            <div className="h-full overflow-auto bg-white p-6 md:p-8">
+              <NotificationReadableDetails source={notification.source} payload={payload} />
+            </div>
+          ) : isArRelated ? (
             <ArCollectionNotificationPreview
               payload={payload}
               body={notification.body}
@@ -196,7 +205,9 @@ export function PortfolioNotificationOverlay({
               >
                 {acknowledging
                   ? "Working…"
-                  : isArRelated
+                  : isNewCustomer
+                    ? "Open application / 打開申請"
+                    : isArRelated
                     ? "Open case · Comment"
                     : "Continue"}
               </button>

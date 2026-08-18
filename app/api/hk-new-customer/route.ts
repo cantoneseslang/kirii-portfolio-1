@@ -366,8 +366,8 @@ export async function POST(request: Request) {
     if (status === "submitted") {
       const emailResult = await notifyApproversForStatus(registration)
       const message = emailResult.sent
-        ? "Submitted for approval. Sales managers have been notified by email to review in Portfolio → NewCustomer Approvals."
-        : "Submitted for approval. Email notification failed — please ask sales managers to open NewCustomer Approvals in Portfolio."
+        ? "Submitted for approval. Approvers and the General Manager have been notified in Portfolio."
+        : "Submitted for approval. In-app/email notification failed — open NewCustomer Approvals in Portfolio to review."
 
       return NextResponse.json({
         success: true,

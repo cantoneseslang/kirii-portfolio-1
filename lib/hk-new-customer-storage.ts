@@ -127,9 +127,14 @@ export async function listPendingApprovalsForEmail(email: string): Promise<HkNew
   const role = getApproverRole(email)
   if (!role) return []
 
-  const pendingStatus = getPendingStatusForRole(role)
+  const pendingStatuses =
+    role === "general_manager"
+      ? (["pending_sales_manager", "pending_finance", "pending_gm"] as const)
+      : ([getPendingStatusForRole(role)] as const)
   const index = await getIndex()
-  const candidates = index.items.filter((item) => item.approvalStatus === pendingStatus)
+  const candidates = index.items.filter((item) =>
+    pendingStatuses.includes(item.approvalStatus as (typeof pendingStatuses)[number]),
+  )
   const registrations = await Promise.all(
     candidates.map((item) => getRegistration(item.id)),
   )

@@ -228,5 +228,22 @@ export function NotificationReadableDetails({
   if (source === "pq-form-production-order") {
     return <ProductionOrderReadableDetails payload={payload} />
   }
+  if (source === "hk-new-customer" || source.includes("new-customer")) {
+    return (
+      <div className="space-y-4">
+        <DetailTable
+          rows={[
+            { label: "Company", value: text(payload.companyNameEn) },
+            { label: "中文名稱", value: text(payload.companyNameZh) },
+            { label: "BR No.", value: text(payload.brNumber) },
+            { label: "Sales Rep", value: text(payload.salesRepName) },
+            { label: "Submitted by", value: text(payload.submitterName) || text(payload.createdByName) },
+            { label: "Email", value: text(payload.submitterEmail) },
+            { label: "Status", value: text(payload.approvalStatus) },
+          ]}
+        />
+      </div>
+    )
+  }
   return <GenericReadableDetails payload={payload} />
 }

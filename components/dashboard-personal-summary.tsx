@@ -128,7 +128,7 @@ export function DashboardPersonalSummary({ email, fullName }: DashboardPersonalS
               >
                 {summary!.pendingApprovals[0].labelZh}
               </Link>{" "}
-              待你審批
+              {summary!.pendingApprovals[0].statusLabelZh}
               {summary!.pendingApprovals[0].companyNameEn ? (
                 <span className="text-muted-foreground">
                   （{summary!.pendingApprovals[0].companyNameEn}）

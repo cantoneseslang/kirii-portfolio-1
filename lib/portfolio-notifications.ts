@@ -7,6 +7,8 @@ import {
 
 export type { ProductionOrderFormState } from "@/lib/production-order-form-state"
 
+export const NEW_CUSTOMER_SOURCE = "hk-new-customer"
+
 const DEFAULT_SUPABASE_URL = "https://mnshbcvrrzlumfomniim.supabase.co"
 
 function getServiceRoleClient() {
@@ -157,6 +159,43 @@ export async function getNotificationInboxForUser(
   return (data || [])
     .filter((row) => row.recipient_email?.trim().toLowerCase() === normalizedEmail)
     .slice(0, limit) as PortfolioNotification[]
+}
+
+export async function createPortfolioNotifications(params: {
+  recipientEmails: string[]
+  title: string
+  body: string
+  source: string
+  payload?: Record<string, unknown>
+}): Promise<{ inserted: number; message?: string }> {
+  const uniqueEmails = [
+    ...new Set(
+      params.recipientEmails.map((email) => email.trim().toLowerCase()).filter(Boolean),
+    ),
+  ]
+  if (uniqueEmails.length === 0) return { inserted: 0, message: "No recipients" }
+
+  const supabase = getServiceRoleClient()
+  const { error } = await supabase.from("portfolio_notifications").insert(
+    uniqueEmails.map((email) => ({
+      recipient_email: email,
+      title: params.title,
+      body: params.body,
+      source: params.source,
+      payload: params.payload || {},
+    })),
+  )
+
+  if (error) {
+    console.error("[portfolio-notifications] Failed to insert notifications", {
+      message: error.message,
+      source: params.source,
+      recipients: uniqueEmails,
+    })
+    return { inserted: 0, message: error.message }
+  }
+
+  return { inserted: uniqueEmails.length }
 }
 
 async function notifyArSenderOnAcknowledge(params: {

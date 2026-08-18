@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  canApproveRegistration,
   getApprovalStatusLabel,
   getApproverRole,
 } from "@/lib/hk-new-customer-approval"
@@ -175,7 +176,8 @@ export default function NewCustomerApprovalsPage() {
               <CardDescription>
                 {approverRole === "sales_manager" && "Sales Manager / 營業經理"}
                 {approverRole === "finance" && "Finance / 財務"}
-                {approverRole === "general_manager" && "General Manager / 社長"}
+                {approverRole === "general_manager" &&
+                  "General Manager / 社長 · all in-progress applications"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -276,14 +278,22 @@ export default function NewCustomerApprovalsPage() {
                     />
                   </div>
 
-                  <div className="flex flex-wrap gap-3">
-                    <Button disabled={processing} onClick={() => void handleDecision("approve")}>
-                      {processing ? "Processing..." : "Approve / 批准"}
-                    </Button>
-                    <Button disabled={processing} variant="destructive" onClick={() => void handleDecision("reject")}>
-                      Reject / 拒絕
-                    </Button>
-                  </div>
+                  {user?.email && canApproveRegistration(selectedRecord, user.email) ? (
+                    <div className="flex flex-wrap gap-3">
+                      <Button disabled={processing} onClick={() => void handleDecision("approve")}>
+                        {processing ? "Processing..." : "Approve / 批准"}
+                      </Button>
+                      <Button disabled={processing} variant="destructive" onClick={() => void handleDecision("reject")}>
+                        Reject / 拒絕
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Waiting for the current step: {getApprovalStatusLabel(selectedRecord.approvalStatus)}.
+                      You can review the application now. /
+                      現正等待：{getApprovalStatusLabel(selectedRecord.approvalStatus)}。可先查閱申請內容。
+                    </p>
+                  )}
                 </>
               )}
             </CardContent>
