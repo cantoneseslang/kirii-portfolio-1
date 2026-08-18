@@ -11,6 +11,7 @@ import {
   canApproveRegistration,
   getApprovalStatusLabel,
   getApproverRole,
+  getNextApprovalStatus,
 } from "@/lib/hk-new-customer-approval"
 import type { HkNewCustomerRegistration } from "@/types/hk-new-customer"
 import { getAttachmentTypeLabel } from "@/types/hk-new-customer"
@@ -279,13 +280,30 @@ export default function NewCustomerApprovalsPage() {
                   </div>
 
                   {user?.email && canApproveRegistration(selectedRecord, user.email) ? (
-                    <div className="flex flex-wrap gap-3">
-                      <Button disabled={processing} onClick={() => void handleDecision("approve")}>
-                        {processing ? "Processing..." : "Approve / 批准"}
-                      </Button>
-                      <Button disabled={processing} variant="destructive" onClick={() => void handleDecision("reject")}>
-                        Reject / 拒絕
-                      </Button>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        {(() => {
+                          const next = getNextApprovalStatus(
+                            selectedRecord.approvalStatus || "pending_sales_manager",
+                          )
+                          if (next === "approved") {
+                            return "Approve to complete registration. / 批准後完成登記。"
+                          }
+                          return `Approve to send to ${getApprovalStatusLabel(next)}. / 批准後進入：${getApprovalStatusLabel(next)}`
+                        })()}
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        <Button disabled={processing} onClick={() => void handleDecision("approve")}>
+                          {processing ? "Processing..." : "Approve / 批准"}
+                        </Button>
+                        <Button
+                          disabled={processing}
+                          variant="destructive"
+                          onClick={() => void handleDecision("reject")}
+                        >
+                          Reject / 拒絕
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">

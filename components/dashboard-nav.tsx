@@ -84,7 +84,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
   }
 
   return (
-    <nav className="grid items-start gap-2">
+    <nav className="grid w-full min-w-0 items-start gap-2">
       {visibleItems.map((item) => {
         const isNotifications = item.href === "/dashboard/notifications"
         const label =
@@ -96,18 +96,18 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
             key={item.href}
             href={item.disabled ? "#" : item.href}
             className={cn(
-              "flex items-center rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+              "flex w-full min-w-0 items-center rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
               pathname === item.href ? "bg-accent text-accent-foreground" : "transparent",
               item.disabled && "pointer-events-none opacity-60",
             )}
           >
-            {label}
+            <span className="min-w-0 whitespace-normal break-words">{label}</span>
           </Link>
         )
       })}
       <Button
         variant="ghost"
-        className="justify-start px-3 py-2 text-sm font-medium"
+        className="h-auto w-full min-w-0 justify-start whitespace-normal px-3 py-2 text-sm font-medium"
         onClick={handleSignOut}
       >
         Logout

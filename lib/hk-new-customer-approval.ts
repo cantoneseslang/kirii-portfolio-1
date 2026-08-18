@@ -88,12 +88,23 @@ export function getPendingStatusForRole(role: ApproverRole): ApprovalStatus {
   return "pending_gm"
 }
 
+export function isPendingApprovalStatus(
+  status?: ApprovalStatus | null,
+): status is ApprovalStatus {
+  return (
+    status === "pending_sales_manager" ||
+    status === "pending_finance" ||
+    status === "pending_gm"
+  )
+}
+
 export function canApproveRegistration(
   registration: HkNewCustomerRegistration,
   email: string,
 ): boolean {
   const role = getApproverRole(email)
-  if (!role || !registration.approvalStatus) return false
+  if (!role || !isPendingApprovalStatus(registration.approvalStatus)) return false
+  if (role === "general_manager") return true
   return registration.approvalStatus === getPendingStatusForRole(role)
 }
 
