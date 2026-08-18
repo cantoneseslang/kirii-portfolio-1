@@ -3,6 +3,7 @@ import {
   getApprovalStatusLabel,
   getPortfolioLoginUrl,
 } from "@/lib/hk-new-customer-approval"
+import { formatWorkRulesHtml } from "@/lib/hk-new-customer-work-rules"
 
 function registrationSummary(registration: HkNewCustomerRegistration): string {
   return `
@@ -105,6 +106,7 @@ export function buildSubmitterApprovedEmail(registration: HkNewCustomerRegistrat
         <li>Open <strong>NewCustomer Setting / 新客戶登記</strong> from the Dashboard sidebar / 從 Dashboard 側欄進入</li>
         <li>Use the Search tab to find this registration and download the completed form / 使用「Search」分頁查找記錄並下載表格</li>
       </ol>
+      ${formatWorkRulesHtml()}
     `,
   }
 }
@@ -117,12 +119,35 @@ export function buildSubmitterRejectedEmail(registration: HkNewCustomerRegistrat
       <p>Your new customer registration was rejected during approval.</p>
       ${registrationSummary(registration)}
       ${comment ? `<p>Comment / 備註: ${comment}</p>` : ""}
-      <p>Open <strong>NewCustomer Setting / 新客戶登記</strong> in KIRII Employee Portfolio to review and resubmit.</p>
+      <p>Open <strong>NewCustomer Setting / 新客戶登記</strong> in KIRII Employee Portfolio to review and resubmit promptly.</p>
       <ol>
         <li>Log in at <a href="${getPortfolioLoginUrl()}">KIRII Employee Portfolio</a> / 登入 Portfolio</li>
         <li>Open <strong>NewCustomer Setting / 新客戶登記</strong> from the Dashboard sidebar / 從 Dashboard 側欄進入</li>
-        <li>Review the rejection comment and update the form / 查閱拒絕原因並修改表格</li>
+        <li>Review the rejection comment and re-apply immediately with updated documents / 查閱拒絕原因並立即以最新文件再申請</li>
       </ol>
+      ${formatWorkRulesHtml()}
+    `,
+  }
+}
+
+export function buildSubmitterReapplyEmail(
+  registration: HkNewCustomerRegistration,
+  comment?: string,
+) {
+  return {
+    subject: `[New Customer Re-apply Required] ${registration.companyNameEn}`,
+    html: `
+      <h3>Please re-apply promptly / 請立即再申請</h3>
+      <p>A correction is required for this customer registration (payment details, company particulars, or supporting documents). The original submitter must start a new application immediately. Do not edit the approved record.</p>
+      <p>此客戶登記需要更正（付款資料、公司資料或證明文件）。原申請人必須立即提交新申請。不可改寫已核准紀錄。</p>
+      ${registrationSummary(registration)}
+      ${comment ? `<p>Change required / 須更正內容: ${comment}</p>` : ""}
+      <ol>
+        <li>Log in at <a href="${getPortfolioLoginUrl()}">KIRII Employee Portfolio</a> / 登入 Portfolio</li>
+        <li>Open <strong>NewCustomer Setting → Search</strong> to review the stored files / 打開 Search 查閱已保存資料</li>
+        <li>Start a new application with the same BR number and updated documents / 以同一商業登記號碼及最新文件再申請</li>
+      </ol>
+      ${formatWorkRulesHtml()}
     `,
   }
 }

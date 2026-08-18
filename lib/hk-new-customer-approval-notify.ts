@@ -14,8 +14,13 @@ import {
 import {
   buildApproverNotificationEmail,
   buildSubmitterApprovedEmail,
+  buildSubmitterReapplyEmail,
   buildSubmitterRejectedEmail,
 } from "@/lib/hk-new-customer-email-content"
+import {
+  formatWorkRulesPlain,
+  NEW_CUSTOMER_APPROVED_SHORT_RULE,
+} from "@/lib/hk-new-customer-work-rules"
 
 function uniqueEmails(emails: string[]): string[] {
   return [...new Set(emails.map((email) => email.trim().toLowerCase()).filter(Boolean))]
@@ -94,7 +99,7 @@ async function notifySubmitterInApp(
   params: {
     title: string
     body: string
-    kind: "submitter-approved" | "submitter-rejected"
+    kind: "submitter-approved" | "submitter-rejected" | "submitter-reapply"
     decidedByName?: string
     decidedByEmail?: string
     comment?: string
@@ -113,11 +118,17 @@ async function notifySubmitterInApp(
       ...newCustomerNotificationPayload(registration),
       href,
       shareUrl: `${getSiteBaseUrl()}${href}`,
-      approvalStatus: params.kind === "submitter-approved" ? "approved" : "rejected",
+      approvalStatus:
+        params.kind === "submitter-approved"
+          ? "approved"
+          : params.kind === "submitter-rejected"
+            ? "rejected"
+            : registration.approvalStatus || "",
       kind: params.kind,
       decidedByName: params.decidedByName || "",
       decidedByEmail: params.decidedByEmail || "",
       comment: params.comment || "",
+      workRules: formatWorkRulesPlain(),
     },
   })
 }
@@ -133,7 +144,7 @@ export async function notifySubmitterApproved(
     ? `${registration.companyNameEn} / ${registration.companyNameZh}`
     : registration.companyNameEn
   const title = `Approved: ${registration.companyNameEn}`
-  const body = `${company} has been approved / 你的新客戶登記已獲批准。`
+  const body = `${company} has been approved / 你的新客戶登記已獲批准。 ${NEW_CUSTOMER_APPROVED_SHORT_RULE}`
 
   const inApp = await notifySubmitterInApp(registration, {
     title,
@@ -164,8 +175,8 @@ export async function notifySubmitterRejected(
     : registration.companyNameEn
   const title = `Rejected: ${registration.companyNameEn}`
   const body = comment
-    ? `${company} was rejected / 你的新客戶登記已被拒絕。${comment}`
-    : `${company} was rejected / 你的新客戶登記已被拒絕。`
+    ? `${company} was rejected / 你的新客戶登記已被拒絕。${comment} ${NEW_CUSTOMER_APPROVED_SHORT_RULE}`
+    : `${company} was rejected / 你的新客戶登記已被拒絕。 ${NEW_CUSTOMER_APPROVED_SHORT_RULE}`
 
   const inApp = await notifySubmitterInApp(registration, {
     title,
@@ -176,6 +187,39 @@ export async function notifySubmitterRejected(
     comment,
   })
   const { subject, html } = buildSubmitterRejectedEmail(registration, comment)
+  const emailResult = await sendEmail({ to: recipient, subject, html })
+
+  return {
+    sent: inApp.inserted > 0 || emailResult.sent,
+    message: `in-app ${inApp.inserted}; email ${emailResult.message}`,
+  }
+}
+
+export async function notifySubmitterReapply(
+  registration: HkNewCustomerRegistration,
+  comment?: string,
+  decidedBy?: { name: string; email: string },
+) {
+  const recipient = registration.submitterEmail
+  if (!recipient) return { sent: false, message: "Submitter email missing" }
+
+  const company = registration.companyNameZh
+    ? `${registration.companyNameEn} / ${registration.companyNameZh}`
+    : registration.companyNameEn
+  const title = `Re-apply required: ${registration.companyNameEn}`
+  const body = comment
+    ? `${company} needs a prompt re-application / 請立即再申請。${comment} ${NEW_CUSTOMER_APPROVED_SHORT_RULE}`
+    : `${company} needs a prompt re-application / 請立即再申請。 ${NEW_CUSTOMER_APPROVED_SHORT_RULE}`
+
+  const inApp = await notifySubmitterInApp(registration, {
+    title,
+    body,
+    kind: "submitter-reapply",
+    decidedByName: decidedBy?.name,
+    decidedByEmail: decidedBy?.email,
+    comment,
+  })
+  const { subject, html } = buildSubmitterReapplyEmail(registration, comment)
   const emailResult = await sendEmail({ to: recipient, subject, html })
 
   return {

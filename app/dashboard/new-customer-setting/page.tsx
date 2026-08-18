@@ -51,6 +51,7 @@ import { CiDocumentSlot } from "@/components/ci-document-slot"
 import { Nar1DocumentSlot } from "@/components/nar1-document-slot"
 import { DocumentComplianceSummary } from "@/components/document-compliance-summary"
 import { CustomerDocumentRequestEmail } from "@/components/customer-document-request-email"
+import { NewCustomerWorkRules } from "@/components/new-customer-work-rules"
 import { CustomerIntakeExcelImport } from "@/components/customer-intake-excel-import"
 import { SalesForecastFields, calculateSalesForecastTotals } from "@/components/sales-forecast-fields"
 import { extractBrCoreNumber, validateMandatoryDocumentsForSubmit } from "@/lib/hk-new-customer-document-validity"
@@ -206,12 +207,14 @@ export default function NewCustomerSettingPage() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState("form")
-  const [registrationId] = useState(() => crypto.randomUUID())
+  const [registrationId, setRegistrationId] = useState(() => crypto.randomUUID())
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [packageImporting, setPackageImporting] = useState(false)
   const [deepLinkHandled, setDeepLinkHandled] = useState(false)
+  const [reapplyComment, setReapplyComment] = useState("")
+  const [reapplySending, setReapplySending] = useState(false)
 
   const [companyNameEn, setCompanyNameEn] = useState("")
   const [companyNameZh, setCompanyNameZh] = useState("")
@@ -890,6 +893,90 @@ export default function NewCustomerSettingPage() {
     }
   }, [deepLinkHandled, loadRecord, searchParams])
 
+  const startReapplication = useCallback((record: HkNewCustomerRegistration) => {
+    const nextContacts =
+      record.contacts && record.contacts.length > 0
+        ? record.contacts.map((contact) => ({ ...EMPTY_CONTACT, ...contact }))
+        : emptyContacts()
+    while (nextContacts.length < 3) {
+      nextContacts.push({ ...EMPTY_CONTACT })
+    }
+
+    setRegistrationId(crypto.randomUUID())
+    setCompanyNameEn(record.companyNameEn || "")
+    setCompanyNameZh(record.companyNameZh || "")
+    setBrNumber(record.brNumber || "")
+    setIncorporationDate(record.incorporationDate || "")
+    setRegisteredAddressDetail(
+      resolveStructuredAddress(record.registeredAddressDetail, record.registeredAddress),
+    )
+    setDeliveryAddressDetail(
+      resolveStructuredAddress(record.deliveryAddressDetail, record.deliveryAddress),
+    )
+    setContacts(nextContacts)
+    setApContactNameDetail({
+      ...emptyContactName(),
+      nameEnLast: record.apContactName || "",
+    })
+    setApEmail(record.apEmail || "")
+    setApPhoneCountryCode(record.apPhoneCountryCode || "+852")
+    setApPhone(record.apPhone || "")
+    setInvoiceEmail(record.invoiceDelivery?.includes("email") ?? true)
+    setInvoicePost(record.invoiceDelivery?.includes("post") ?? false)
+    setBankName(record.bankName || "")
+    setBankBranchName(record.bankBranchName || "")
+    setBankBranchNumber(record.bankBranchNumber || "")
+    setAccountName(record.accountName || "")
+    setAccountNumber(record.accountNumber || "")
+    setBankCode(record.bankCode || "")
+    setSalesForecast(record.salesForecast || emptySalesForecast())
+    setPaymentTerms(record.paymentTerms || "advance")
+    setPaymentTermsOther(record.paymentTermsOther || "")
+    setAttachmentFiles({})
+    setDocumentValidityDates(record.documentValidityDates || {})
+    setDeclarationDate(getTodayIsoDateInHongKong())
+    setSalesDepartment(record.salesDepartment || "Sales")
+    setVerificationCheckedDate("")
+    setCompanyStatus("")
+    setBankProofCheck("")
+    setVerificationRemarks("")
+    setCompletedFormUrl(null)
+    setCompletedFormFileName(null)
+    setActiveTab("form")
+    setMessage(
+      "Form filled from the stored record. Re-attach the latest Excel and documents, then submit promptly. Previous approved files stay in Search. / 已載入存檔資料。請重新上載最新 Excel 及文件並盡快再申請。先前已核准檔案仍保留在 Search。",
+    )
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [])
+
+  const requestSubmitterReapply = useCallback(async () => {
+    if (!selectedRecord || !user?.email) return
+    setReapplySending(true)
+    setError(null)
+    setMessage(null)
+    try {
+      const response = await fetch("/api/hk-new-customer/request-reapply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          registrationId: selectedRecord.id,
+          requesterEmail: user.email,
+          comment: reapplyComment.trim() || undefined,
+        }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to notify the original submitter")
+      }
+      setMessage(result.message)
+      setReapplyComment("")
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Failed to notify the original submitter")
+    } finally {
+      setReapplySending(false)
+    }
+  }, [reapplyComment, selectedRecord, user?.email])
+
   return (
     <div className="space-y-6 py-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -977,6 +1064,13 @@ export default function NewCustomerSettingPage() {
             <li>Bank Proof / 銀行戶口證明</li>
             <li>Other Supporting Document / 其他附件 / 身分證等</li>
           </ol>
+
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+            <div className="mb-2 font-medium text-foreground">
+              After approval: file location and change rules / 核准後：資料保存及變更規則
+            </div>
+            <NewCustomerWorkRules compact />
+          </div>
 
           <CustomerDocumentRequestEmail
             salesRepName={salesRepName}
@@ -1681,8 +1775,8 @@ export default function NewCustomerSettingPage() {
             <CardHeader>
               <CardTitle>Search Customer Registrations / 搜尋客戶登記</CardTitle>
               <CardDescription>
-                Search by company name, BR number, contact name, or sales representative. /
-                可按公司名稱、商業登記號碼、聯絡人或銷售員搜尋。
+                Official archive for approved Excel, scans, and Word forms. Search by company name, BR number, contact name, or sales representative. /
+                已核准 Excel、掃描件及 Word 的正式存檔。可按公司名稱、商業登記號碼、聯絡人或銷售員搜尋。
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1815,6 +1909,48 @@ export default function NewCustomerSettingPage() {
                     </a>
                   </div>
                 )}
+
+                <div className="rounded-md border bg-slate-50 p-3">
+                  <div className="mb-2 font-medium">File location and work rules / 資料保存位置及作業規則</div>
+                  <NewCustomerWorkRules compact />
+                </div>
+
+                <div className="space-y-3 rounded-md border p-3">
+                  <div className="font-medium">Payment issue or registration change / 付款問題或登記變更</div>
+                  <p className="text-muted-foreground">
+                    Do not overwrite this approved record. The original submitter must re-apply promptly with updated documents. /
+                    不可改寫此核准紀錄。須由原申請人盡快以最新文件再申請。
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" onClick={() => startReapplication(selectedRecord)}>
+                      Start re-application here / 在此開始再申請
+                    </Button>
+                  </div>
+                  {user?.email && getApproverRole(user.email) && selectedRecord.submitterEmail ? (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="reapply-comment">
+                        Ask original submitter ({selectedRecord.submitterEmail}) to re-apply /
+                        要求原申請人再申請
+                      </label>
+                      <Textarea
+                        id="reapply-comment"
+                        value={reapplyComment}
+                        onChange={(event) => setReapplyComment(event.target.value)}
+                        placeholder="What must be corrected / 須更正的內容"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={reapplySending}
+                        onClick={() => void requestSubmitterReapply()}
+                      >
+                        {reapplySending
+                          ? "Sending..."
+                          : "Send location + rules to submitter / 把保存位置及規則發給原申請人"}
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
               </CardContent>
             </Card>
           )}

@@ -246,7 +246,9 @@ export function NotificationReadableDetails({
                   ? "Approved / 已批准"
                   : payload.kind === "submitter-rejected"
                     ? "Rejected / 已拒絕"
-                    : text(payload.approvalStatus),
+                    : payload.kind === "submitter-reapply"
+                      ? "Re-apply required / 須再申請"
+                      : text(payload.approvalStatus),
             },
             ...(text(payload.decidedByName) !== "-"
               ? [{ label: "Decided by", value: text(payload.decidedByName) }]
@@ -256,6 +258,14 @@ export function NotificationReadableDetails({
               : []),
           ]}
         />
+        {text(payload.workRules) !== "-" ? (
+          <div className="rounded-md border bg-slate-50 p-3">
+            <div className="mb-2 font-medium">File location and work rules / 資料保存位置及作業規則</div>
+            <pre className="whitespace-pre-wrap font-sans text-sm text-muted-foreground">
+              {text(payload.workRules)}
+            </pre>
+          </div>
+        ) : null}
       </div>
     )
   }

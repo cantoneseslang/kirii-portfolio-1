@@ -101,7 +101,11 @@ export function getPortfolioNotificationSender(
 
   if (notification.source.includes("new-customer") || notification.source.includes("hk-new-customer")) {
     const kind = payloadText(payload.kind)
-    if (kind === "submitter-approved" || kind === "submitter-rejected") {
+    if (
+      kind === "submitter-approved" ||
+      kind === "submitter-rejected" ||
+      kind === "submitter-reapply"
+    ) {
       return payloadText(payload.decidedByName) || payloadText(payload.decidedByEmail) || "Sakon"
     }
     return (
