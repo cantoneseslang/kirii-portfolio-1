@@ -73,7 +73,10 @@ export async function POST(request: Request) {
       registration.updatedAt = now
       registration.approvalHistory = approvalHistory
       await saveRegistration(registration)
-      await notifySubmitterRejected(registration, comment)
+      await notifySubmitterRejected(registration, comment, {
+        name: approverName,
+        email: approverEmail,
+      })
       return NextResponse.json({
         success: true,
         message: "Registration rejected and submitter notified.",
@@ -106,7 +109,10 @@ export async function POST(request: Request) {
       }
 
       await saveRegistration(registration)
-      await notifySubmitterApproved(registration)
+      await notifySubmitterApproved(registration, {
+        name: approverName,
+        email: approverEmail,
+      })
 
       return NextResponse.json({
         success: true,

@@ -239,7 +239,21 @@ export function NotificationReadableDetails({
             { label: "Sales Rep", value: text(payload.salesRepName) },
             { label: "Submitted by", value: text(payload.submitterName) || text(payload.createdByName) },
             { label: "Email", value: text(payload.submitterEmail) },
-            { label: "Status", value: text(payload.approvalStatus) },
+            {
+              label: "Status",
+              value:
+                payload.kind === "submitter-approved"
+                  ? "Approved / 已批准"
+                  : payload.kind === "submitter-rejected"
+                    ? "Rejected / 已拒絕"
+                    : text(payload.approvalStatus),
+            },
+            ...(text(payload.decidedByName) !== "-"
+              ? [{ label: "Decided by", value: text(payload.decidedByName) }]
+              : []),
+            ...(text(payload.comment) !== "-"
+              ? [{ label: "Comment", value: text(payload.comment) }]
+              : []),
           ]}
         />
       </div>

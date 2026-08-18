@@ -4,6 +4,7 @@ import {
   getApprovalPageUrl,
   getApproversForStatus,
   getApprovalStatusLabel,
+  getSiteBaseUrl,
   HK_NEW_CUSTOMER_APPROVERS,
 } from "@/lib/hk-new-customer-approval"
 import {
@@ -84,21 +85,101 @@ export async function notifyApproversForStatus(registration: HkNewCustomerRegist
   }
 }
 
-export async function notifySubmitterApproved(registration: HkNewCustomerRegistration) {
+function submitterRecordHref(registrationId: string): string {
+  return `/dashboard/new-customer-setting?tab=search&id=${encodeURIComponent(registrationId)}`
+}
+
+async function notifySubmitterInApp(
+  registration: HkNewCustomerRegistration,
+  params: {
+    title: string
+    body: string
+    kind: "submitter-approved" | "submitter-rejected"
+    decidedByName?: string
+    decidedByEmail?: string
+    comment?: string
+  },
+) {
+  const recipient = registration.submitterEmail
+  if (!recipient) return { inserted: 0, message: "Submitter email missing" }
+
+  const href = submitterRecordHref(registration.id)
+  return createPortfolioNotifications({
+    recipientEmails: [recipient],
+    title: params.title,
+    body: params.body,
+    source: NEW_CUSTOMER_SOURCE,
+    payload: {
+      ...newCustomerNotificationPayload(registration),
+      href,
+      shareUrl: `${getSiteBaseUrl()}${href}`,
+      approvalStatus: params.kind === "submitter-approved" ? "approved" : "rejected",
+      kind: params.kind,
+      decidedByName: params.decidedByName || "",
+      decidedByEmail: params.decidedByEmail || "",
+      comment: params.comment || "",
+    },
+  })
+}
+
+export async function notifySubmitterApproved(
+  registration: HkNewCustomerRegistration,
+  decidedBy?: { name: string; email: string },
+) {
   const recipient = registration.submitterEmail
   if (!recipient) return { sent: false, message: "Submitter email missing" }
 
+  const company = registration.companyNameZh
+    ? `${registration.companyNameEn} / ${registration.companyNameZh}`
+    : registration.companyNameEn
+  const title = `Approved: ${registration.companyNameEn}`
+  const body = `${company} has been approved / 你的新客戶登記已獲批准。`
+
+  const inApp = await notifySubmitterInApp(registration, {
+    title,
+    body,
+    kind: "submitter-approved",
+    decidedByName: decidedBy?.name,
+    decidedByEmail: decidedBy?.email,
+  })
   const { subject, html } = buildSubmitterApprovedEmail(registration)
-  return sendEmail({ to: recipient, subject, html })
+  const emailResult = await sendEmail({ to: recipient, subject, html })
+
+  return {
+    sent: inApp.inserted > 0 || emailResult.sent,
+    message: `in-app ${inApp.inserted}; email ${emailResult.message}`,
+  }
 }
 
 export async function notifySubmitterRejected(
   registration: HkNewCustomerRegistration,
   comment?: string,
+  decidedBy?: { name: string; email: string },
 ) {
   const recipient = registration.submitterEmail
   if (!recipient) return { sent: false, message: "Submitter email missing" }
 
+  const company = registration.companyNameZh
+    ? `${registration.companyNameEn} / ${registration.companyNameZh}`
+    : registration.companyNameEn
+  const title = `Rejected: ${registration.companyNameEn}`
+  const body = comment
+    ? `${company} was rejected / 你的新客戶登記已被拒絕。${comment}`
+    : `${company} was rejected / 你的新客戶登記已被拒絕。`
+
+  const inApp = await notifySubmitterInApp(registration, {
+    title,
+    body,
+    kind: "submitter-rejected",
+    decidedByName: decidedBy?.name,
+    decidedByEmail: decidedBy?.email,
+    comment,
+  })
   const { subject, html } = buildSubmitterRejectedEmail(registration, comment)
-  return sendEmail({ to: recipient, subject, html })
+  const emailResult = await sendEmail({ to: recipient, subject, html })
+
+  return {
+    sent: inApp.inserted > 0 || emailResult.sent,
+    message: `in-app ${inApp.inserted}; email ${emailResult.message}`,
+  }
 }
