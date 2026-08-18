@@ -480,6 +480,7 @@ export default function NewCustomerSettingPage() {
 
       setAttachmentFiles((prev) => ({
         ...prev,
+        ...(classified.excel ? { intake_excel: classified.excel } : {}),
         ...(classified.br ? { br: classified.br } : {}),
         ...(classified.ci ? { ci: classified.ci } : {}),
         ...(classified.nar1 ? { nar1: classified.nar1 } : {}),
@@ -1040,9 +1041,42 @@ export default function NewCustomerSettingPage() {
                   auto-fill empty company details, registered address, and director contacts. Bank proof is
                   optional. /
                   必須上載 BR。CI、周年申報表及公司註冊處資料為可選；掃描後會自動填入下方空白的公司資料、註冊地址及董事聯絡人。銀行戶口證明為可選。
+                  Imported Excel and uploaded scans are stored with the application. /
+                  匯入的 Excel 及上載掃描件會隨申請一併保存。
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="space-y-3 rounded-lg border border-dashed p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-medium">Customer Excel (Parts 2–4) / 客戶問卷 Excel</div>
+                      <div className="text-sm text-muted-foreground">
+                        Saved with the application when imported or attached. /
+                        匯入或上載後會隨申請保存。
+                      </div>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        attachmentFiles.intake_excel
+                          ? "bg-green-100 text-green-800"
+                          : "bg-slate-100 text-slate-700"
+                      }`}
+                    >
+                      {attachmentFiles.intake_excel ? "Attached / 已附上" : "Not attached / 未附上"}
+                    </span>
+                  </div>
+                  <DocumentFileInput
+                    className="w-full max-w-md"
+                    accept=".xlsx,.xls"
+                    value={attachmentFiles.intake_excel || null}
+                    onChange={(file) =>
+                      setAttachmentFiles((prev) => ({
+                        ...prev,
+                        intake_excel: file,
+                      }))
+                    }
+                  />
+                </div>
                 {brDocument && (
                   <BrDocumentSlot
                     labelEn={brDocument.labelEn}

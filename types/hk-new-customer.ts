@@ -42,6 +42,7 @@ export type AttachmentDocumentType =
   | "cr_company_particulars"
   | "macau_commercial_registration"
   | "other"
+  | "intake_excel"
 
 export type AttachmentRecord = {
   id: string
@@ -262,6 +263,7 @@ export const OPTIONAL_ATTACHMENT_KEYS = [
   "cr_company_particulars",
   "macau_commercial_registration",
   "other",
+  "intake_excel",
 ] as const
 
 export function getAttachmentTypeLabel(documentType: string): string {
@@ -274,5 +276,8 @@ export function getAttachmentTypeLabel(documentType: string): string {
     return `${REGION_VERIFICATION_DOCUMENTS.macau.labelEn} / ${REGION_VERIFICATION_DOCUMENTS.macau.labelZh}`
   }
   if (documentType === "other") return "Other Supporting Document / 其他附件"
+  if (documentType === "intake_excel") {
+    return "Customer Excel (Parts 2–4) / 客戶問卷 Excel"
+  }
   return documentType
 }

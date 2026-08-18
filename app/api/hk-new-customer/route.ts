@@ -235,6 +235,7 @@ export async function POST(request: Request) {
       "cr_company_particulars",
       "macau_commercial_registration",
       "other",
+      "intake_excel",
     ] as const
     for (const documentType of attachmentTypes) {
       const file = formData.get(`attachment_${documentType}`)
