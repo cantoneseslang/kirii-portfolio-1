@@ -56,6 +56,7 @@ export type AttachmentRecord = {
 
 export type ApprovalStatus =
   | "pending_sales_manager"
+  /** Legacy only. Treated as pending GM. Finance is not in the live flow. */
   | "pending_finance"
   | "pending_gm"
   | "approved"

@@ -87,7 +87,6 @@ export default function NewCustomerWorkflowDevPage() {
             <p>Use your Supabase login, or these configured approver emails after login:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>Sales Manager: {HK_NEW_CUSTOMER_APPROVERS.sales_managers.map((p) => p.email).join(", ")}</li>
-              <li>Finance: {HK_NEW_CUSTOMER_APPROVERS.finance.map((p) => p.email).join(", ")}</li>
               <li>General Manager: {HK_NEW_CUSTOMER_APPROVERS.general_manager.map((p) => p.email).join(", ")}</li>
             </ul>
             <p className="text-muted-foreground">

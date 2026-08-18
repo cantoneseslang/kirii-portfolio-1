@@ -1,6 +1,6 @@
 import type { ApprovalStatus, HkNewCustomerRegistration } from "@/types/hk-new-customer"
 
-export type ApproverRole = "sales_manager" | "finance" | "general_manager"
+export type ApproverRole = "sales_manager" | "general_manager"
 
 export type ApproverContact = {
   name: string
@@ -14,7 +14,6 @@ export const HK_NEW_CUSTOMER_APPROVERS = {
     { name: "BillyLau", email: "billylau@kirii.com.hk" },
     { name: "Kami", email: "kami@kirii.com.hk" },
   ],
-  finance: [{ name: "Irene", email: "irenewu@kirii.com.hk" }],
   general_manager: [{ name: "Sakon", email: "hiroki.sakon@kirii.com.hk" }],
 } as const
 
@@ -61,9 +60,6 @@ export function getApproverRole(email: string): ApproverRole | null {
   if (HK_NEW_CUSTOMER_APPROVERS.sales_managers.some((person) => normalizeEmail(person.email) === normalized)) {
     return "sales_manager"
   }
-  if (HK_NEW_CUSTOMER_APPROVERS.finance.some((person) => normalizeEmail(person.email) === normalized)) {
-    return "finance"
-  }
   if (
     HK_NEW_CUSTOMER_APPROVERS.general_manager.some((person) => normalizeEmail(person.email) === normalized)
   ) {
@@ -76,7 +72,6 @@ export function getApproverName(email: string): string | null {
   const normalized = normalizeEmail(email)
   const all = [
     ...HK_NEW_CUSTOMER_APPROVERS.sales_managers,
-    ...HK_NEW_CUSTOMER_APPROVERS.finance,
     ...HK_NEW_CUSTOMER_APPROVERS.general_manager,
   ]
   return all.find((person) => normalizeEmail(person.email) === normalized)?.name || null
@@ -84,7 +79,6 @@ export function getApproverName(email: string): string | null {
 
 export function getPendingStatusForRole(role: ApproverRole): ApprovalStatus {
   if (role === "sales_manager") return "pending_sales_manager"
-  if (role === "finance") return "pending_finance"
   return "pending_gm"
 }
 
@@ -108,17 +102,21 @@ export function canApproveRegistration(
   return registration.approvalStatus === getPendingStatusForRole(role)
 }
 
-export function getNextApprovalStatus(current: ApprovalStatus): ApprovalStatus | "approved" {
-  if (current === "pending_sales_manager") return "pending_finance"
-  if (current === "pending_finance") return "pending_gm"
-  if (current === "pending_gm") return "approved"
+export function getNextApprovalStatus(
+  current: ApprovalStatus,
+  role?: ApproverRole | null,
+): ApprovalStatus | "approved" {
+  if (role === "general_manager") return "approved"
+  if (current === "pending_sales_manager") return "pending_gm"
+  if (current === "pending_finance" || current === "pending_gm") return "approved"
   return "approved"
 }
 
 export function getApproversForStatus(status: ApprovalStatus): ApproverContact[] {
   if (status === "pending_sales_manager") return [...HK_NEW_CUSTOMER_APPROVERS.sales_managers]
-  if (status === "pending_finance") return [...HK_NEW_CUSTOMER_APPROVERS.finance]
-  if (status === "pending_gm") return [...HK_NEW_CUSTOMER_APPROVERS.general_manager]
+  if (status === "pending_finance" || status === "pending_gm") {
+    return [...HK_NEW_CUSTOMER_APPROVERS.general_manager]
+  }
   return []
 }
 
@@ -127,7 +125,6 @@ export function getApprovalStatusLabel(status?: ApprovalStatus): string {
     case "pending_sales_manager":
       return "Pending Sales Manager / 待營業經理審批"
     case "pending_finance":
-      return "Pending Finance / 待財務審批"
     case "pending_gm":
       return "Pending General Manager / 待社長審批"
     case "approved":

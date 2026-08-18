@@ -20,7 +20,7 @@ export function NewCustomerApprovalPreview() {
         <CardContent className="space-y-1 text-sm text-muted-foreground">
           <p>All approvals are handled here inside KIRII Employee Portfolio — email is notification only.</p>
           <p>所有審批均在此 Portfolio 內完成，電郵僅作通知。</p>
-          <p>Sales Manager → Finance → General Manager</p>
+          <p>Sales Manager → General Manager (社長決裁)</p>
         </CardContent>
       </Card>
 

@@ -81,7 +81,10 @@ export async function POST(request: Request) {
       })
     }
 
-    const next = getNextApprovalStatus(registration.approvalStatus || "pending_sales_manager")
+    const next = getNextApprovalStatus(
+      registration.approvalStatus || "pending_sales_manager",
+      role,
+    )
     if (next === "approved") {
       registration.approvalStatus = "approved"
       registration.approvedAt = now

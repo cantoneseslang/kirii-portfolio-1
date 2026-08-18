@@ -143,7 +143,7 @@ export default function NewCustomerApprovalsPage() {
         <CardContent className="text-sm text-muted-foreground space-y-1">
           <p>All approvals are handled here inside KIRII Employee Portfolio — email is notification only.</p>
           <p>所有審批均在此 Portfolio 內完成，電郵僅作通知。</p>
-          <p>Sales Manager → Finance → General Manager</p>
+          <p>Sales Manager → General Manager (社長決裁)</p>
         </CardContent>
       </Card>
 
@@ -176,9 +176,8 @@ export default function NewCustomerApprovalsPage() {
               <CardTitle>Pending / 待審批</CardTitle>
               <CardDescription>
                 {approverRole === "sales_manager" && "Sales Manager / 營業經理"}
-                {approverRole === "finance" && "Finance / 財務"}
                 {approverRole === "general_manager" &&
-                  "General Manager / 社長 · all in-progress applications"}
+                  "General Manager / 社長 · 社長決裁"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -209,7 +208,8 @@ export default function NewCustomerApprovalsPage() {
             <CardHeader>
               <CardTitle>Review / 審批詳情</CardTitle>
               <CardDescription>
-                Approve to forward to the next step. Reject to return to the submitter.
+                Sales Manager sends to GM. GM approval completes the application. Reject returns it to the submitter. /
+                營業經理批准後交社長。社長批准即完成。拒絕則退回申請人。
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -285,6 +285,7 @@ export default function NewCustomerApprovalsPage() {
                         {(() => {
                           const next = getNextApprovalStatus(
                             selectedRecord.approvalStatus || "pending_sales_manager",
+                            approverRole,
                           )
                           if (next === "approved") {
                             return "Approve to complete registration. / 批准後完成登記。"

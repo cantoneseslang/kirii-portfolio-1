@@ -27,7 +27,7 @@ function submissionStatusLabelZh(status: ApprovalStatus): string {
     case "pending_sales_manager":
       return "審批中（待營業經理）"
     case "pending_finance":
-      return "審批中（待財務）"
+      return "審批中（待社長）"
     case "pending_gm":
       return "審批中（待社長）"
     case "approved":
