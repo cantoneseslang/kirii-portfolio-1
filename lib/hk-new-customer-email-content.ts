@@ -3,7 +3,15 @@ import {
   getApprovalStatusLabel,
   getPortfolioLoginUrl,
 } from "@/lib/hk-new-customer-approval"
+import {
+  getCustomerRecordArchiveUrl,
+  getCustomerRecordFolderUrl,
+} from "@/lib/hk-new-customer-customer-records"
 import { formatWorkRulesHtml } from "@/lib/hk-new-customer-work-rules"
+
+function systemSignature(): string {
+  return `<p>KIRII AI Portfolio</p>`
+}
 
 function registrationSummary(registration: HkNewCustomerRegistration): string {
   return `
@@ -88,25 +96,35 @@ export function buildApproverNotificationEmail(registration: HkNewCustomerRegist
 }
 
 export function buildSubmitterApprovedEmail(registration: HkNewCustomerRegistration) {
-  const docLink = registration.completedFormUrl
-    ? `<p>Download the completed Word form from <strong>NewCustomer Setting → Search</strong> in Portfolio, or use this file link:<br/>
-      <a href="${registration.completedFormUrl}">${registration.completedFormFileName || "Completed Word Form"}</a></p>`
-    : ""
+  const folderUrl = getCustomerRecordFolderUrl(registration.companyNameEn, registration.brNumber)
+  const archiveUrl = getCustomerRecordArchiveUrl()
+  const loginUrl = getPortfolioLoginUrl()
+  const fileItems = [
+    ...(registration.attachments || []).map(
+      (attachment) => `<li>${attachment.documentType}: ${attachment.fileName}</li>`,
+    ),
+    registration.completedFormFileName
+      ? `<li>Completed application form: ${registration.completedFormFileName}</li>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("")
 
   return {
-    subject: `[New Customer Approved] ${registration.companyNameEn}`,
+    subject: `[New Customer Approved] ${registration.companyNameEn} — files saved in ISO archive`,
     html: `
-      <h3>New Customer Registration Approved / 新客戶登記已完成審批</h3>
-      <p>Your new customer registration has been fully approved by the General Manager.</p>
-      ${registrationSummary(registration)}
-      ${docLink}
-      <p>Open <strong>NewCustomer Setting / 新客戶登記</strong> in KIRII Employee Portfolio to view the record and download documents.</p>
-      <ol>
-        <li>Log in at <a href="${getPortfolioLoginUrl()}">KIRII Employee Portfolio</a> / 登入 Portfolio</li>
-        <li>Open <strong>NewCustomer Setting / 新客戶登記</strong> from the Dashboard sidebar / 從 Dashboard 側欄進入</li>
-        <li>Use the Search tab to find this registration and download the completed form / 使用「Search」分頁查找記錄並下載表格</li>
-      </ol>
-      ${formatWorkRulesHtml()}
+      <p>The new customer application for <strong>${registration.companyNameEn}</strong>${
+        registration.companyNameZh ? ` / ${registration.companyNameZh}` : ""
+      } (BR: ${registration.brNumber}) has been approved by the General Manager.</p>
+      <p>The files are now stored in KIRII Employee Portfolio:</p>
+      <p><strong>Department: ISO → Customer Registration Record / 客戶登記紀錄</strong></p>
+      <p>Customer folder:<br/><a href="${folderUrl}">${folderUrl}</a></p>
+      <p>All customer folders:<br/><a href="${archiveUrl}">${archiveUrl}</a></p>
+      <p>Login:<br/><a href="${loginUrl}">${loginUrl}</a></p>
+      ${fileItems ? `<p>Current files in this folder:</p><ul>${fileItems}</ul>` : ""}
+      <p>This ISO folder is the official record. Do not treat email or desktop copies as the official file.</p>
+      <p>If bank details, company particulars, or documents need to be changed later, do not edit the approved record. Re-apply promptly with the updated Excel and supporting files, using the same BR number.</p>
+      ${systemSignature()}
     `,
   }
 }

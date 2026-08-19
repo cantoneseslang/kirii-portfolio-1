@@ -1,6 +1,7 @@
 import { list, put } from "@vercel/blob"
 import type { HkNewCustomerRegistration } from "@/types/hk-new-customer"
 import { getAttachmentTypeLabel } from "@/types/hk-new-customer"
+import { getSiteBaseUrl } from "@/lib/hk-new-customer-approval"
 import { getIndex, getRegistration, safeFilename } from "@/lib/hk-new-customer-storage"
 
 export const CUSTOMER_RECORD_PREFIX = "hk-new-customer/customer-records"
@@ -36,6 +37,19 @@ export function customerRecordFolderName(companyNameEn: string, brNumber: string
   const company = safeFilename(companyNameEn || "customer").replace(/_+/g, "_").replace(/^_|_$/g, "")
   const br = safeFilename(brNumber || "no-br")
   return `${company}_${br}`
+}
+
+export function getCustomerRecordArchivePath(folder?: string): string {
+  const base = "/dashboard/customer-registration-records"
+  return folder ? `${base}?folder=${encodeURIComponent(folder)}` : base
+}
+
+export function getCustomerRecordArchiveUrl(folder?: string): string {
+  return `${getSiteBaseUrl()}${getCustomerRecordArchivePath(folder)}`
+}
+
+export function getCustomerRecordFolderUrl(companyNameEn: string, brNumber: string): string {
+  return getCustomerRecordArchiveUrl(customerRecordFolderName(companyNameEn, brNumber))
 }
 
 function freshBlobUrl(url: string): string {

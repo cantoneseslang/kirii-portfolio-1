@@ -150,7 +150,7 @@ export async function notifySubmitterApproved(
     title,
     body,
     kind: "submitter-approved",
-    decidedByName: decidedBy?.name,
+    decidedByName: "KIRII AI Portfolio",
     decidedByEmail: decidedBy?.email,
   })
   const { subject, html } = buildSubmitterApprovedEmail(registration)
