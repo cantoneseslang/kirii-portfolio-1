@@ -32,6 +32,7 @@ import SalespersonCalendarCard from "@/components/salesperson-calendar-card";
 import SteelPriceChartCard from "@/components/steel-price-chart-card";
 import AluminumPriceChartCard from "@/components/aluminum-price-chart-card";
 import FormMasterCard from "@/components/form-master-card";
+import CustomerRegistrationRecordCard from "@/components/customer-registration-record-card";
 import HkdRmbRateCard from "@/components/hkd-rmb-rate-card";
 import NewCustomerSettingCard from "@/components/new-customer-setting-card";
 import NewCustomerApprovalsCard from "@/components/new-customer-approvals-card";
@@ -353,13 +354,21 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {hasCardPermission(profile, "form_master") && (
+        {(hasCardPermission(profile, "form_master") ||
+          hasCardPermission(profile, "customer_registration_record")) && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-4">Department: ISO</h3>
-            <div className={DASHBOARD_CARD_GRID_SINGLE}>
-              <TrackedCardShell cardKey="form_master">
-                <FormMasterCard />
-              </TrackedCardShell>
+            <div className={DASHBOARD_CARD_GRID}>
+              {hasCardPermission(profile, "form_master") && (
+                <TrackedCardShell cardKey="form_master">
+                  <FormMasterCard />
+                </TrackedCardShell>
+              )}
+              {hasCardPermission(profile, "customer_registration_record") && (
+                <TrackedCardShell cardKey="customer_registration_record">
+                  <CustomerRegistrationRecordCard />
+                </TrackedCardShell>
+              )}
             </div>
             <div className="text-[#3c3852] text-sm mt-1 ml-1">
               <p>ISO-9001:2015(Certificate No.CC1420)</p>

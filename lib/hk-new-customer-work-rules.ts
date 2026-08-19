@@ -1,5 +1,5 @@
 export const NEW_CUSTOMER_ARCHIVE_PATH =
-  "KIRII Employee Portfolio → NewCustomer Setting → Search / 新客戶登記 → Search"
+  "KIRII Employee Portfolio → Department: ISO → 客戶登記紀錄 / Customer Registration Record"
 
 export type NewCustomerWorkRule = {
   titleEn: string
@@ -13,17 +13,17 @@ export const NEW_CUSTOMER_WORK_RULES: NewCustomerWorkRule[] = [
     titleEn: "Official file location",
     titleZh: "正式資料保存位置",
     bodyEn:
-      "Approved Excel, scans (BR / CI / NAR1 / bank proof / images / PDFs), and the completed Word form are stored with the application in Portfolio. Open NewCustomer Setting → Search, then search by company name or BR number. Do not treat email or a desktop copy as the official file.",
+      "Approved Excel, scans (BR / CI / NAR1 / bank proof / images / PDFs), and the completed Word form are stored in the customer folder under Department: ISO → Customer Registration Record. Open the customer-name folder. Do not treat email or a desktop copy as the official file.",
     bodyZh:
-      "已核准的 Excel、掃描件（BR / CI / NAR1 / 銀行證明 / 圖片 / PDF）及完成的 Word 表格，一律保存在該申請紀錄內。請打開 NewCustomer Setting → Search，以公司名稱或商業登記號碼搜尋。電郵或桌面副本不是正式存檔。",
+      "已核准的 Excel、掃描件（BR / CI / NAR1 / 銀行證明 / 圖片 / PDF）及完成的 Word 表格，保存在 Department: ISO → 客戶登記紀錄 的顧客資料夾內。請打開該公司名稱資料夾。電郵或桌面副本不是正式存檔。",
   },
   {
     titleEn: "How to find a record later",
     titleZh: "日後如何查找",
     bodyEn:
-      "Dashboard → NewCustomer Setting → Search. Enter the company name or BR number. Open the record to download attachments and the Word form.",
+      "Dashboard → Department: ISO → Customer Registration Record. Open the customer folder to download Excel, scans, and the Word form.",
     bodyZh:
-      "Dashboard → NewCustomer Setting → Search。輸入公司名稱或商業登記號碼，打開紀錄後即可下載附件及 Word 表格。",
+      "Dashboard → Department: ISO → 客戶登記紀錄。打開該客戶資料夾即可下載 Excel、掃描件及 Word 表格。",
   },
   {
     titleEn: "Payment issues or registration changes",

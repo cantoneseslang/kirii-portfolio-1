@@ -21,6 +21,7 @@ export type CardPermissionKey =
   | "mill_certification"
   | "supplier_info"
   | "form_master"
+  | "customer_registration_record"
 
 export type CardPermissionSection =
   | "all"
@@ -83,6 +84,12 @@ export const CARD_PERMISSIONS: CardPermissionDefinition[] = [
   },
   { key: "supplier_info", label: "Supplier Info", section: "purchasing" },
   { key: "form_master", label: "Form Master (ISO)", section: "admin" },
+  {
+    key: "customer_registration_record",
+    label: "Customer Registration Record",
+    labelZh: "客戶登記紀錄",
+    section: "admin",
+  },
 ]
 
 export const DEPARTMENT_PERMISSION_KEYS = [

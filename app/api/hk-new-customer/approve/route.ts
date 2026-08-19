@@ -14,6 +14,7 @@ import {
   notifySubmitterApproved,
   notifySubmitterRejected,
 } from "@/lib/hk-new-customer-approval-notify"
+import { syncCustomerRecordFolder } from "@/lib/hk-new-customer-customer-records"
 import {
   getRegistration,
   saveRegistration,
@@ -109,6 +110,11 @@ export async function POST(request: Request) {
       }
 
       await saveRegistration(registration)
+      try {
+        await syncCustomerRecordFolder(registration)
+      } catch (archiveError) {
+        console.error("Failed to archive customer record folder:", archiveError)
+      }
       await notifySubmitterApproved(registration, {
         name: approverName,
         email: approverEmail,

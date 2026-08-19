@@ -34,6 +34,10 @@ const navItems = [
     href: "/dashboard/new-customer-setting/approvals",
     approverOnly: true,
   },
+  {
+    title: "Customer Registration Record",
+    href: "/dashboard/customer-registration-records",
+  },
 ]
 
 export default function DashboardLayout({
