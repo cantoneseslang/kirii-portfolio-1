@@ -45,7 +45,7 @@ import { trackPageView } from "@/lib/track-activity";
 import { TrackedCardShell } from "@/components/tracked-card-shell";
 
 const DASHBOARD_NEWS_TICKER =
-  "15-04-2026 追加Foodpanda 追加午餐內容 ・ 09-06-2026 NewCustomer Setting 新客戶登記 ・ 11-06-2026 Update Lunch Order System 更新午餐訂購系統";
+  "17-08-2026 Inventory Summary 製品庫存盤點表 ・ 17-08-2026 Auto-save shipping status 出貨自動監控紀錄 ・ 17-08-2026 Department warehouse 倉庫部門 ・ 19-08-2026 Manufacturing Order 生產依頼書 ・ 19-08-2026 MaterialStock 原材料庫存 ・ 19-08-2026 Mill Certification 原材料質量證明書 ・ 19-08-2026 Customer Registration Record 客戶登記紀錄";
 
 const DASHBOARD_CARD_GRID = "grid grid-cols-1 md:grid-cols-[repeat(2,420px)] gap-6"
 const DASHBOARD_CARD_GRID_SINGLE = "grid grid-cols-1 md:grid-cols-[420px] gap-6"
