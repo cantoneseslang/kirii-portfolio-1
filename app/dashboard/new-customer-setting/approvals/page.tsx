@@ -42,6 +42,7 @@ export default function NewCustomerApprovalsPage() {
     try {
       const response = await fetch(
         `/api/hk-new-customer/pending?email=${encodeURIComponent(user.email)}`,
+        { cache: "no-store" },
       )
       const result = await response.json()
       if (!response.ok || !result.success) {
@@ -59,7 +60,9 @@ export default function NewCustomerApprovalsPage() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/hk-new-customer?id=${encodeURIComponent(id)}`)
+      const response = await fetch(`/api/hk-new-customer?id=${encodeURIComponent(id)}`, {
+        cache: "no-store",
+      })
       const result = await response.json()
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Failed to load registration")
@@ -108,9 +111,11 @@ export default function NewCustomerApprovalsPage() {
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Failed to process approval")
       }
+      const updated = result.data as HkNewCustomerRegistration
       setMessage(result.message)
       setComment("")
-      setSelectedRecord(null)
+      setPendingItems((current) => current.filter((item) => item.id !== updated.id))
+      setSelectedRecord(updated)
       await loadPending()
     } catch (decisionError) {
       setError(decisionError instanceof Error ? decisionError.message : "Failed to process approval")

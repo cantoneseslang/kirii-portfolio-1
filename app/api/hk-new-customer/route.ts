@@ -24,6 +24,7 @@ import {
 import { normalizeSalesForecast, validateSalesForecastForSubmit } from "@/lib/hk-new-customer-sales-forecast"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 function parseJsonField<T>(value: FormDataEntryValue | null, fallback: T): T {
   if (typeof value !== "string" || !value) return fallback
@@ -94,12 +95,18 @@ export async function GET(request: Request) {
       if (!registration) {
         return NextResponse.json({ success: false, message: "Registration not found" }, { status: 404 })
       }
-      return NextResponse.json({ success: true, data: registration })
+      return NextResponse.json(
+        { success: true, data: registration },
+        { headers: { "Cache-Control": "no-store, max-age=0" } },
+      )
     }
 
     const index = await getIndex()
     const results = searchRegistrations(index, query)
-    return NextResponse.json({ success: true, data: results, total: results.length })
+    return NextResponse.json(
+      { success: true, data: results, total: results.length },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
+    )
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load registrations"
     return NextResponse.json({ success: false, message }, { status: 500 })

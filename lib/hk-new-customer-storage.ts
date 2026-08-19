@@ -5,7 +5,17 @@ import type {
   HkNewCustomerIndexItem,
   HkNewCustomerRegistration,
 } from "@/types/hk-new-customer"
-import { getApproverRole, getPendingStatusForRole } from "@/lib/hk-new-customer-approval"
+import {
+  getApproverRole,
+  getPendingStatusForRole,
+  isPendingApprovalStatus,
+} from "@/lib/hk-new-customer-approval"
+
+function freshBlobUrl(url: string): string {
+  const next = new URL(url)
+  next.searchParams.set("t", String(Date.now()))
+  return next.toString()
+}
 
 export const INDEX_PATH = "hk-new-customer/index.json"
 export const REGISTRATION_PREFIX = "hk-new-customer/registrations"
@@ -27,7 +37,7 @@ export async function getIndex(): Promise<HkNewCustomerIndex> {
     return { updatedAt: new Date().toISOString(), items: [] }
   }
 
-  const response = await fetch(latest.url, { cache: "no-store" })
+  const response = await fetch(freshBlobUrl(latest.url), { cache: "no-store" })
   if (!response.ok) {
     return { updatedAt: new Date().toISOString(), items: [] }
   }
@@ -88,7 +98,7 @@ export async function getRegistration(
   const blob = result.blobs[0]
   if (!blob?.url) return null
 
-  const response = await fetch(blob.url, { cache: "no-store" })
+  const response = await fetch(freshBlobUrl(blob.url), { cache: "no-store" })
   if (!response.ok) return null
   return (await response.json()) as HkNewCustomerRegistration
 }
@@ -138,7 +148,10 @@ export async function listPendingApprovalsForEmail(email: string): Promise<HkNew
   const registrations = await Promise.all(
     candidates.map((item) => getRegistration(item.id)),
   )
-  return registrations.filter((item): item is HkNewCustomerRegistration => Boolean(item))
+  return registrations.filter(
+    (item): item is HkNewCustomerRegistration =>
+      Boolean(item) && isPendingApprovalStatus(item.approvalStatus),
+  )
 }
 
 export async function listSubmissionsForEmail(email: string): Promise<HkNewCustomerIndexItem[]> {

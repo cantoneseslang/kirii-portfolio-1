@@ -841,7 +841,9 @@ export default function NewCustomerSettingPage() {
     try {
       const params = new URLSearchParams()
       if (query.trim()) params.set("q", query.trim())
-      const response = await fetch(`/api/hk-new-customer?${params.toString()}`)
+      const response = await fetch(`/api/hk-new-customer?${params.toString()}`, {
+        cache: "no-store",
+      })
       const result = await response.json()
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Search failed")
@@ -858,7 +860,9 @@ export default function NewCustomerSettingPage() {
     setSearchLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/hk-new-customer?id=${encodeURIComponent(id)}`)
+      const response = await fetch(`/api/hk-new-customer?id=${encodeURIComponent(id)}`, {
+        cache: "no-store",
+      })
       const result = await response.json()
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Failed to load record")

@@ -20,6 +20,7 @@ export default function NewCustomerApprovalsCard() {
       try {
         const response = await fetch(
           `/api/hk-new-customer/pending?email=${encodeURIComponent(user.email!)}`,
+          { cache: "no-store" },
         )
         const result = await response.json()
         if (!cancelled && response.ok && result.success) {
