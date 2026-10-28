@@ -18,6 +18,7 @@ import { Footer } from "@/components/footer"
 import GanttChartWBSCard from "@/components/gantt-chart-wbs-card"
 import QRScanCard from "@/components/qr-scan-card";
 import KHK_AI_MONITOR_Card from "@/components/khk-ai-monitor-card";
+import KssLogisticsCard from "@/components/kss-logistics-card";
 import CompanyInfoCard from "@/components/company-info-card";
 import ProductManualCard from "@/components/product-manual-card";
 import PQFormCard from "@/components/pq-form-card";
@@ -233,6 +234,11 @@ export default function DashboardPage() {
             {hasCardPermission(profile, "khk_ai_monitor") && (
               <TrackedCardShell cardKey="khk_ai_monitor">
                 <KHK_AI_MONITOR_Card />
+              </TrackedCardShell>
+            )}
+            {hasCardPermission(profile, "kss_logistics") && (
+              <TrackedCardShell cardKey="kss_logistics">
+                <KssLogisticsCard />
               </TrackedCardShell>
             )}
           </div>

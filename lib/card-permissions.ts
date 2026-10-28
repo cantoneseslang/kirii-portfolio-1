@@ -5,6 +5,7 @@ export type CardPermissionKey =
   | "lunch_order_sheet"
   | "qr_scan"
   | "khk_ai_monitor"
+  | "kss_logistics"
   | "salesperson_calendar"
   | "sales_amount"
   | "gantt_wbs"
@@ -43,6 +44,7 @@ export const CARD_PERMISSIONS: CardPermissionDefinition[] = [
   { key: "lunch_order_sheet", label: "Lunch Order Sheet", labelZh: "午餐統計表", section: "all" },
   { key: "qr_scan", label: "QR Scan", labelZh: "QR掃描", section: "all" },
   { key: "khk_ai_monitor", label: "KHK AI Monitor", section: "all" },
+  { key: "kss_logistics", label: "KSS Logistics", labelZh: "KSS物流", section: "all" },
   { key: "salesperson_calendar", label: "Salesperson Calendar", labelZh: "業務員月曆", section: "sales" },
   { key: "sales_amount", label: "Sales Amount Management", labelZh: "銷售金額統計表", section: "sales" },
   { key: "gantt_wbs", label: "Gantt Chart & WBS", labelZh: "銷售進度管理", section: "sales" },
