@@ -46,7 +46,7 @@ import { trackPageView } from "@/lib/track-activity";
 import { TrackedCardShell } from "@/components/tracked-card-shell";
 
 const DASHBOARD_NEWS_TICKER =
-  "新規追加 KSS物流卡 可參閱KHK↔︎KSS運輸時間及貨物內容";
+  "2026/10/28 新追加 KSS物流卡 可參閱KHK↔︎KSS運輸時間及貨物內容";
 
 const DASHBOARD_CARD_GRID = "grid grid-cols-1 md:grid-cols-[repeat(2,420px)] gap-6"
 const DASHBOARD_CARD_GRID_SINGLE = "grid grid-cols-1 md:grid-cols-[420px] gap-6"
