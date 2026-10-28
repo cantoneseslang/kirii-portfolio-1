@@ -1,12 +1,16 @@
 "use client"
 
 import React from "react"
+import { NewFeatureBadge } from "@/components/new-feature-badge"
 
 const KssLogisticsCard = () => {
   return (
     <a href="/kss-logistics" className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">KSS Logistics</h3>
+        <h3 className="flex flex-wrap items-center gap-2 text-xl font-bold transition-colors">
+          <span className="hover:text-[#02315a] hover:underline">KSS Logistics</span>
+          <NewFeatureBadge />
+        </h3>
         <p className="text-[#3c3852] text-sm mt-4">KSS物流</p>
 
         <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">

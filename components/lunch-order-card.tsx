@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import { NewFeatureBadge } from "@/components/new-feature-badge"
 import { getLunchOrderApiBaseUrl, resolveLunchMemberId } from "@/lib/lunch-member"
 
 type LunchOrderCardProps = {
@@ -14,17 +13,14 @@ const LunchOrderCard = ({ fullName, email }: LunchOrderCardProps) => {
   params.set("source", "kirii-portfolio")
   if (fullName) params.set("full_name", fullName)
   if (email) params.set("email", email)
-  const memberId = resolveLunchMemberId(fullName)
+  const memberId = resolveLunchMemberId(fullName, email)
   if (memberId) params.set("member_id", memberId)
   const lunchOrderUrl = `${getLunchOrderApiBaseUrl()}/?${params.toString()}`
 
   return (
-    <a href={lunchOrderUrl} target="_blank" rel="noopener" className="block w-full">
+    <a href={lunchOrderUrl} className="block w-full">
       <div className="w-full md:w-[420px] relative p-4 rounded-xl bg-[#f1f1f3] shadow-sm cursor-pointer transition-all hover:shadow-md">
-        <h3 className="flex flex-wrap items-center gap-2 text-xl font-bold transition-colors">
-          <span className="hover:text-[#02315a] hover:underline">Lunch Order System</span>
-          <NewFeatureBadge />
-        </h3>
+        <h3 className="text-xl font-bold hover:text-[#02315a] hover:underline transition-colors">Lunch Order System</h3>
         <p className="text-[#3c3852] text-sm mt-4">午餐訂購系統</p>
         
         <div className="absolute bottom-0 right-0 bg-[#02315a] p-1.5 rounded-tl-xl rounded-br-xl flex items-center justify-center transition-colors hover:bg-[#02315a] group">
