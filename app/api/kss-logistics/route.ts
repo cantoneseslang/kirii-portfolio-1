@@ -1,4 +1,3 @@
-import "@/lib/qb-emudhra-guard.cjs"
 import { NextResponse } from "next/server"
 import { requireCardAccessApi } from "@/lib/portfolio-access"
 
