@@ -46,6 +46,26 @@ function visibleColumnIndexes(headers: string[]) {
   return headers.map((_, index) => index)
 }
 
+function headerKey(name: string) {
+  return String(name || "").replace(/\s+/g, "").trim().toLowerCase()
+}
+
+function isCodeHeader(name: string) {
+  const key = headerKey(name)
+  return key === "cscode" || key === "code" || key === "コード"
+}
+
+function isCustomerHeader(name: string) {
+  const key = headerKey(name)
+  return key === "客户略称" || key === "客戶略稱" || key === "客户" || key === "客戶" || key === "会社名"
+}
+
+function missingCustomerCode(headers: string[], row: string[], columnIndex: number) {
+  if (!isCodeHeader(headers[columnIndex] || "")) return false
+  if (String(row[columnIndex] ?? "").trim()) return false
+  return headers.some((header, index) => isCustomerHeader(header) && String(row[index] ?? "").trim())
+}
+
 export function KssLogisticsView() {
   const [headers, setHeaders] = useState<string[]>([])
   const [rows, setRows] = useState<string[][]>([])
@@ -135,14 +155,21 @@ export function KssLogisticsView() {
             <tbody>
               {rows.map((row, rowIndex) => (
                 <tr key={rowIndex} className={rowIndex % 2 === 1 ? "bg-[#f7f7f8]" : "bg-white"}>
-                  {columns.map((index) => (
-                    <td
-                      key={index}
-                      className="border border-gray-200 px-2 py-1.5 text-left whitespace-nowrap"
-                    >
-                      {row[index] || ""}
-                    </td>
-                  ))}
+                  {columns.map((index) => {
+                    const missingCode = missingCustomerCode(headers, row, index)
+                    return (
+                      <td
+                        key={index}
+                        className={`border px-2 py-1.5 text-left whitespace-nowrap ${
+                          missingCode
+                            ? "border-red-600 shadow-[inset_0_0_0_2px_#dc2626]"
+                            : "border-gray-200"
+                        }`}
+                      >
+                        {row[index] || ""}
+                      </td>
+                    )
+                  })}
                 </tr>
               ))}
             </tbody>
