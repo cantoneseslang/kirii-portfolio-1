@@ -1,11 +1,10 @@
 "use client"
 
 import React from "react"
-import { getLunchOrderApiBaseUrl } from "@/lib/lunch-member"
 
 /** Lunch order monthly stats — finished-goods TakeStock lives under Factory-ERP Inventory Summary. */
 const LunchOrderSheetCard = () => {
-  const href = `${getLunchOrderApiBaseUrl()}/monthly-summary`
+  const href = "/api/lunch-order/open?to=sheet"
 
   return (
     <a href={href} target="_blank" rel="noopener" className="block w-full">
